@@ -1,0 +1,30 @@
+# Cargo / Rust
+/target/
+**/*.rs.bk
+
+# Keep lockfile for reproducible builds
+# Cargo.lock is committed for the binary workspace
+
+# Node / frontend
+web/node_modules/
+web/dist/
+web/.vite/
+*.local
+
+# Embedded UI is synced from web/dist by scripts/build.*
+# Keep a committed fallback under crates/vivoflow/static
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
