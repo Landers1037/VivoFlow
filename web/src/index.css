@@ -85,6 +85,9 @@
   --surface-blur: 0px;
   --surface-padding: 1rem;
   --shell-gap: 0.75rem;
+  /* iOS-like widget units: 1x base, 2x = two tiles + gap */
+  --vf-widget-1x: 11.5rem;
+  --vf-widget-2x: calc(var(--vf-widget-1x) * 2 + var(--shell-gap));
   --shell-bg: radial-gradient(ellipse at top, color-mix(in oklch, var(--accent) 40%, transparent), var(--background) 55%, var(--background));
   --chart-stroke-width: 1.5;
   --chart-fill-opacity: 0.45;
@@ -617,6 +620,33 @@ body {
 
 .vf-grid {
   gap: var(--shell-gap);
+}
+
+/* Fixed-height dashboard widgets (1x / 2x), content fills via flex */
+.vf-widget-1x,
+.vf-widget-2x {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.vf-widget-1x {
+  height: var(--vf-widget-1x);
+  min-height: var(--vf-widget-1x);
+  max-height: var(--vf-widget-1x);
+}
+
+.vf-widget-2x {
+  height: var(--vf-widget-2x);
+  min-height: var(--vf-widget-2x);
+  max-height: var(--vf-widget-2x);
+}
+
+.vf-widget-body {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
 }
 
 html[data-ui-style="line"] .vf-surface,

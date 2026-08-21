@@ -28,3 +28,5 @@
 | `RoundedTreemap` | Amicro Tile Treemap：圆角灰黑瓦片，占比越大越浅 |
 
 按 `ui_style` 微调：曲线类型（monotone / linear / step）、描边色（主题色或 mono）、填充透明度、圆角。`theme: "dark" | "light"` 仍用于 mono 对比色。动画默认关闭（`isAnimationActive={false}`）。
+
+高度：组件接受可选 `tile?: 1 | 2`，对应 CSS `.vf-widget-1x` / `.vf-widget-2x`（见 [`index.css`](../../web/src/index.css)）。图表区用 `.vf-widget-body` 弹性填满，避免内容撑破网格。

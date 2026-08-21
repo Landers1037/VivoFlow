@@ -84,12 +84,17 @@ function chartFill(style: UiStyle, c: ReturnType<typeof mono>): string {
   return c.fill;
 }
 
+function tileClass(tile: 1 | 2 = 1, className?: string) {
+  return cn(tile === 2 ? "vf-widget-2x" : "vf-widget-1x", className);
+}
+
 export function KpiCard({
   title,
   value,
   subtitle,
   data,
   theme = "dark",
+  tile = 1,
   className,
 }: {
   title: string;
@@ -97,6 +102,7 @@ export function KpiCard({
   subtitle?: string;
   data: { v: number }[];
   theme?: Theme;
+  tile?: 1 | 2;
   className?: string;
 }) {
   const style = useUiStyle();
@@ -107,26 +113,28 @@ export function KpiCard({
   const gid = `kpi-${title.replace(/\s+/g, "-")}`;
 
   return (
-    <div className={cn("vf-kpi flex flex-col overflow-hidden", className)}>
-      <div className="mb-2 flex items-start justify-between gap-2">
-        <div>
+    <div className={cn("vf-kpi overflow-hidden", tileClass(tile, className))}>
+      <div className="mb-1.5 flex shrink-0 items-start justify-between gap-2">
+        <div className="min-w-0">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{title}</p>
           <p
-            className="vf-data mt-1 text-2xl font-semibold tracking-tight"
+            className="vf-data mt-0.5 text-2xl font-semibold tracking-tight"
             style={{ color: usesPrimaryStroke(style) ? undefined : c.text }}
           >
             {value}
           </p>
-          {subtitle ? <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p> : null}
+          {subtitle ? (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
+          ) : null}
         </div>
         <span
-          className="bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+          className="shrink-0 bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
           style={{ borderRadius: "var(--kpi-badge-radius)" }}
         >
           KPI
         </span>
       </div>
-      <div className="h-14 w-full">
+      <div className="vf-widget-body">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data.length ? data : [{ v: 0 }]}>
             <defs>
@@ -157,23 +165,29 @@ export function SparklineRow({
   value,
   data,
   theme = "dark",
+  tile = 1,
+  className,
 }: {
   name: string;
   value: string;
   data: { x: number; y: number }[];
   theme?: Theme;
+  tile?: 1 | 2;
+  className?: string;
 }) {
   const style = useUiStyle();
   const c = mono(theme);
   const stroke = chartStroke(style, c);
 
   return (
-    <div className="vf-row flex items-center gap-3 px-3 py-2">
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-xs text-muted-foreground">{name}</p>
-        <p className="vf-data text-sm font-medium">{value}</p>
+    <div className={cn("vf-surface overflow-hidden", tileClass(tile, className))}>
+      <div className="mb-1 shrink-0">
+        <p className="truncate text-xs uppercase tracking-wide text-muted-foreground">
+          {name}
+        </p>
+        <p className="vf-data mt-0.5 text-xl font-semibold tracking-tight">{value}</p>
       </div>
-      <div className="h-10 w-24 shrink-0">
+      <div className="vf-widget-body">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data.length ? data : [{ x: 0, y: 0 }]}>
             <Line
@@ -196,12 +210,14 @@ export function GaugeArc({
   value,
   display,
   theme = "dark",
+  tile = 1,
   className,
 }: {
   label: string;
   value: number;
   display: string;
   theme?: Theme;
+  tile?: 1 | 2;
   className?: string;
 }) {
   const style = useUiStyle();
@@ -213,9 +229,16 @@ export function GaugeArc({
     { name: "Rest", value: 100 - clamped },
   ];
   return (
-    <div className={cn("vf-kpi relative flex flex-col items-center overflow-hidden", className)}>
-      <p className="mb-1 self-start text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-      <div className="relative h-36 w-full">
+    <div
+      className={cn(
+        "vf-kpi relative items-center overflow-hidden",
+        tileClass(tile, className),
+      )}
+    >
+      <p className="mb-1 w-full shrink-0 self-start text-xs uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <div className="vf-widget-body relative">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -236,7 +259,7 @@ export function GaugeArc({
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pt-4">
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pt-3">
           <span className="vf-data text-2xl font-semibold tracking-tight">{display}</span>
         </div>
       </div>
@@ -248,11 +271,13 @@ export function AreaTrend({
   title,
   data,
   theme = "dark",
+  tile = 2,
   className,
 }: {
   title: string;
   data: { t: number; v: number }[];
   theme?: Theme;
+  tile?: 1 | 2;
   className?: string;
 }) {
   const style = useUiStyle();
@@ -263,9 +288,11 @@ export function AreaTrend({
   const gid = `trend-${title.replace(/\s+/g, "-")}`;
 
   return (
-    <div className={cn("vf-surface", className)}>
-      <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">{title}</p>
-      <div className="h-28 w-full">
+    <div className={cn("vf-surface overflow-hidden", tileClass(tile, className))}>
+      <p className="mb-1.5 shrink-0 text-xs uppercase tracking-wide text-muted-foreground">
+        {title}
+      </p>
+      <div className="vf-widget-body">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data.length ? data : [{ t: 0, v: 0 }]}>
             <defs>
@@ -303,12 +330,14 @@ export function RoundedBullet({
   items,
   domainMax = 100,
   theme = "dark",
+  tile = 1,
   className,
 }: {
   title: string;
   items: { label: string; value: number; target?: number }[];
   domainMax?: number;
   theme?: Theme;
+  tile?: 1 | 2;
   className?: string;
 }) {
   const style = useUiStyle();
@@ -318,9 +347,11 @@ export function RoundedBullet({
   const max = Math.max(domainMax, ...items.map((i) => Math.max(i.value, i.target ?? 0)), 1);
 
   return (
-    <div className={cn("vf-surface space-y-3", className)}>
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{title}</p>
-      <div className="space-y-3">
+    <div className={cn("vf-surface overflow-hidden", tileClass(tile, className))}>
+      <p className="mb-1 shrink-0 text-xs uppercase tracking-wide text-muted-foreground">
+        {title}
+      </p>
+      <div className="vf-widget-body flex flex-col justify-evenly gap-1.5">
         {items.map((item) => {
           const pct = Math.max(0, Math.min(100, (item.value / max) * 100));
           const targetPct =
@@ -337,7 +368,7 @@ export function RoundedBullet({
                 </span>
               </div>
               <div
-                className="relative h-3 w-full overflow-hidden"
+                className="relative h-2.5 w-full overflow-hidden"
                 style={{
                   background: track,
                   borderRadius: style === "line" || style === "swiss" || style === "hud" ? 0 : 999,
@@ -354,7 +385,7 @@ export function RoundedBullet({
                 />
                 {targetPct != null ? (
                   <span
-                    className="absolute top-1/2 h-3.5 w-0.5 -translate-y-1/2 rounded-full"
+                    className="absolute top-1/2 h-3 w-0.5 -translate-y-1/2 rounded-full"
                     style={{
                       left: `calc(${targetPct}% - 1px)`,
                       background: c.text,
@@ -377,12 +408,14 @@ export function RoundedScatter({
   title,
   series,
   theme = "dark",
+  tile = 2,
   className,
   emptyLabel,
 }: {
   title: string;
   series: { name: string; color?: string; data: { x: number; y: number }[] }[];
   theme?: Theme;
+  tile?: 1 | 2;
   className?: string;
   emptyLabel?: string;
 }) {
@@ -393,8 +426,8 @@ export function RoundedScatter({
   const hasPoints = series.some((s) => s.data.length > 0);
 
   return (
-    <div className={cn("vf-surface", className)}>
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+    <div className={cn("vf-surface overflow-hidden", tileClass(tile, className))}>
+      <div className="mb-1.5 flex shrink-0 flex-wrap items-center justify-between gap-2">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">{title}</p>
         <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
           {series.map((s, i) => (
@@ -409,11 +442,11 @@ export function RoundedScatter({
         </div>
       </div>
       {!hasPoints ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
+        <p className="vf-widget-body flex items-center justify-center text-center text-sm text-muted-foreground">
           {emptyLabel ?? "—"}
         </p>
       ) : (
-        <div className="h-40 w-full">
+        <div className="vf-widget-body">
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart margin={{ top: 8, right: 8, bottom: 4, left: 0 }}>
               {style === "hud" || style === "console" || style === "dense" ? (
@@ -572,12 +605,14 @@ export function RoundedTreemap({
   title,
   data,
   theme = "dark",
+  tile = 2,
   className,
   emptyLabel,
 }: {
   title: string;
   data: TreemapNode[];
   theme?: Theme;
+  tile?: 1 | 2;
   className?: string;
   emptyLabel?: string;
 }) {
@@ -592,12 +627,16 @@ export function RoundedTreemap({
   const nodes = data.filter((d) => d.size > 0);
 
   return (
-    <div className={cn("vf-surface", className)}>
-      <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">{title}</p>
+    <div className={cn("vf-surface overflow-hidden", tileClass(tile, className))}>
+      <p className="mb-1.5 shrink-0 text-xs uppercase tracking-wide text-muted-foreground">
+        {title}
+      </p>
       {nodes.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">{emptyLabel ?? "—"}</p>
+        <p className="vf-widget-body flex items-center justify-center text-center text-sm text-muted-foreground">
+          {emptyLabel ?? "—"}
+        </p>
       ) : (
-        <div className="h-44 w-full">
+        <div className="vf-widget-body">
           <ResponsiveContainer width="100%" height="100%">
             <Treemap
               data={nodes}

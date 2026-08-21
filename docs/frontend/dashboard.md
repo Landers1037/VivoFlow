@@ -9,7 +9,13 @@
 
 - 默认：**单列** 分节（CPU / 内存 / 温度 / 显卡 / 磁盘 / 网络）
 - `landscape:` / `lg:`：**双列** 紧凑网格，减少竖向滚动
-- 分区内组件为 **双列网格**；半宽组件占 1 格，全宽组件 `col-span-2`
+- 分区内组件为 **双列网格**；半宽占 1 列，全宽 `col-span-2`
+- **iOS 式固定高度**：`1x` = `--vf-widget-1x`（11.5rem），`2x` = `2 × 1x + gap`；半宽与全宽卡片同高或成倍，避免参差
+
+| 高度 | 典型组件 |
+|------|----------|
+| 1x | Gauge、KPI、明细、Bullet、Sparkline 与 CPU 温度（半宽并排）、网卡列表 |
+| 2x | Area 趋势、Scatter、Treemap、磁盘列表 |
 
 无 `snapshot` 时显示骨架 `SkeletonLoader`。
 

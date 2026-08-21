@@ -193,7 +193,7 @@ function SortableWidget({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative touch-manipulation",
+        "relative min-h-0 touch-manipulation",
         span === 2 && "col-span-2",
         isDragging && "opacity-90",
       )}
@@ -383,7 +383,6 @@ export function Dashboard({
               ),
             },
             spark: {
-              span: 2,
               node: (
                 <SparklineRow
                   name={t("cpuUsageTrend")}
@@ -394,10 +393,14 @@ export function Dashboard({
               ),
             },
             temp: {
-              span: 2,
               node: (
-                <div className="vf-surface space-y-1.5 text-sm">
-                  <Row k={t("cpuTemp")} v={formatTemp(cpu?.temperature_c, naLabel)} />
+                <div className="vf-surface vf-widget-1x justify-center">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {t("cpuTemp")}
+                  </p>
+                  <p className="vf-data mt-1 text-2xl font-semibold tracking-tight">
+                    {formatTemp(cpu?.temperature_c, naLabel)}
+                  </p>
                 </div>
               ),
             },
@@ -438,7 +441,7 @@ export function Dashboard({
             info: {
               span: 2,
               node: (
-                <div className="vf-surface space-y-1.5 text-sm">
+                <div className="vf-surface vf-widget-1x justify-center space-y-1.5 text-sm">
                   <Row k={t("model")} v={na(memModel, naLabel)} />
                   <Row k={t("frequency")} v={formatMhz(memSpeed, naLabel)} />
                   <Row k={t("memTemp")} v={formatTemp(mem?.temperature_c, naLabel)} />
@@ -517,7 +520,7 @@ export function Dashboard({
             info: {
               span: 2,
               node: (
-                <div className="vf-surface space-y-1.5 text-sm">
+                <div className="vf-surface vf-widget-1x justify-center space-y-1.5 text-sm">
                   <Row k={t("model")} v={na(gpu?.name, naLabel)} />
                   <Row
                     k={t("temperature")}
@@ -552,7 +555,12 @@ export function Dashboard({
               span: 2,
               node:
                 disks.length === 0 ? (
-                  <EmptyCard text={t("noDiskData")} />
+                  <div
+                    className="vf-surface vf-widget-2x items-center justify-center text-sm text-muted-foreground"
+                    style={{ borderStyle: "dashed", opacity: 0.85 }}
+                  >
+                    {t("noDiskData")}
+                  </div>
                 ) : (
                   <RoundedTreemap
                     title={t("diskShare")}
@@ -570,19 +578,18 @@ export function Dashboard({
               span: 2,
               node:
                 disks.length === 0 ? null : (
-                  <div className="vf-grid flex flex-col">
+                  <div className="vf-surface vf-widget-2x gap-2 overflow-y-auto">
                     {disks.slice(0, 4).map((d) => (
                       <div
                         key={d.name}
-                        className="vf-surface text-sm"
-                        style={{ padding: "0.75rem" }}
+                        className="vf-row shrink-0 px-3 py-2 text-sm"
                       >
                         <p className="truncate font-medium">{d.name}</p>
                         <p className="truncate text-xs text-muted-foreground">
                           {na(d.model, naLabel)} · {na(d.kind, naLabel)} ·{" "}
                           {formatBytes(d.total_bytes, naLabel)}
                         </p>
-                        <div className="mt-2 flex gap-3 text-xs">
+                        <div className="mt-1.5 flex gap-3 text-xs">
                           <span className="vf-data">
                             {t("read", { value: formatBps(d.read_bps, naLabel) })}
                           </span>
@@ -625,30 +632,30 @@ export function Dashboard({
             nics: {
               span: 2,
               node: (
-                <div className="vf-grid grid grid-cols-1 landscape:grid-cols-2">
+                <div className="vf-surface vf-widget-1x gap-1.5 overflow-y-auto">
                   {nets.length === 0 ? (
-                    <EmptyCard text={t("noNetworkData")} />
+                    <p className="m-auto text-sm text-muted-foreground">
+                      {t("noNetworkData")}
+                    </p>
                   ) : (
-                    nets.slice(0, 4).map((n) => (
-                      <div
-                        key={n.name}
-                        className="vf-surface text-sm"
-                        style={{ padding: "0.75rem" }}
-                      >
-                        <p className="truncate font-medium">{n.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {na(n.model, naLabel)}
-                        </p>
-                        <div className="mt-2 flex gap-3 text-xs">
-                          <span className="vf-data">
-                            ↓ {formatBps(n.rx_bps, naLabel)}
-                          </span>
-                          <span className="vf-data">
-                            ↑ {formatBps(n.tx_bps, naLabel)}
-                          </span>
+                    <div className="grid h-full min-h-0 grid-cols-2 gap-1.5">
+                      {nets.slice(0, 4).map((n) => (
+                        <div
+                          key={n.name}
+                          className="vf-row flex min-h-0 flex-col justify-center px-2.5 py-1.5"
+                        >
+                          <p className="truncate text-xs font-medium">{n.name}</p>
+                          <div className="mt-0.5 flex gap-2 text-[10px] text-muted-foreground">
+                            <span className="vf-data truncate">
+                              ↓ {formatBps(n.rx_bps, naLabel)}
+                            </span>
+                            <span className="vf-data truncate">
+                              ↑ {formatBps(n.tx_bps, naLabel)}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      ))}
+                    </div>
                   )}
                 </div>
               ),
@@ -682,17 +689,6 @@ function Row({ k, v }: { k: string; v: string }) {
     <div className="flex items-center justify-between gap-3">
       <span className="text-muted-foreground">{k}</span>
       <span className="vf-data truncate text-right font-medium">{v}</span>
-    </div>
-  );
-}
-
-function EmptyCard({ text }: { text: string }) {
-  return (
-    <div
-      className="vf-surface text-sm text-muted-foreground"
-      style={{ borderStyle: "dashed", opacity: 0.85 }}
-    >
-      {text}
     </div>
   );
 }
