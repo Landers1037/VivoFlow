@@ -17,11 +17,11 @@ struct ClientMessage {
 pub async fn handle_socket(socket: WebSocket, hub: MetricsHub) {
     let (mut sender, mut receiver) = socket.split();
     let mut rx = hub.subscribe();
+    let mut cfg_rx = hub.subscribe_config();
 
-    // Send current config + latest snapshot on connect.
     if let Ok(text) = serde_json::to_string(&json!({
         "type": "config",
-        "config": &*hub.config.read(),
+        "config": hub.current_config(),
     })) {
         let _ = sender.send(Message::Text(text.into())).await;
     }
@@ -63,6 +63,22 @@ pub async fn handle_socket(socket: WebSocket, hub: MetricsHub) {
                     Err(_) => break,
                 }
             }
+            result = cfg_rx.recv() => {
+                match result {
+                    Ok(cfg) => {
+                        if let Ok(text) = serde_json::to_string(&json!({
+                            "type": "config",
+                            "config": cfg,
+                        })) {
+                            if sender.send(Message::Text(text.into())).await.is_err() {
+                                break;
+                            }
+                        }
+                    }
+                    Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
+                    Err(_) => break,
+                }
+            }
         }
     }
 }
@@ -92,7 +108,7 @@ where
         "get_config" => {
             let text = serde_json::to_string(&json!({
                 "type": "config",
-                "config": &*hub.config.read(),
+                "config": hub.current_config(),
             }))?;
             sender
                 .send(Message::Text(text.into()))
@@ -104,8 +120,8 @@ where
             let Some(cfg) = msg.config else {
                 anyhow::bail!("missing config");
             };
-            let cfg = cfg.sanitize();
-            *hub.config.write() = cfg.clone();
+            // Persist + broadcast to all clients; this socket also receives via config_tx.
+            let cfg = hub.set_config(cfg);
             let text = serde_json::to_string(&json!({
                 "type": "config",
                 "config": cfg,

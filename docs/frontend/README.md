@@ -8,7 +8,8 @@
 | [types.md](./types.md) | `types.ts` | 与后端对齐的 TypeScript 类型 |
 | [hooks.md](./hooks.md) | `hooks/useVivoflowWs.ts` | WebSocket 连接、重连、状态 |
 | [dashboard.md](./dashboard.md) | `components/Dashboard.tsx` | 指标分区展示 |
-| [settings.md](./settings.md) | `components/SettingsPanel.tsx` | 采集参数 UI |
+| [settings.md](./settings.md) | `components/SettingsPage.tsx` | 全页设置（外观 / 采集 / 关于） |
+| [i18n.md](./i18n.md) | `i18n/*`, `useAppearance` | 中英文文案与切换 |
 | [amicro.md](./amicro.md) | `components/amicro/*` | 加载动画与 mono 图表 |
 | [ui-utils.md](./ui-utils.md) | `components/ui/*`, `lib/utils.ts` | shadcn 风格组件与格式化 |
 

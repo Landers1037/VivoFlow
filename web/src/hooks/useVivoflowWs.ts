@@ -1,17 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { MessageKey } from "@/i18n/messages";
 import type { AppConfig, ConnState, Snapshot } from "@/types";
+import { DEFAULT_CONFIG } from "@/types";
 
 function wsUrl(): string {
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
   return `${proto}//${window.location.host}/ws`;
 }
 
+function mergeConfig(raw: Partial<AppConfig>): AppConfig {
+  return {
+    ...DEFAULT_CONFIG,
+    ...raw,
+    enabled: { ...DEFAULT_CONFIG.enabled, ...(raw.enabled ?? {}) },
+  };
+}
+
+export type WsError =
+  | { kind: "key"; key: MessageKey }
+  | { kind: "raw"; message: string };
+
 export function useVivoflowWs() {
   const [conn, setConn] = useState<ConnState>("connecting");
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [history, setHistory] = useState<Snapshot[]>([]);
   const [config, setConfig] = useState<AppConfig | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<WsError | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const historyLimit = useRef(60);
   const retryRef = useRef(0);
@@ -27,7 +41,11 @@ export function useVivoflowWs() {
   }, []);
 
   const connect = useCallback(() => {
-    if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
+    if (
+      wsRef.current &&
+      (wsRef.current.readyState === WebSocket.OPEN ||
+        wsRef.current.readyState === WebSocket.CONNECTING)
+    ) {
       return;
     }
     setConn("connecting");
@@ -49,13 +67,18 @@ export function useVivoflowWs() {
         if (msg.type === "snapshot") {
           applySnapshot(msg as Snapshot);
         } else if (msg.type === "config" && msg.config) {
-          setConfig(msg.config as AppConfig);
-          historyLimit.current = msg.config.history_points ?? 60;
+          const next = mergeConfig(msg.config as Partial<AppConfig>);
+          setConfig(next);
+          historyLimit.current = next.history_points ?? 60;
         } else if (msg.type === "error") {
-          setError(msg.message ?? "未知错误");
+          setError(
+            msg.message
+              ? { kind: "raw", message: String(msg.message) }
+              : { kind: "key", key: "unknownError" },
+          );
         }
       } catch {
-        setError("无法解析服务器消息");
+        setError({ kind: "key", key: "parseError" });
       }
     };
 
@@ -68,7 +91,7 @@ export function useVivoflowWs() {
     };
 
     ws.onerror = () => {
-      setError("WebSocket 连接失败");
+      setError({ kind: "key", key: "wsFailed" });
     };
   }, [applySnapshot]);
 

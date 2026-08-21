@@ -11,7 +11,7 @@ use std::sync::Arc;
 use anyhow::Context;
 use tracing_subscriber::EnvFilter;
 
-use crate::config::AppConfig;
+use crate::config::load_config;
 use crate::hub::MetricsHub;
 use crate::server::serve;
 
@@ -28,8 +28,12 @@ async fn main() -> anyhow::Result<()> {
         .parse()
         .context("invalid VIVOFLOW_ADDR")?;
 
-    let config = Arc::new(parking_lot::RwLock::new(AppConfig::default()));
-    let hub = MetricsHub::new(config.clone());
+    let config = Arc::new(parking_lot::RwLock::new(load_config()));
+    tracing::info!(
+        "config path: {}",
+        crate::config::config_file_path().display()
+    );
+    let hub = MetricsHub::new(config);
     hub.clone().spawn_collector();
 
     tracing::info!("VivoFlow listening on http://{addr}");

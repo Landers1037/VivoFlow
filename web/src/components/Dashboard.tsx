@@ -7,6 +7,7 @@ import {
   MonoSparklineRow,
 } from "@/components/amicro/mono-charts";
 import { SkeletonLoader } from "@/components/amicro/loaders";
+import { useAppearance } from "@/hooks/useAppearance";
 import type { Snapshot } from "@/types";
 import {
   formatBps,
@@ -39,7 +40,9 @@ export function Dashboard({
   history: Snapshot[];
 }) {
   const { resolvedTheme } = useTheme();
+  const { t } = useAppearance();
   const theme = resolvedTheme === "light" ? "light" : "dark";
+  const naLabel = t("unavailable");
 
   const cpuUsageSeries = useMemo(
     () => seriesFrom(history, (s) => s.cpu?.usage_percent),
@@ -85,96 +88,106 @@ export function Dashboard({
   return (
     <div className="grid grid-cols-1 gap-3 landscape:grid-cols-2 landscape:gap-3 lg:grid-cols-2">
       <section className="space-y-3">
-        <h2 className="px-1 text-sm font-semibold tracking-wide text-muted-foreground">CPU</h2>
+        <h2 className="px-1 text-sm font-semibold tracking-wide text-muted-foreground">
+          {t("cpu")}
+        </h2>
         <div className="grid grid-cols-2 gap-3">
           <MonoGaugeArc
-            label="占用"
+            label={t("usage")}
             value={cpu?.usage_percent ?? 0}
-            display={formatPercent(cpu?.usage_percent)}
+            display={formatPercent(cpu?.usage_percent, naLabel)}
             theme={theme}
           />
           <MonoKpiCard
-            title="频率"
-            value={formatMhz(cpu?.current_mhz ?? cpu?.base_mhz)}
-            subtitle={`${na(cpu?.cores)} 核 · ${na(cpu?.model)}`}
+            title={t("frequency")}
+            value={formatMhz(cpu?.current_mhz ?? cpu?.base_mhz, naLabel)}
+            subtitle={t("coresModel", {
+              cores: na(cpu?.cores, naLabel),
+              model: na(cpu?.model, naLabel),
+            })}
             data={cpuUsageSeries}
             theme={theme}
           />
         </div>
         <MonoSparklineRow
-          name="CPU 占用趋势"
-          value={formatPercent(cpu?.usage_percent)}
+          name={t("cpuUsageTrend")}
+          value={formatPercent(cpu?.usage_percent, naLabel)}
           data={sparkFrom(history, (s) => s.cpu?.usage_percent)}
           theme={theme}
         />
       </section>
 
       <section className="space-y-3">
-        <h2 className="px-1 text-sm font-semibold tracking-wide text-muted-foreground">内存</h2>
+        <h2 className="px-1 text-sm font-semibold tracking-wide text-muted-foreground">
+          {t("memory")}
+        </h2>
         <div className="grid grid-cols-2 gap-3">
           <MonoGaugeArc
-            label="占用"
+            label={t("usage")}
             value={mem?.usage_percent ?? 0}
-            display={formatPercent(mem?.usage_percent)}
+            display={formatPercent(mem?.usage_percent, naLabel)}
             theme={theme}
           />
           <MonoKpiCard
-            title="容量"
-            value={formatBytes(mem?.total_bytes)}
-            subtitle={`已用 ${formatBytes(mem?.used_bytes)}`}
+            title={t("capacity")}
+            value={formatBytes(mem?.total_bytes, naLabel)}
+            subtitle={t("used", { value: formatBytes(mem?.used_bytes, naLabel) })}
             data={memUsageSeries}
             theme={theme}
           />
         </div>
-        <div className="rounded-2xl border border-border bg-card p-4 text-sm space-y-1.5">
-          <Row k="型号" v={na(memModel)} />
-          <Row k="频率" v={formatMhz(memSpeed)} />
-          <Row k="温度" v={formatTemp(mem?.temperature_c)} />
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="px-1 text-sm font-semibold tracking-wide text-muted-foreground">显卡</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <MonoGaugeArc
-            label="GPU 占用"
-            value={gpu?.usage_percent ?? 0}
-            display={formatPercent(gpu?.usage_percent)}
-            theme={theme}
-          />
-          <MonoKpiCard
-            title="显存"
-            value={formatBytes(gpu?.vram_bytes)}
-            subtitle={`已用 ${formatBytes(gpu?.vram_used_bytes)}`}
-            data={gpuUsageSeries}
-            theme={theme}
-          />
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-4 text-sm space-y-1.5">
-          <Row k="型号" v={na(gpu?.name)} />
-          <Row k="温度" v={formatTemp(gpu?.temperature_c)} />
-          <Row k="显存频率" v={formatMhz(gpu?.memory_clock_mhz)} />
-          <Row k="核心频率" v={formatMhz(gpu?.core_clock_mhz)} />
+        <div className="space-y-1.5 rounded-2xl border border-border bg-card p-4 text-sm">
+          <Row k={t("model")} v={na(memModel, naLabel)} />
+          <Row k={t("frequency")} v={formatMhz(memSpeed, naLabel)} />
+          <Row k={t("temperature")} v={formatTemp(mem?.temperature_c, naLabel)} />
         </div>
       </section>
 
       <section className="space-y-3">
         <h2 className="px-1 text-sm font-semibold tracking-wide text-muted-foreground">
-          磁盘 · {disks.length} 个
+          {t("gpu")}
+        </h2>
+        <div className="grid grid-cols-2 gap-3">
+          <MonoGaugeArc
+            label={t("gpuUsage")}
+            value={gpu?.usage_percent ?? 0}
+            display={formatPercent(gpu?.usage_percent, naLabel)}
+            theme={theme}
+          />
+          <MonoKpiCard
+            title={t("vram")}
+            value={formatBytes(gpu?.vram_bytes, naLabel)}
+            subtitle={t("used", { value: formatBytes(gpu?.vram_used_bytes, naLabel) })}
+            data={gpuUsageSeries}
+            theme={theme}
+          />
+        </div>
+        <div className="space-y-1.5 rounded-2xl border border-border bg-card p-4 text-sm">
+          <Row k={t("model")} v={na(gpu?.name, naLabel)} />
+          <Row k={t("temperature")} v={formatTemp(gpu?.temperature_c, naLabel)} />
+          <Row k={t("memClock")} v={formatMhz(gpu?.memory_clock_mhz, naLabel)} />
+          <Row k={t("coreClock")} v={formatMhz(gpu?.core_clock_mhz, naLabel)} />
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="px-1 text-sm font-semibold tracking-wide text-muted-foreground">
+          {t("diskCount", { count: disks.length })}
         </h2>
         <div className="space-y-2">
           {disks.length === 0 ? (
-            <EmptyCard text="无磁盘数据" />
+            <EmptyCard text={t("noDiskData")} />
           ) : (
             disks.slice(0, 4).map((d) => (
               <div key={d.name} className="rounded-2xl border border-border bg-card p-3 text-sm">
-                <p className="font-medium truncate">{d.name}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {na(d.model)} · {na(d.kind)} · {formatBytes(d.total_bytes)}
+                <p className="truncate font-medium">{d.name}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {na(d.model, naLabel)} · {na(d.kind, naLabel)} ·{" "}
+                  {formatBytes(d.total_bytes, naLabel)}
                 </p>
                 <div className="mt-2 flex gap-3 text-xs">
-                  <span>读 {formatBps(d.read_bps)}</span>
-                  <span>写 {formatBps(d.write_bps)}</span>
+                  <span>{t("read", { value: formatBps(d.read_bps, naLabel) })}</span>
+                  <span>{t("write", { value: formatBps(d.write_bps, naLabel) })}</span>
                 </div>
               </div>
             ))
@@ -183,19 +196,21 @@ export function Dashboard({
       </section>
 
       <section className="space-y-3 landscape:col-span-2">
-        <h2 className="px-1 text-sm font-semibold tracking-wide text-muted-foreground">网络</h2>
-        <MonoAreaTrend title="下行合计 (KB/s)" data={netRxSeries} theme={theme} />
+        <h2 className="px-1 text-sm font-semibold tracking-wide text-muted-foreground">
+          {t("network")}
+        </h2>
+        <MonoAreaTrend title={t("netDownTotal")} data={netRxSeries} theme={theme} />
         <div className="grid grid-cols-1 gap-2 landscape:grid-cols-2">
           {nets.length === 0 ? (
-            <EmptyCard text="无网卡数据" />
+            <EmptyCard text={t("noNetworkData")} />
           ) : (
             nets.slice(0, 4).map((n) => (
               <div key={n.name} className="rounded-2xl border border-border bg-card p-3 text-sm">
-                <p className="font-medium truncate">{n.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{na(n.model)}</p>
+                <p className="truncate font-medium">{n.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{na(n.model, naLabel)}</p>
                 <div className="mt-2 flex gap-3 text-xs">
-                  <span>↓ {formatBps(n.rx_bps)}</span>
-                  <span>↑ {formatBps(n.tx_bps)}</span>
+                  <span>↓ {formatBps(n.rx_bps, naLabel)}</span>
+                  <span>↑ {formatBps(n.tx_bps, naLabel)}</span>
                 </div>
               </div>
             ))

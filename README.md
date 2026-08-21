@@ -50,6 +50,7 @@ http://<电脑局域网IP>:8787
 | 变量 | 说明 | 默认 |
 |------|------|------|
 | `VIVOFLOW_ADDR` | 监听地址 | `0.0.0.0:8787` |
+| `VIVOFLOW_CONFIG` | 配置文件路径 | `%LOCALAPPDATA%/VivoFlow/config.json` |
 | `RUST_LOG` | 日志级别 | `info` |
 
 ### 防火墙

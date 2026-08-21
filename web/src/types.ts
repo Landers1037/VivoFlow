@@ -6,11 +6,30 @@ export interface EnabledModules {
   network: boolean;
 }
 
+export type UiStyle = "amicro";
+export type AccentId = "teal" | "zinc" | "blue" | "violet" | "amber";
+export type ThemeMode = "light" | "dark" | "system";
+export type Lang = "zh" | "en";
+
 export interface AppConfig {
   interval_ms: number;
   enabled: EnabledModules;
   history_points: number;
+  ui_style: UiStyle;
+  accent: AccentId;
+  theme: ThemeMode;
+  language: Lang;
 }
+
+export const DEFAULT_CONFIG: AppConfig = {
+  interval_ms: 1000,
+  history_points: 60,
+  enabled: { cpu: true, memory: true, gpu: true, disk: true, network: true },
+  ui_style: "amicro",
+  accent: "teal",
+  theme: "system",
+  language: "zh",
+};
 
 export interface CpuMetrics {
   cores: number;

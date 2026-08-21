@@ -6,7 +6,7 @@ use parking_lot::RwLock;
 use tokio::sync::broadcast;
 
 use crate::collectors::Collector;
-use crate::config::AppConfig;
+use crate::config::{save_config, AppConfig};
 use crate::models::Snapshot;
 
 #[derive(Clone)]
@@ -15,21 +15,28 @@ pub struct MetricsHub {
     latest: Arc<RwLock<Option<Snapshot>>>,
     history: Arc<RwLock<VecDeque<Snapshot>>>,
     tx: broadcast::Sender<Snapshot>,
+    config_tx: broadcast::Sender<AppConfig>,
 }
 
 impl MetricsHub {
     pub fn new(config: Arc<RwLock<AppConfig>>) -> Self {
         let (tx, _) = broadcast::channel(64);
+        let (config_tx, _) = broadcast::channel(16);
         Self {
             config,
             latest: Arc::new(RwLock::new(None)),
             history: Arc::new(RwLock::new(VecDeque::new())),
             tx,
+            config_tx,
         }
     }
 
     pub fn subscribe(&self) -> broadcast::Receiver<Snapshot> {
         self.tx.subscribe()
+    }
+
+    pub fn subscribe_config(&self) -> broadcast::Receiver<AppConfig> {
+        self.config_tx.subscribe()
     }
 
     pub fn latest(&self) -> Option<Snapshot> {
@@ -38,6 +45,20 @@ impl MetricsHub {
 
     pub fn history(&self) -> Vec<Snapshot> {
         self.history.read().iter().cloned().collect()
+    }
+
+    pub fn current_config(&self) -> AppConfig {
+        self.config.read().clone()
+    }
+
+    pub fn set_config(&self, cfg: AppConfig) -> AppConfig {
+        let cfg = cfg.sanitize();
+        *self.config.write() = cfg.clone();
+        if let Err(err) = save_config(&cfg) {
+            tracing::warn!("failed to persist config: {err:#}");
+        }
+        let _ = self.config_tx.send(cfg.clone());
+        cfg
     }
 
     pub fn spawn_collector(self) {

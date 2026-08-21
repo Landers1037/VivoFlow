@@ -68,7 +68,7 @@ export function SkeletonLoader({ className }: { className?: string }) {
   );
 }
 
-export function FullPageLoader({ label = "连接采集服务…" }: { label?: string }) {
+export function FullPageLoader({ label }: { label: string }) {
   return (
     <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-4">
       <IosSpinner size={42} />
