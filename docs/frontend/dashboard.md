@@ -1,13 +1,44 @@
 # dashboard — 仪表盘
 
-**文件：** [`web/src/components/Dashboard.tsx`](../../web/src/components/Dashboard.tsx)
+**文件：**
+
+- [`web/src/components/Dashboard.tsx`](../../web/src/components/Dashboard.tsx)
+- [`web/src/hooks/useDashboardOrder.ts`](../../web/src/hooks/useDashboardOrder.ts)
 
 ## 布局
 
-- 默认：**单列** 分节（CPU / 内存 / 显卡 / 磁盘 / 网络）
+- 默认：**单列** 分节（CPU / 内存 / 温度 / 显卡 / 磁盘 / 网络）
 - `landscape:` / `lg:`：**双列** 紧凑网格，减少竖向滚动
+- 分区内组件为 **双列网格**；半宽组件占 1 格，全宽组件 `col-span-2`
 
 无 `snapshot` 时显示骨架 `SkeletonLoader`。
+
+## 拖拽排序（嵌套）
+
+库：`@dnd-kit`（外层分区 + 内层组件，各自独立 `DndContext`）。
+
+| 目标 | 如何触发 | 视觉反馈 |
+|------|----------|----------|
+| 分区（功能模块） | **长按分区标题**（标题旁握把图标） | 无描边边框；标题握把高亮，分区略透明 |
+| 组件（卡片） | **长按组件本体** | 无描边边框；右上角显示握把图标 |
+
+- 长按约 **320ms**（`PointerSensor` delay + tolerance）
+- 分区顺序与各分区内组件顺序一并持久化到 `localStorage` 键 `vivoflow.dashboard.layout`
+- 兼容旧键 `vivoflow.dashboard.sectionOrder`（数组），首次读取时迁移
+- 缺省 id 会按默认顺序补全
+
+默认分区顺序：`cpu` → `memory` → `temp` → `gpu` → `disk` → `network`
+
+默认组件 id：
+
+| 分区 | 组件 |
+|------|------|
+| cpu | `gauge`, `kpi`, `load`, `spark`, `temp` |
+| memory | `gauge`, `kpi`, `info` |
+| temp | `cpuScatter`, `memScatter` |
+| gpu | `gauge`, `kpi`, `info` |
+| disk | `treemap`, `list` |
+| network | `area`, `nics` |
 
 ## 各节内容
 
