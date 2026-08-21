@@ -37,7 +37,7 @@ npm run dev
 .\target\release\vivoflow.exe
 ```
 
-脚本会：构建 `web/` → 同步到 `crates/vivoflow/static` → `cargo build --release`。
+脚本会：构建 `web/` → 同步到 `crates/vivoflow/static`（该目录已 gitignore）→ `cargo build --release`。
 
 默认监听 `0.0.0.0:8787`。手机同 Wi‑Fi 访问：
 

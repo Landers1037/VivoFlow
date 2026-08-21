@@ -12,7 +12,8 @@ web/.vite/
 *.local
 
 # Embedded UI is synced from web/dist by scripts/build.*
-# Keep a committed fallback under crates/vivoflow/static
+# Do not commit built assets — cargo build.rs seeds a placeholder if missing.
+crates/vivoflow/static/
 
 # IDE / OS
 .idea/
