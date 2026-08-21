@@ -133,6 +133,7 @@ export function MonoGaugeArc({
       <div className="relative h-36 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
+            {/* Soft Arc Caps — same approach as Amicro MonoRoundedGaugeArc */}
             <Pie
               data={data}
               dataKey="value"
@@ -140,6 +141,9 @@ export function MonoGaugeArc({
               endAngle={-30}
               innerRadius="68%"
               outerRadius="88%"
+              cornerRadius={8}
+              paddingAngle={4}
+              strokeLinecap="round"
               stroke="none"
               isAnimationActive={false}
             >
