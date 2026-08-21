@@ -15,7 +15,7 @@
 
 | 类型 | 关键字段 |
 |------|----------|
-| `CpuMetrics` | `cores`, `model`, `base_mhz`, `current_mhz`, `usage_percent` |
+| `CpuMetrics` | `cores`, `model`, `base_mhz`, `current_mhz`, `usage_percent`, `load_5s` / `load_5m` / `load_15m`（滚动占用均值 %）, `temperature_c` |
 | `MemoryMetrics` | `total_bytes`, `used_bytes`, `usage_percent`, `modules[]`, `temperature_c` |
 | `MemoryModule` | `part_number`, `manufacturer`, `speed_mhz`, `capacity_bytes` |
 | `GpuMetrics` | `name`, `vram_*`, `usage_percent`, `temperature_c`, `*_clock_mhz` |

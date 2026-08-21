@@ -3,6 +3,10 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
+fn default_accent_custom() -> String {
+    "#0d9488".into()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub interval_ms: u64,
@@ -12,6 +16,8 @@ pub struct AppConfig {
     pub ui_style: String,
     #[serde(default)]
     pub accent: String,
+    #[serde(default = "default_accent_custom")]
+    pub accent_custom: String,
     #[serde(default)]
     pub theme: String,
     #[serde(default)]
@@ -35,6 +41,7 @@ impl Default for AppConfig {
             history_points: 60,
             ui_style: "amicro".into(),
             accent: "teal".into(),
+            accent_custom: default_accent_custom(),
             theme: "system".into(),
             language: "zh".into(),
         }
@@ -53,20 +60,49 @@ impl Default for EnabledModules {
     }
 }
 
-const ACCENTS: &[&str] = &["teal", "zinc", "blue", "violet", "amber"];
+const UI_STYLES: &[&str] = &[
+    "amicro",
+    "neumorph",
+    "line",
+    "glass",
+    "console",
+    "paper",
+    "instrument",
+    "dense",
+    "clay",
+    "metal",
+    "ink",
+    "swiss",
+    "hud",
+    "editorial",
+];
+const ACCENTS: &[&str] = &["teal", "zinc", "blue", "violet", "amber", "custom"];
 const THEMES: &[&str] = &["light", "dark", "system"];
 const LANGS: &[&str] = &["zh", "en"];
+
+fn is_hex_color(s: &str) -> bool {
+    let b = s.as_bytes();
+    if b.len() != 7 || b[0] != b'#' {
+        return false;
+    }
+    b[1..].iter().all(|c| c.is_ascii_hexdigit())
+}
 
 impl AppConfig {
     pub fn sanitize(mut self) -> Self {
         self.interval_ms = self.interval_ms.clamp(200, 60_000);
         self.history_points = self.history_points.clamp(10, 300);
 
-        if self.ui_style != "amicro" {
+        if !UI_STYLES.contains(&self.ui_style.as_str()) {
             self.ui_style = "amicro".into();
         }
         if !ACCENTS.contains(&self.accent.as_str()) {
             self.accent = "teal".into();
+        }
+        if !is_hex_color(&self.accent_custom) {
+            self.accent_custom = default_accent_custom();
+        } else {
+            self.accent_custom = self.accent_custom.to_ascii_lowercase();
         }
         if !THEMES.contains(&self.theme.as_str()) {
             self.theme = "system".into();

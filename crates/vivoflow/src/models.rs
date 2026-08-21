@@ -24,6 +24,13 @@ pub struct CpuMetrics {
     pub base_mhz: Option<u32>,
     pub current_mhz: Option<u32>,
     pub usage_percent: f32,
+    /// Rolling average usage % over ~5 seconds.
+    pub load_5s: f32,
+    /// Rolling average usage % over ~5 minutes.
+    pub load_5m: f32,
+    /// Rolling average usage % over ~15 minutes.
+    pub load_15m: f32,
+    pub temperature_c: Option<f32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

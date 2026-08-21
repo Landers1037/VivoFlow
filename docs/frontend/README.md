@@ -10,7 +10,8 @@
 | [dashboard.md](./dashboard.md) | `components/Dashboard.tsx` | 指标分区展示 |
 | [settings.md](./settings.md) | `components/SettingsPage.tsx` | 全页设置（外观 / 采集 / 关于） |
 | [i18n.md](./i18n.md) | `i18n/*`, `useAppearance` | 中英文文案与切换 |
-| [amicro.md](./amicro.md) | `components/amicro/*` | 加载动画与 mono 图表 |
+| [viz.md](./viz.md) | `components/viz/*` | 多风格加载动画与图表 |
+| [amicro.md](./amicro.md) | `components/amicro/*` | 兼容 re-export（请改用 viz） |
 | [ui-utils.md](./ui-utils.md) | `components/ui/*`, `lib/utils.ts` | shadcn 风格组件与格式化 |
 
 开发服务器见 [`web/vite.config.ts`](../web/vite.config.ts)：`/ws`、`/api` 代理到 `127.0.0.1:8787`。

@@ -30,7 +30,7 @@ impl MemoryCollector {
             used_bytes: used,
             usage_percent,
             modules: query_memory_modules(),
-            temperature_c: None,
+            temperature_c: crate::collectors::thermal::memory_temperature_c(),
         }
     }
 }

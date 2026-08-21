@@ -3,6 +3,7 @@ mod disk;
 mod gpu;
 mod memory;
 mod network;
+pub(crate) mod thermal;
 
 use anyhow::Result;
 use chrono::Utc;

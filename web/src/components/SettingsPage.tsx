@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   ACCENT_OPTIONS,
+  UI_STYLE_OPTIONS,
   useAppearance,
   type AccentId,
   type TFunction,
@@ -29,6 +30,7 @@ export function SettingsPage({
     t,
     config: synced,
     setAccent,
+    setAccentCustom,
     setLanguage,
     setUiStyle,
     setThemeMode,
@@ -72,11 +74,12 @@ export function SettingsPage({
               type="button"
               onClick={() => setTab(id)}
               className={cn(
-                "flex min-h-11 items-center gap-2 rounded-xl px-2.5 py-2 text-left text-sm transition-colors sm:px-3",
+                "flex min-h-11 items-center gap-2 px-2.5 py-2 text-left text-sm transition-colors sm:px-3",
                 tab === id
                   ? "bg-primary text-primary-foreground"
                   : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
+              style={{ borderRadius: "var(--nav-radius)" }}
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span className="truncate">{label}</span>
@@ -84,12 +87,13 @@ export function SettingsPage({
           ))}
         </nav>
 
-        <section className="min-w-0 flex-1 rounded-2xl border border-border bg-card p-4 sm:p-5">
+        <section className="vf-panel min-w-0 flex-1">
           {tab === "appearance" ? (
             <AppearanceTab
               t={t}
               config={synced}
               setAccent={setAccent}
+              setAccentCustom={setAccentCustom}
               setLanguage={setLanguage}
               setUiStyle={setUiStyle}
               setThemeMode={setThemeMode}
@@ -184,10 +188,146 @@ export function SettingsPage({
   );
 }
 
+function StylePreview({ id }: { id: UiStyle }) {
+  const base = "h-10 w-full";
+  switch (id) {
+    case "neumorph":
+      return (
+        <div
+          className={base}
+          style={{
+            borderRadius: "0.85rem",
+            background: "oklch(0.9 0.01 240)",
+            boxShadow:
+              "4px 4px 8px oklch(0.72 0.02 240 / 55%), -3px -3px 7px oklch(1 0 0 / 85%)",
+          }}
+        />
+      );
+    case "line":
+      return (
+        <div
+          className={`${base} border border-foreground/70 bg-transparent`}
+          style={{ borderRadius: "0.1rem" }}
+        />
+      );
+    case "glass":
+      return (
+        <div
+          className={`${base} border border-white/40`}
+          style={{
+            borderRadius: "0.75rem",
+            background: "color-mix(in oklch, white 45%, transparent)",
+            backdropFilter: "blur(6px)",
+          }}
+        />
+      );
+    case "console":
+      return (
+        <div
+          className={`${base} flex items-center border border-primary/60 bg-card/80 px-2 font-mono text-[10px] text-primary`}
+          style={{ borderRadius: "0.2rem" }}
+        >
+          0xVF
+        </div>
+      );
+    case "paper":
+      return (
+        <div
+          className={`${base} border border-stone-300 bg-stone-50`}
+          style={{
+            borderRadius: "0.25rem",
+            backgroundImage:
+              "repeating-linear-gradient(0deg, transparent, transparent 5px, oklch(0.85 0.02 90 / 25%) 5px, oklch(0.85 0.02 90 / 25%) 6px)",
+          }}
+        />
+      );
+    case "instrument":
+      return (
+        <div
+          className={`${base} border-2 border-primary/50`}
+          style={{
+            borderRadius: "999px",
+            background:
+              "radial-gradient(circle at 50% 40%, oklch(0.35 0.03 250), oklch(0.18 0.02 250))",
+          }}
+        />
+      );
+    case "dense":
+      return (
+        <div className={`${base} grid grid-cols-4 gap-0.5 border border-border p-1`} style={{ borderRadius: "0.25rem" }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-muted" />
+          ))}
+        </div>
+      );
+    case "clay":
+      return (
+        <div
+          className={base}
+          style={{
+            borderRadius: "1.1rem",
+            background: "oklch(0.95 0.015 95)",
+            boxShadow: "0 8px 16px oklch(0.55 0.04 80 / 18%)",
+          }}
+        />
+      );
+    case "metal":
+      return (
+        <div
+          className={`${base} border border-slate-400`}
+          style={{
+            borderRadius: "0.3rem",
+            background:
+              "linear-gradient(135deg, oklch(0.88 0.01 250), oklch(0.72 0.015 250), oklch(0.86 0.01 250))",
+          }}
+        />
+      );
+    case "ink":
+      return (
+        <div
+          className={`${base} border-[1.5px] border-foreground bg-transparent`}
+          style={{ borderRadius: "0.05rem", boxShadow: "3px 3px 0 oklch(0.3 0 0 / 20%)" }}
+        />
+      );
+    case "swiss":
+      return (
+        <div className={`${base} border-b border-foreground bg-transparent`} style={{ borderRadius: 0 }} />
+      );
+    case "hud":
+      return (
+        <div
+          className={`${base} border border-primary/70`}
+          style={{
+            borderRadius: 0,
+            backgroundImage:
+              "linear-gradient(color-mix(in oklch, var(--primary) 15%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklch, var(--primary) 15%, transparent) 1px, transparent 1px)",
+            backgroundSize: "8px 8px",
+            backgroundColor: "oklch(0.15 0.03 220)",
+          }}
+        />
+      );
+    case "editorial":
+      return (
+        <div className={`${base} flex flex-col justify-end border-0 bg-transparent pb-0`} style={{ borderRadius: "0.15rem" }}>
+          <span className="font-serif text-lg font-semibold leading-none">Aa</span>
+          <span className="mt-1 block h-px w-full bg-border" />
+        </div>
+      );
+    default:
+      return (
+        <div
+          className={`${base} border border-border bg-card shadow-sm`}
+          style={{ borderRadius: "0.7rem" }}
+        />
+      );
+  }
+}
+
 function AppearanceTab({
   t,
   config,
   setAccent,
+  setAccentCustom,
   setLanguage,
   setUiStyle,
   setThemeMode,
@@ -195,32 +335,57 @@ function AppearanceTab({
   t: TFunction;
   config: AppConfig;
   setAccent: (v: AccentId) => void;
+  setAccentCustom: (hex: string) => void;
   setLanguage: (v: Lang) => void;
   setUiStyle: (v: UiStyle) => void;
   setThemeMode: (v: ThemeMode) => void;
 }) {
+  const [hexDraft, setHexDraft] = useState(config.accent_custom);
+
+  useEffect(() => {
+    setHexDraft(config.accent_custom);
+  }, [config.accent_custom]);
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <Label>{t("uiStyle")}</Label>
         <p className="text-xs text-muted-foreground">{t("uiStyleHint")}</p>
-        <button
-          type="button"
-          onClick={() => setUiStyle("amicro")}
-          className={cn(
-            "flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left text-sm",
-            config.ui_style === "amicro" ? "border-primary bg-primary/10" : "border-border",
-          )}
-        >
-          <span className="font-medium">Amicro</span>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
-            Soft Arc Caps
-          </span>
-        </button>
+        <div className="grid max-h-[min(52dvh,28rem)] grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+          {UI_STYLE_OPTIONS.map((opt) => {
+            const selected = config.ui_style === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setUiStyle(opt.id)}
+                className={cn(
+                  "flex flex-col gap-2 border px-3 py-3 text-left text-sm transition-colors",
+                  selected ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40",
+                )}
+                style={{ borderRadius: "var(--nav-radius)" }}
+              >
+                <StylePreview id={opt.id} />
+                <div className="flex items-start justify-between gap-2">
+                  <span className="font-medium">{t(opt.nameKey)}</span>
+                  {selected ? (
+                    <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium text-primary">
+                      ON
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-[11px] leading-snug text-muted-foreground">
+                  {t(opt.hintKey)}
+                </p>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="space-y-2">
         <Label>{t("accent")}</Label>
+        <p className="text-xs text-muted-foreground">{t("accentCustomHint")}</p>
         <div className="flex flex-wrap gap-2">
           {ACCENT_OPTIONS.map((opt) => (
             <button
@@ -229,13 +394,60 @@ function AppearanceTab({
               aria-label={opt.label}
               onClick={() => setAccent(opt.id)}
               className={cn(
-                "flex min-h-11 min-w-11 items-center justify-center rounded-xl border p-1.5 transition-colors",
+                "flex min-h-11 min-w-11 items-center justify-center border p-1.5 transition-colors",
                 config.accent === opt.id ? "border-primary ring-2 ring-ring" : "border-border",
               )}
+              style={{ borderRadius: "var(--nav-radius)" }}
             >
               <span className="h-7 w-7 rounded-full" style={{ backgroundColor: opt.swatch }} />
             </button>
           ))}
+          <label
+            className={cn(
+              "relative flex min-h-11 min-w-11 cursor-pointer items-center justify-center border p-1.5 transition-colors",
+              config.accent === "custom" ? "border-primary ring-2 ring-ring" : "border-border",
+            )}
+            style={{ borderRadius: "var(--nav-radius)" }}
+            title={t("accentCustom")}
+          >
+            <span
+              className="h-7 w-7 rounded-full border border-border"
+              style={{
+                background: `conic-gradient(from 0deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)`,
+              }}
+            />
+            <input
+              type="color"
+              aria-label={t("accentCustom")}
+              value={config.accent_custom}
+              onChange={(e) => {
+                setHexDraft(e.target.value);
+                setAccentCustom(e.target.value);
+              }}
+              className="absolute inset-0 cursor-pointer opacity-0"
+            />
+          </label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="accent-hex" className="shrink-0 text-xs text-muted-foreground">
+            {t("accentHex")}
+          </Label>
+          <input
+            id="accent-hex"
+            type="text"
+            spellCheck={false}
+            value={hexDraft}
+            onChange={(e) => setHexDraft(e.target.value)}
+            onBlur={() => setAccentCustom(hexDraft)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.currentTarget.blur();
+              }
+            }}
+            className="min-h-10 flex-1 border border-border bg-background px-3 font-mono text-sm"
+            style={{ borderRadius: "var(--nav-radius)" }}
+            placeholder="#0d9488"
+          />
         </div>
       </div>
 
@@ -254,9 +466,10 @@ function AppearanceTab({
               type="button"
               onClick={() => setThemeMode(value)}
               className={cn(
-                "min-h-11 rounded-xl border px-2 text-sm",
+                "min-h-11 border px-2 text-sm",
                 config.theme === value ? "border-primary bg-primary/10 font-medium" : "border-border",
               )}
+              style={{ borderRadius: "var(--nav-radius)" }}
             >
               {t(labelKey)}
             </button>
@@ -278,11 +491,12 @@ function AppearanceTab({
               type="button"
               onClick={() => setLanguage(value)}
               className={cn(
-                "min-h-11 rounded-xl border px-2 text-sm",
+                "min-h-11 border px-2 text-sm",
                 config.language === value
                   ? "border-primary bg-primary/10 font-medium"
                   : "border-border",
               )}
+              style={{ borderRadius: "var(--nav-radius)" }}
             >
               {t(labelKey)}
             </button>
@@ -298,7 +512,7 @@ function AboutTab({ t }: { t: TFunction }) {
     "Rust · Tokio · Axum · sysinfo · WMI · NVML",
     "Vite · React 19 · Tailwind CSS 4",
     "WebSocket JSON IPC · rust-embed",
-    "Amicro-style Motion loaders · Recharts mono charts",
+    "Multi-style surfaces · Recharts · Motion loaders",
   ];
 
   return (
@@ -307,21 +521,21 @@ function AboutTab({ t }: { t: TFunction }) {
         <h2 className="text-lg font-semibold tracking-tight">{t("aboutTitle")}</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t("aboutDesc")}</p>
       </div>
-      <div className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-3 text-sm">
+      <div className="vf-row flex items-center justify-between px-3 py-3 text-sm">
         <span className="text-muted-foreground">{t("version")}</span>
-        <span className="font-medium tabular-nums">{APP_VERSION}</span>
+        <span className="vf-data font-medium">{APP_VERSION}</span>
       </div>
       <div className="space-y-2">
         <p className="text-sm font-medium">{t("techStack")}</p>
         <ul className="space-y-2 text-sm text-muted-foreground">
           {stacks.map((line) => (
-            <li key={line} className="rounded-xl border border-border/80 px-3 py-2">
+            <li key={line} className="vf-surface px-3 py-2">
               {line}
             </li>
           ))}
         </ul>
       </div>
-      <div className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-3 text-sm">
+      <div className="vf-row flex items-center justify-between px-3 py-3 text-sm">
         <span className="text-muted-foreground">{t("license")}</span>
         <span className="font-medium">Apache-2.0</span>
       </div>

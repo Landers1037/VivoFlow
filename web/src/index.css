@@ -1,5 +1,25 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Noto Sans SC";
+  src: url("./fonts/NotoSansSC-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Latin / digits only — under Chinese UI, CJK still falls through to Noto Sans SC */
+@font-face {
+  font-family: "Outfit";
+  src: url("./fonts/Outfit-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -23,11 +43,16 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: "Segoe UI", "PingFang SC", "Helvetica Neue", sans-serif;
-  --font-display: "Segoe UI Semibold", "PingFang SC", sans-serif;
+  --font-sans: var(--font-ui);
+  --font-display: var(--font-ui-display);
+  --font-data: var(--font-data-face);
 }
 
 :root {
+  /* Outfit (latin/digits via unicode-range) → Noto Sans SC (CJK) */
+  --font-ui: "Outfit", "Noto Sans SC", system-ui, sans-serif;
+  --font-ui-display: "Outfit", "Noto Sans SC", system-ui, sans-serif;
+
   --radius: 0.875rem;
   --accent-primary-light: oklch(0.42 0.08 200);
   --accent-primary-dark: oklch(0.78 0.08 195);
@@ -49,6 +74,31 @@
   --border: oklch(0.9 0.01 240);
   --input: oklch(0.9 0.01 240);
   --ring: var(--accent-ring-light);
+
+  /* UI style tokens — defaults = amicro */
+  --font-data-face: var(--font-sans);
+  --surface-bg: var(--card);
+  --surface-border-width: 1px;
+  --surface-border-color: var(--border);
+  --surface-shadow: 0 1px 2px oklch(0 0 0 / 6%);
+  --surface-inset: none;
+  --surface-blur: 0px;
+  --surface-padding: 1rem;
+  --shell-gap: 0.75rem;
+  --shell-bg: radial-gradient(ellipse at top, color-mix(in oklch, var(--accent) 40%, transparent), var(--background) 55%, var(--background));
+  --chart-stroke-width: 1.5;
+  --chart-fill-opacity: 0.45;
+  --chart-corner-radius: 8;
+  --row-bg: color-mix(in oklch, var(--muted) 40%, transparent);
+  --kpi-badge-radius: 999px;
+  --nav-radius: var(--radius);
+}
+
+html[lang="en"],
+html[lang="zh-CN"],
+html[lang="zh"] {
+  --font-ui: "Outfit", "Noto Sans SC", system-ui, sans-serif;
+  --font-ui-display: "Outfit", "Noto Sans SC", system-ui, sans-serif;
 }
 
 .dark {
@@ -68,6 +118,436 @@
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 14%);
   --ring: var(--accent-ring-dark);
+  --surface-shadow: 0 1px 2px oklch(0 0 0 / 35%);
+}
+
+/* ——— amicro (explicit, matches defaults) ——— */
+html[data-ui-style="amicro"] {
+  --radius: 0.875rem;
+  --surface-border-width: 1px;
+  --surface-shadow: 0 1px 2px oklch(0 0 0 / 6%);
+  --chart-stroke-width: 1.5;
+  --chart-fill-opacity: 0.45;
+}
+
+html.dark[data-ui-style="amicro"] {
+  --surface-shadow: 0 1px 2px oklch(0 0 0 / 35%);
+}
+
+/* ——— neumorph ——— */
+html[data-ui-style="neumorph"] {
+  --radius: 1.15rem;
+  --background: oklch(0.9 0.01 240);
+  --card: oklch(0.9 0.01 240);
+  --muted: oklch(0.86 0.01 240);
+  --border: oklch(0.9 0.01 240);
+  --surface-bg: var(--background);
+  --surface-border-width: 0px;
+  --surface-border-color: transparent;
+  --surface-shadow:
+    8px 8px 16px oklch(0.72 0.02 240 / 55%),
+    -6px -6px 14px oklch(1 0 0 / 85%);
+  --surface-inset:
+    inset 3px 3px 6px oklch(0.72 0.02 240 / 35%),
+    inset -3px -3px 6px oklch(1 0 0 / 70%);
+  --shell-bg: var(--background);
+  --chart-stroke-width: 2;
+  --chart-fill-opacity: 0.28;
+  --row-bg: transparent;
+  --kpi-badge-radius: 0.75rem;
+}
+
+html.dark[data-ui-style="neumorph"] {
+  --background: oklch(0.22 0.02 250);
+  --card: oklch(0.22 0.02 250);
+  --muted: oklch(0.28 0.02 250);
+  --border: oklch(0.22 0.02 250);
+  --surface-bg: var(--background);
+  --surface-shadow:
+    8px 8px 18px oklch(0.1 0.02 250 / 70%),
+    -5px -5px 12px oklch(0.32 0.02 250 / 55%);
+  --surface-inset:
+    inset 3px 3px 7px oklch(0.1 0.02 250 / 55%),
+    inset -2px -2px 6px oklch(0.3 0.02 250 / 40%);
+}
+
+/* ——— line ——— */
+html[data-ui-style="line"] {
+  --radius: 0.15rem;
+  --surface-bg: transparent;
+  --surface-border-width: 1px;
+  --surface-border-color: var(--foreground);
+  --surface-shadow: none;
+  --surface-padding: 1.1rem;
+  --shell-gap: 1.1rem;
+  --shell-bg: var(--background);
+  --chart-stroke-width: 1.25;
+  --chart-fill-opacity: 0.06;
+  --chart-corner-radius: 0;
+  --row-bg: transparent;
+  --kpi-badge-radius: 0;
+  --nav-radius: 0.15rem;
+}
+
+html.dark[data-ui-style="line"] {
+  --surface-border-color: oklch(0.92 0.01 95 / 70%);
+  --chart-fill-opacity: 0.08;
+}
+
+/* ——— glass ——— */
+html[data-ui-style="glass"] {
+  --radius: 1rem;
+  --surface-bg: color-mix(in oklch, var(--card) 55%, transparent);
+  --surface-border-width: 1px;
+  --surface-border-color: color-mix(in oklch, var(--border) 70%, transparent);
+  --surface-shadow: 0 8px 28px oklch(0.35 0.04 250 / 12%);
+  --surface-blur: 16px;
+  --shell-bg: radial-gradient(ellipse at top, color-mix(in oklch, var(--primary) 18%, transparent), var(--background) 50%, var(--background));
+  --chart-stroke-width: 1.6;
+  --chart-fill-opacity: 0.35;
+  --row-bg: color-mix(in oklch, var(--muted) 35%, transparent);
+}
+
+html.dark[data-ui-style="glass"] {
+  --surface-bg: color-mix(in oklch, var(--card) 62%, transparent);
+  --surface-border-color: oklch(1 0 0 / 14%);
+  --surface-shadow: 0 10px 32px oklch(0 0 0 / 40%);
+  --surface-blur: 18px;
+}
+
+/* ——— console ——— */
+html[data-ui-style="console"] {
+  --radius: 0.25rem;
+  --font-data-face: ui-monospace, "Cascadia Mono", "Consolas", "SF Mono", monospace;
+  --surface-bg: color-mix(in oklch, var(--card) 88%, transparent);
+  --surface-border-width: 1px;
+  --surface-border-color: color-mix(in oklch, var(--primary) 55%, var(--border));
+  --surface-shadow: none;
+  --surface-padding: 0.75rem;
+  --shell-gap: 0.55rem;
+  --shell-bg: var(--background);
+  --chart-stroke-width: 1.35;
+  --chart-fill-opacity: 0.18;
+  --chart-corner-radius: 2;
+  --row-bg: color-mix(in oklch, var(--primary) 8%, transparent);
+  --kpi-badge-radius: 0.15rem;
+  --nav-radius: 0.25rem;
+}
+
+html.dark[data-ui-style="console"] {
+  --surface-bg: color-mix(in oklch, var(--card) 92%, transparent);
+  --surface-border-color: color-mix(in oklch, var(--primary) 45%, var(--border));
+}
+
+/* ——— paper ——— */
+html[data-ui-style="paper"] {
+  --radius: 0.35rem;
+  --background: oklch(0.96 0.012 90);
+  --card: oklch(0.99 0.008 95);
+  --surface-bg: var(--card);
+  --surface-border-width: 1px;
+  --surface-border-color: oklch(0.82 0.02 85);
+  --surface-shadow: 0 1px 0 oklch(0.75 0.02 85 / 35%), 0 6px 18px oklch(0.55 0.03 80 / 8%);
+  --shell-bg:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 11px,
+      oklch(0.88 0.015 90 / 18%) 11px,
+      oklch(0.88 0.015 90 / 18%) 12px
+    ),
+    var(--background);
+  --chart-stroke-width: 1.4;
+  --chart-fill-opacity: 0.22;
+  --kpi-badge-radius: 0.2rem;
+  --nav-radius: 0.35rem;
+}
+
+html.dark[data-ui-style="paper"] {
+  --background: oklch(0.18 0.015 250);
+  --card: oklch(0.22 0.018 250);
+  --surface-border-color: oklch(1 0 0 / 12%);
+  --surface-shadow: 0 1px 0 oklch(1 0 0 / 8%), 0 8px 20px oklch(0 0 0 / 35%);
+  --shell-bg:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 11px,
+      oklch(1 0 0 / 4%) 11px,
+      oklch(1 0 0 / 4%) 12px
+    ),
+    var(--background);
+}
+
+/* ——— instrument ——— */
+html[data-ui-style="instrument"] {
+  --radius: 999px;
+  --background: oklch(0.16 0.02 250);
+  --card: oklch(0.2 0.02 250);
+  --foreground: oklch(0.93 0.01 95);
+  --surface-bg: radial-gradient(circle at 50% 40%, oklch(0.26 0.03 250), oklch(0.17 0.02 250));
+  --surface-border-width: 2px;
+  --surface-border-color: color-mix(in oklch, var(--primary) 40%, oklch(0.45 0.02 250));
+  --surface-shadow: inset 0 0 0 1px oklch(1 0 0 / 6%), 0 8px 24px oklch(0 0 0 / 45%);
+  --surface-padding: 0.9rem;
+  --shell-bg: radial-gradient(ellipse at center, oklch(0.2 0.025 250), oklch(0.12 0.02 250));
+  --chart-stroke-width: 1.8;
+  --chart-fill-opacity: 0.2;
+  --chart-corner-radius: 12;
+  --row-bg: oklch(0 0 0 / 25%);
+  --kpi-badge-radius: 999px;
+  --nav-radius: 999px;
+  --font-data-face: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+}
+
+html[data-ui-style="instrument"]:not(.dark) {
+  --background: oklch(0.88 0.015 240);
+  --card: oklch(0.92 0.012 240);
+  --foreground: oklch(0.2 0.02 250);
+  --surface-bg: radial-gradient(circle at 50% 40%, oklch(0.96 0.01 240), oklch(0.88 0.015 240));
+  --shell-bg: radial-gradient(ellipse at center, oklch(0.92 0.012 240), oklch(0.84 0.015 240));
+  --surface-shadow: inset 0 0 0 1px oklch(1 0 0 / 50%), 0 6px 16px oklch(0.4 0.02 250 / 18%);
+}
+
+/* ——— dense ——— */
+html[data-ui-style="dense"] {
+  --radius: 0.35rem;
+  --surface-padding: 0.55rem;
+  --shell-gap: 0.4rem;
+  --surface-border-width: 1px;
+  --surface-shadow: none;
+  --shell-bg: var(--background);
+  --chart-stroke-width: 1.1;
+  --chart-fill-opacity: 0.2;
+  --chart-corner-radius: 2;
+  --kpi-badge-radius: 0.15rem;
+  --nav-radius: 0.35rem;
+  --font-data-face: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+}
+
+html[data-ui-style="dense"] .vf-data {
+  font-size: 0.95em;
+}
+
+html[data-ui-style="dense"] h1 {
+  font-size: 1.35rem;
+}
+
+/* ——— clay ——— */
+html[data-ui-style="clay"] {
+  --radius: 1.35rem;
+  --background: oklch(0.93 0.015 100);
+  --card: oklch(0.96 0.012 95);
+  --surface-bg: var(--card);
+  --surface-border-width: 0px;
+  --surface-shadow: 0 10px 24px oklch(0.55 0.04 80 / 14%), 0 2px 0 oklch(1 0 0 / 70%);
+  --surface-inset: inset 0 -2px 0 oklch(0.75 0.03 90 / 25%);
+  --shell-bg: linear-gradient(180deg, oklch(0.95 0.015 95), oklch(0.9 0.02 100));
+  --chart-stroke-width: 2.1;
+  --chart-fill-opacity: 0.3;
+  --kpi-badge-radius: 1rem;
+  --nav-radius: 1.1rem;
+}
+
+html.dark[data-ui-style="clay"] {
+  --background: oklch(0.2 0.02 250);
+  --card: oklch(0.26 0.025 250);
+  --surface-shadow: 0 12px 28px oklch(0 0 0 / 45%), 0 1px 0 oklch(1 0 0 / 8%);
+  --surface-inset: inset 0 -2px 0 oklch(0 0 0 / 30%);
+  --shell-bg: linear-gradient(180deg, oklch(0.22 0.02 250), oklch(0.16 0.02 250));
+}
+
+/* ——— metal ——— */
+html[data-ui-style="metal"] {
+  --radius: 0.4rem;
+  --background: oklch(0.78 0.01 250);
+  --card: oklch(0.84 0.008 250);
+  --foreground: oklch(0.22 0.02 250);
+  --surface-bg: linear-gradient(
+    135deg,
+    oklch(0.88 0.008 250),
+    oklch(0.78 0.01 250) 45%,
+    oklch(0.86 0.008 250)
+  );
+  --surface-border-width: 1px;
+  --surface-border-color: oklch(0.62 0.015 250);
+  --surface-shadow: inset 0 1px 0 oklch(1 0 0 / 55%), 0 4px 10px oklch(0.4 0.02 250 / 25%);
+  --shell-bg: repeating-linear-gradient(
+      90deg,
+      oklch(0.76 0.01 250),
+      oklch(0.76 0.01 250) 1px,
+      oklch(0.8 0.01 250) 1px,
+      oklch(0.8 0.01 250) 3px
+    );
+  --chart-stroke-width: 1.5;
+  --chart-fill-opacity: 0.25;
+  --nav-radius: 0.4rem;
+  --kpi-badge-radius: 0.25rem;
+}
+
+html.dark[data-ui-style="metal"] {
+  --background: oklch(0.22 0.015 250);
+  --card: oklch(0.28 0.015 250);
+  --foreground: oklch(0.92 0.01 95);
+  --surface-bg: linear-gradient(
+    135deg,
+    oklch(0.34 0.015 250),
+    oklch(0.24 0.015 250) 50%,
+    oklch(0.32 0.015 250)
+  );
+  --surface-border-color: oklch(0.45 0.02 250);
+  --surface-shadow: inset 0 1px 0 oklch(1 0 0 / 12%), 0 6px 14px oklch(0 0 0 / 45%);
+  --shell-bg: repeating-linear-gradient(
+      90deg,
+      oklch(0.2 0.015 250),
+      oklch(0.2 0.015 250) 1px,
+      oklch(0.24 0.015 250) 1px,
+      oklch(0.24 0.015 250) 3px
+    );
+}
+
+/* ——— ink ——— */
+html[data-ui-style="ink"] {
+  --radius: 0.05rem;
+  --surface-bg: transparent;
+  --surface-border-width: 1.5px;
+  --surface-border-color: var(--foreground);
+  --surface-shadow: 3px 3px 0 color-mix(in oklch, var(--foreground) 18%, transparent);
+  --surface-padding: 1rem;
+  --shell-gap: 1rem;
+  --shell-bg: var(--background);
+  --chart-stroke-width: 2;
+  --chart-fill-opacity: 0.04;
+  --chart-corner-radius: 0;
+  --row-bg: transparent;
+  --kpi-badge-radius: 0;
+  --nav-radius: 0.05rem;
+}
+
+html.dark[data-ui-style="ink"] {
+  --surface-shadow: 3px 3px 0 oklch(1 0 0 / 12%);
+  --chart-fill-opacity: 0.06;
+}
+
+/* ——— swiss ——— */
+html[data-ui-style="swiss"] {
+  --radius: 0;
+  --surface-bg: var(--card);
+  --surface-border-width: 0 0 1px 0;
+  --surface-border-color: var(--foreground);
+  --surface-shadow: none;
+  --surface-padding: 0.85rem 0;
+  --shell-gap: 0;
+  --shell-bg: var(--background);
+  --chart-stroke-width: 1.2;
+  --chart-fill-opacity: 0.12;
+  --chart-corner-radius: 0;
+  --row-bg: transparent;
+  --kpi-badge-radius: 0;
+  --nav-radius: 0;
+}
+
+html[data-ui-style="swiss"] .vf-surface,
+html[data-ui-style="swiss"] .vf-panel,
+html[data-ui-style="swiss"] .vf-kpi {
+  border-left-width: 0;
+  border-right-width: 0;
+  border-top-width: 0;
+  border-radius: 0;
+}
+
+html[data-ui-style="swiss"] h1 {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+/* ——— hud ——— */
+html[data-ui-style="hud"] {
+  --radius: 0;
+  --background: oklch(0.12 0.03 220);
+  --card: oklch(0.15 0.035 220);
+  --foreground: oklch(0.92 0.04 195);
+  --surface-bg: color-mix(in oklch, var(--card) 80%, transparent);
+  --surface-border-width: 1px;
+  --surface-border-color: color-mix(in oklch, var(--primary) 65%, transparent);
+  --surface-shadow:
+    inset 0 0 0 1px color-mix(in oklch, var(--primary) 20%, transparent),
+    0 0 24px color-mix(in oklch, var(--primary) 12%, transparent);
+  --surface-padding: 0.7rem;
+  --shell-gap: 0.5rem;
+  --shell-bg:
+    linear-gradient(color-mix(in oklch, var(--primary) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklch, var(--primary) 6%, transparent) 1px, transparent 1px),
+    var(--background);
+  --shell-bg-size: 24px 24px;
+  --chart-stroke-width: 1.4;
+  --chart-fill-opacity: 0.15;
+  --chart-corner-radius: 0;
+  --row-bg: color-mix(in oklch, var(--primary) 10%, transparent);
+  --kpi-badge-radius: 0;
+  --nav-radius: 0;
+  --font-data-face: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+}
+
+html[data-ui-style="hud"] .vf-shell {
+  background-image:
+    linear-gradient(color-mix(in oklch, var(--primary) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklch, var(--primary) 6%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-color: var(--background);
+}
+
+html[data-ui-style="hud"]:not(.dark) {
+  --background: oklch(0.94 0.02 220);
+  --card: oklch(0.97 0.015 220);
+  --foreground: oklch(0.22 0.04 220);
+  --shell-bg: var(--background);
+}
+
+html[data-ui-style="hud"]:not(.dark) .vf-shell {
+  background-image:
+    linear-gradient(color-mix(in oklch, var(--primary) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklch, var(--primary) 10%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-color: var(--background);
+}
+
+/* ——— editorial ——— */
+html[data-ui-style="editorial"] {
+  --radius: 0.2rem;
+  --surface-bg: var(--card);
+  --surface-border-width: 0;
+  --surface-shadow: none;
+  --surface-padding: 0.5rem 0.25rem 1rem;
+  --shell-gap: 1.25rem;
+  --shell-bg: var(--background);
+  --chart-stroke-width: 1.6;
+  --chart-fill-opacity: 0.18;
+  --row-bg: transparent;
+  --kpi-badge-radius: 0;
+  --nav-radius: 0.2rem;
+  --font-display: "Georgia", "Songti SC", "Noto Serif SC", "Noto Sans SC", "Outfit", serif;
+}
+
+html[data-ui-style="editorial"] h1 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+
+html[data-ui-style="editorial"] .vf-data {
+  font-family: var(--font-display);
+  font-size: 1.05em;
+  font-weight: 600;
+}
+
+html[data-ui-style="editorial"] .vf-kpi p:first-child,
+html[data-ui-style="editorial"] .vf-surface > p:first-child {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
 }
 
 * {
@@ -94,4 +574,68 @@ body {
   padding-right: max(0.75rem, env(safe-area-inset-right));
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   padding-left: max(0.75rem, env(safe-area-inset-left));
+}
+
+/* Semantic surfaces — all pages */
+.vf-shell {
+  min-height: 100dvh;
+  background: var(--shell-bg);
+}
+
+.vf-surface,
+.vf-panel,
+.vf-kpi {
+  background: var(--surface-bg);
+  border-width: var(--surface-border-width);
+  border-style: solid;
+  border-color: var(--surface-border-color);
+  border-radius: var(--radius);
+  box-shadow: var(--surface-shadow);
+  backdrop-filter: blur(var(--surface-blur));
+  -webkit-backdrop-filter: blur(var(--surface-blur));
+}
+
+.vf-surface,
+.vf-kpi {
+  padding: var(--surface-padding);
+}
+
+.vf-panel {
+  padding: calc(var(--surface-padding) + 0.15rem);
+}
+
+.vf-row {
+  background: var(--row-bg);
+  border-radius: calc(var(--radius) - 0.15rem);
+  box-shadow: var(--surface-inset);
+}
+
+.vf-data {
+  font-family: var(--font-data-face);
+  font-variant-numeric: tabular-nums;
+}
+
+.vf-grid {
+  gap: var(--shell-gap);
+}
+
+html[data-ui-style="line"] .vf-surface,
+html[data-ui-style="line"] .vf-panel,
+html[data-ui-style="line"] .vf-kpi,
+html[data-ui-style="ink"] .vf-surface,
+html[data-ui-style="ink"] .vf-panel,
+html[data-ui-style="ink"] .vf-kpi {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-ui-style="neumorph"] .vf-row {
+  border-radius: calc(var(--radius) - 0.25rem);
+  padding-inline: 0.75rem;
+  padding-block: 0.5rem;
+}
+
+html[data-ui-style="console"] h1,
+html[data-ui-style="console"] .vf-data {
+  letter-spacing: -0.02em;
 }

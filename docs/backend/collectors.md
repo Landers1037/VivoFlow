@@ -13,6 +13,8 @@
 | 核心数 / 型号 / 占用 | `sysinfo`（双次 refresh，避免首帧全 0） |
 | 标称频率 | `Cpu::frequency()` |
 | 当前运行频率 | Windows `CallNtPowerInformation(ProcessorInformation)`；失败则回退标称频率或 `null` |
+| `load_5s` / `load_5m` / `load_15m` | 采集器内 `VecDeque` 滚动平均占用 % |
+| 温度 | `thermal::cpu_temperature_c()`（性能计数器 / ACPI WMI，尽力而为） |
 
 ## memory.rs
 
@@ -20,9 +22,16 @@
 |------|------|
 | 总量 / 已用 / 占用% | `sysinfo` |
 | 条级型号 / 频率 / 容量 | WMI `Win32_PhysicalMemory` |
-| 温度 | 固定 `None`（不依赖 LHM） |
+| 温度 | `thermal::memory_temperature_c()`（匹配 MEM/DRAM 等热区名；多数主板不可用则为 `null`） |
 
 WMI 字符串经 `clean_wmi_str` 过滤空串与 `"NULL"`。
+
+## thermal.rs
+
+| 能力 | 实现 |
+|------|------|
+| 热区枚举 | 优先 `Win32_PerfFormattedData_Counters_ThermalZoneInformation`，回退 `ROOT\WMI` 的 `MSAcpi_ThermalZoneTemperature` |
+| 换算 | 十分之一开尔文 → °C；过滤不合理读数 |
 
 ## gpu.rs
 

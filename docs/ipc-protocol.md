@@ -29,6 +29,7 @@
   "history_points": 60,
   "ui_style": "amicro",
   "accent": "teal",
+  "accent_custom": "#0d9488",
   "theme": "system",
   "language": "zh"
 }
@@ -38,8 +39,9 @@
 |------|--------|
 | `interval_ms` | `[200, 60000]` |
 | `history_points` | `[10, 300]` |
-| `ui_style` | `amicro` |
-| `accent` | `teal` / `zinc` / `blue` / `violet` / `amber` |
+| `ui_style` | `amicro` / `neumorph` / `line` / `glass` / `console` / `paper` / `instrument` / `dense` / `clay` / `metal` / `ink` / `swiss` / `hud` / `editorial` |
+| `accent` | `teal` / `zinc` / `blue` / `violet` / `amber` / `custom` |
+| `accent_custom` | `#RRGGBB`（`accent` 为 `custom` 时使用；非法则回退 `#0d9488`） |
 | `theme` | `light` / `dark` / `system` |
 | `language` | `zh` / `en` |
 

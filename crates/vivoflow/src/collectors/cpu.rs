@@ -1,9 +1,18 @@
+use std::collections::VecDeque;
+use std::time::{Duration, Instant};
+
 use sysinfo::{CpuRefreshKind, RefreshKind, System};
 
 use crate::models::CpuMetrics;
 
+struct UsageSample {
+    at: Instant,
+    usage: f32,
+}
+
 pub struct CpuCollector {
     system: System,
+    samples: VecDeque<UsageSample>,
 }
 
 impl CpuCollector {
@@ -12,7 +21,10 @@ impl CpuCollector {
             RefreshKind::nothing().with_cpu(CpuRefreshKind::everything()),
         );
         system.refresh_cpu_all();
-        Self { system }
+        Self {
+            system,
+            samples: VecDeque::with_capacity(1024),
+        }
     }
 
     pub fn sample(&mut self) -> CpuMetrics {
@@ -43,12 +55,54 @@ impl CpuCollector {
 
         let current_mhz = current_cpu_mhz().or(base_mhz);
 
+        self.push_usage(usage_percent);
+        let load_5s = self.avg_usage(Duration::from_secs(5));
+        let load_5m = self.avg_usage(Duration::from_secs(5 * 60));
+        let load_15m = self.avg_usage(Duration::from_secs(15 * 60));
+
         CpuMetrics {
             cores,
             model,
             base_mhz,
             current_mhz,
             usage_percent,
+            load_5s,
+            load_5m,
+            load_15m,
+            temperature_c: crate::collectors::thermal::cpu_temperature_c(),
+        }
+    }
+
+    fn push_usage(&mut self, usage: f32) {
+        let now = Instant::now();
+        self.samples.push_back(UsageSample {
+            at: now,
+            usage,
+        });
+        let cutoff = now
+            .checked_sub(Duration::from_secs(15 * 60 + 30))
+            .unwrap_or(now);
+        while self.samples.front().is_some_and(|s| s.at < cutoff) {
+            self.samples.pop_front();
+        }
+    }
+
+    fn avg_usage(&self, window: Duration) -> f32 {
+        let now = Instant::now();
+        let cutoff = now.checked_sub(window).unwrap_or(now);
+        let mut sum = 0.0f32;
+        let mut n = 0u32;
+        for s in self.samples.iter().rev() {
+            if s.at < cutoff {
+                break;
+            }
+            sum += s.usage;
+            n += 1;
+        }
+        if n == 0 {
+            self.samples.back().map(|s| s.usage).unwrap_or(0.0)
+        } else {
+            sum / n as f32
         }
     }
 }

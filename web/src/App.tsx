@@ -4,7 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Dashboard } from "@/components/Dashboard";
 import { SettingsPage } from "@/components/SettingsPage";
-import { FullPageLoader } from "@/components/amicro/loaders";
+import { FullPageLoader } from "@/components/viz";
 import { AppearanceProvider, useAppearance } from "@/hooks/useAppearance";
 import { useVivoflowWs } from "@/hooks/useVivoflowWs";
 import { cn } from "@/lib/utils";
@@ -33,7 +33,7 @@ function AppShell({
   const [page, setPage] = useState<"dashboard" | "settings">("dashboard");
 
   return (
-    <div className="min-h-dvh bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent/40 via-background to-background">
+    <div className="vf-shell">
       <div className="safe-pad mx-auto max-w-5xl">
         {page === "settings" ? (
           <SettingsPage
@@ -77,8 +77,9 @@ function AppShell({
             {error ? (
               <div
                 className={cn(
-                  "mb-3 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive",
+                  "mb-3 border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive",
                 )}
+                style={{ borderRadius: "var(--radius)" }}
               >
                 {error.kind === "key" ? t(error.key) : error.message}
               </div>

@@ -6,10 +6,52 @@ export interface EnabledModules {
   network: boolean;
 }
 
-export type UiStyle = "amicro";
-export type AccentId = "teal" | "zinc" | "blue" | "violet" | "amber";
+export type UiStyle =
+  | "amicro"
+  | "neumorph"
+  | "line"
+  | "glass"
+  | "console"
+  | "paper"
+  | "instrument"
+  | "dense"
+  | "clay"
+  | "metal"
+  | "ink"
+  | "swiss"
+  | "hud"
+  | "editorial";
+
+export type AccentId = "teal" | "zinc" | "blue" | "violet" | "amber" | "custom";
 export type ThemeMode = "light" | "dark" | "system";
 export type Lang = "zh" | "en";
+
+export const UI_STYLES: UiStyle[] = [
+  "amicro",
+  "neumorph",
+  "line",
+  "glass",
+  "console",
+  "paper",
+  "instrument",
+  "dense",
+  "clay",
+  "metal",
+  "ink",
+  "swiss",
+  "hud",
+  "editorial",
+];
+
+export const ACCENT_PRESETS: Exclude<AccentId, "custom">[] = [
+  "teal",
+  "zinc",
+  "blue",
+  "violet",
+  "amber",
+];
+
+export const DEFAULT_ACCENT_CUSTOM = "#0d9488";
 
 export interface AppConfig {
   interval_ms: number;
@@ -17,6 +59,8 @@ export interface AppConfig {
   history_points: number;
   ui_style: UiStyle;
   accent: AccentId;
+  /** `#RRGGBB`，当 `accent === "custom"` 时生效 */
+  accent_custom: string;
   theme: ThemeMode;
   language: Lang;
 }
@@ -27,6 +71,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   enabled: { cpu: true, memory: true, gpu: true, disk: true, network: true },
   ui_style: "amicro",
   accent: "teal",
+  accent_custom: DEFAULT_ACCENT_CUSTOM,
   theme: "system",
   language: "zh",
 };
@@ -37,6 +82,13 @@ export interface CpuMetrics {
   base_mhz: number | null;
   current_mhz: number | null;
   usage_percent: number;
+  /** Rolling average usage % over ~5 seconds */
+  load_5s: number;
+  /** Rolling average usage % over ~5 minutes */
+  load_5m: number;
+  /** Rolling average usage % over ~15 minutes */
+  load_15m: number;
+  temperature_c: number | null;
 }
 
 export interface MemoryModule {
