@@ -5,11 +5,14 @@ mod memory;
 mod network;
 pub(crate) mod thermal;
 
+use std::collections::VecDeque;
+use std::time::{Duration, Instant};
+
 use anyhow::Result;
 use chrono::Utc;
 
 use crate::config::EnabledModules;
-use crate::models::Snapshot;
+use crate::models::{Snapshot, TempHistoryPoint};
 
 use self::cpu::CpuCollector;
 use self::disk::DiskCollector;
@@ -17,12 +20,17 @@ use self::gpu::GpuCollector;
 use self::memory::MemoryCollector;
 use self::network::NetworkCollector;
 
+const TEMP_SAMPLE_INTERVAL: Duration = Duration::from_secs(60);
+const TEMP_HISTORY_MAX: usize = 60;
+
 pub struct Collector {
     cpu: CpuCollector,
     memory: MemoryCollector,
     gpu: GpuCollector,
     disk: DiskCollector,
     network: NetworkCollector,
+    temp_history: VecDeque<TempHistoryPoint>,
+    last_temp_sample_at: Option<Instant>,
 }
 
 impl Collector {
@@ -33,6 +41,8 @@ impl Collector {
             gpu: GpuCollector::new(),
             disk: DiskCollector::new(),
             network: NetworkCollector::new(),
+            temp_history: VecDeque::with_capacity(TEMP_HISTORY_MAX),
+            last_temp_sample_at: None,
         }
     }
 
@@ -63,6 +73,10 @@ impl Collector {
             None
         };
 
+        let cpu_c = cpu.as_ref().and_then(|c| c.temperature_c);
+        let mem_c = memory.as_ref().and_then(|m| m.temperature_c);
+        self.maybe_record_temp(cpu_c, mem_c);
+
         Ok(Snapshot {
             msg_type: "snapshot",
             ts: Utc::now().timestamp_millis(),
@@ -71,6 +85,30 @@ impl Collector {
             gpu,
             disks,
             network,
+            temp_history: self.temp_history.iter().cloned().collect(),
         })
+    }
+
+    fn maybe_record_temp(&mut self, cpu_c: Option<f32>, mem_c: Option<f32>) {
+        if cpu_c.is_none() && mem_c.is_none() {
+            return;
+        }
+        let now = Instant::now();
+        let due = self
+            .last_temp_sample_at
+            .map(|t| now.duration_since(t) >= TEMP_SAMPLE_INTERVAL)
+            .unwrap_or(true);
+        if !due {
+            return;
+        }
+        self.last_temp_sample_at = Some(now);
+        self.temp_history.push_back(TempHistoryPoint {
+            ts: Utc::now().timestamp_millis(),
+            cpu_c,
+            mem_c,
+        });
+        while self.temp_history.len() > TEMP_HISTORY_MAX {
+            self.temp_history.pop_front();
+        }
     }
 }

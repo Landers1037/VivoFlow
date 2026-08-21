@@ -36,14 +36,17 @@ function sparkFrom(
 }
 
 function tempScatter(
-  history: Snapshot[],
-  pick: (s: Snapshot) => number | null | undefined,
+  points: Snapshot["temp_history"],
+  pick: (p: NonNullable<Snapshot["temp_history"]>[number]) => number | null | undefined,
 ): { x: number; y: number }[] {
   const out: { x: number; y: number }[] = [];
-  history.forEach((s, i) => {
-    const y = pick(s);
-    if (y != null && Number.isFinite(y)) out.push({ x: i, y });
-  });
+  for (const p of points ?? []) {
+    const y = pick(p);
+    if (y != null && Number.isFinite(y)) {
+      // x = minutes from first sample (1 min spacing)
+      out.push({ x: out.length, y });
+    }
+  }
   return out;
 }
 
@@ -80,12 +83,12 @@ export function Dashboard({
     [history],
   );
   const cpuTempScatter = useMemo(
-    () => tempScatter(history, (s) => s.cpu?.temperature_c),
-    [history],
+    () => tempScatter(snapshot?.temp_history, (p) => p.cpu_c),
+    [snapshot?.temp_history],
   );
   const memTempScatter = useMemo(
-    () => tempScatter(history, (s) => s.memory?.temperature_c),
-    [history],
+    () => tempScatter(snapshot?.temp_history, (p) => p.mem_c),
+    [snapshot?.temp_history],
   );
 
   if (!snapshot) {

@@ -4,7 +4,7 @@
 
 ## 编排：`mod.rs`
 
-`Collector` 聚合五个子采集器。`collect(&EnabledModules)` 按开关决定是否 `sample()`，组装带 `ts` 的 `Snapshot`。
+`Collector` 聚合五个子采集器。`collect(&EnabledModules)` 按开关决定是否 `sample()`，组装带 `ts` 的 `Snapshot`。另维护 `temp_history`：CPU/内存温度约每 1 分钟记一点，最多 60 点（约 1 小时）。
 
 ## cpu.rs
 

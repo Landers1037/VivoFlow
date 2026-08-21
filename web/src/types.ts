@@ -134,6 +134,13 @@ export interface NetworkMetrics {
   tx_bps: number;
 }
 
+/** Minute-spaced temperature samples (newest last), up to ~60 points. */
+export interface TempHistoryPoint {
+  ts: number;
+  cpu_c?: number | null;
+  mem_c?: number | null;
+}
+
 export interface Snapshot {
   type: "snapshot";
   ts: number;
@@ -142,6 +149,7 @@ export interface Snapshot {
   gpu?: GpuMetrics[];
   disks?: DiskMetrics[];
   network?: NetworkMetrics[];
+  temp_history?: TempHistoryPoint[];
 }
 
 export type ConnState = "connecting" | "connected" | "disconnected";

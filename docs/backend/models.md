@@ -10,6 +10,7 @@
 |------|------|
 | `ts` | 毫秒时间戳 |
 | `cpu` / `memory` / `gpu` / `disks` / `network` | `Option`；模块关闭时 `skip_serializing` |
+| `temp_history` | 约 1 分钟间隔的 CPU/内存温度点（最多约 60 个，空则省略） |
 
 ## 分项指标
 

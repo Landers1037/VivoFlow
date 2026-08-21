@@ -426,11 +426,13 @@ export function RoundedScatter({
               <XAxis
                 type="number"
                 dataKey="x"
-                name="t"
+                name="min"
+                unit="m"
                 tickLine={false}
                 axisLine={false}
                 tick={{ fill: c.muted, fontSize: 10 }}
                 tickFormatter={(v) => String(v)}
+                allowDecimals={false}
               />
               <YAxis
                 type="number"
@@ -443,7 +445,7 @@ export function RoundedScatter({
                 tick={{ fill: c.muted, fontSize: 10 }}
                 domain={["auto", "auto"]}
               />
-              <ZAxis range={[40, 40]} />
+              <ZAxis range={[64, 64]} />
               {series.map((s, i) => (
                 <Scatter
                   key={s.name}

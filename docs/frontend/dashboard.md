@@ -15,7 +15,7 @@
 |------|------|
 | CPU | Gauge 占用、KPI 频率/型号、Rounded Bullet 负载（5s/5m/15m）、Sparkline 趋势、CPU 温度 |
 | 内存 | Gauge、容量 KPI、型号/频率/内存温度 |
-| 温度 | 两个 Rounded Scatter：CPU / 内存温度各自随时间 |
+| 温度 | 两个 Rounded Scatter：CPU / 内存温度（后端 `temp_history`，约 1 分钟一点） |
 | 显卡 | Gauge、显存 KPI、型号/温度/时钟明细 |
 | 磁盘 | Rounded Treemap 分区容量占比 + 最多 4 条读写明细 |
 | 网络 | Area 下行合计趋势 + 网卡卡片（上下行） |

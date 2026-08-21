@@ -15,6 +15,18 @@ pub struct Snapshot {
     pub disks: Option<Vec<DiskMetrics>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub network: Option<Vec<NetworkMetrics>>,
+    /// CPU / memory temperature samples at ~1 minute spacing (newest last).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub temp_history: Vec<TempHistoryPoint>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TempHistoryPoint {
+    pub ts: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cpu_c: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mem_c: Option<f32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
