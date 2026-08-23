@@ -468,6 +468,7 @@ export function Dashboard({
                 <RoundedScatter
                   title={t("cpuTempTrend")}
                   theme={theme}
+                  tile={1}
                   emptyLabel={t("noTempData")}
                   series={[{ name: t("cpuTemp"), data: cpuTempScatter }]}
                 />
@@ -478,6 +479,7 @@ export function Dashboard({
                 <RoundedScatter
                   title={t("memTempTrend")}
                   theme={theme}
+                  tile={1}
                   emptyLabel={t("noTempData")}
                   series={[{ name: t("memTemp"), data: memTempScatter }]}
                 />
