@@ -16,6 +16,7 @@ import {
   ZAxis,
 } from "recharts";
 import { useAppearance } from "@/hooks/useAppearance";
+import { useHandheldViewport } from "@/hooks/useMobileViewport";
 import type { UiStyle } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -221,6 +222,7 @@ export function GaugeArc({
   className?: string;
 }) {
   const style = useUiStyle();
+  const handheldViewport = useHandheldViewport();
   const c = mono(theme);
   const active = chartStroke(style, c);
   const clamped = Math.max(0, Math.min(100, value));
@@ -231,7 +233,7 @@ export function GaugeArc({
   return (
     <div
       className={cn(
-        "vf-kpi relative items-center overflow-hidden",
+        "vf-gauge vf-kpi relative items-center overflow-visible",
         tileClass(tile, className),
       )}
     >
@@ -246,8 +248,8 @@ export function GaugeArc({
               dataKey="value"
               startAngle={210}
               endAngle={-30}
-              innerRadius="84%"
-              outerRadius="100%"
+              innerRadius={handheldViewport ? "90%" : "84%"}
+              outerRadius={handheldViewport ? "150%" : "88%"}
               cornerRadius={cornerRadius(style)}
               paddingAngle={style === "line" ? 2 : 4}
               strokeLinecap="round"
@@ -260,7 +262,7 @@ export function GaugeArc({
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pt-3">
-          <span className="vf-data text-2xl font-semibold tracking-tight">{display}</span>
+          <span className="vf-data text-xl font-semibold tracking-tight">{display}</span>
         </div>
       </div>
     </div>

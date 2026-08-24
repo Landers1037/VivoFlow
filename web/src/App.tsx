@@ -40,14 +40,6 @@ function AppShell({
   const hideTitleBar = appearanceConfig.hide_title_bar && page === "dashboard";
   const mobileCardModeActive = appearanceConfig.mobile_card_mode && handheldViewport;
 
-  if (page === "dashboard" && appearanceConfig.photo_album_enabled) {
-    return (
-      <div className="vf-shell overflow-hidden">
-        <PhotoAlbumPage onOpenSettings={() => setPage("settings")} />
-      </div>
-    );
-  }
-
   const revealHeader = useCallback(() => {
     setHeaderRevealed(true);
     if (headerTimer.current != null) window.clearTimeout(headerTimer.current);
@@ -73,6 +65,14 @@ function AppShell({
     },
     [],
   );
+
+  if (page === "dashboard" && appearanceConfig.photo_album_enabled) {
+    return (
+      <div className="vf-shell overflow-hidden">
+        <PhotoAlbumPage onOpenSettings={() => setPage("settings")} />
+      </div>
+    );
+  }
 
   return (
     <div className={cn("vf-shell", mobileCardModeActive && "overflow-hidden")}>
