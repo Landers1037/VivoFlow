@@ -14,8 +14,8 @@
 
 | 高度 | 典型组件 |
 |------|----------|
-| 1x | Gauge、KPI、明细、Bullet、Sparkline 与 CPU 温度（半宽并排）、网卡列表 |
-| 2x | Area 趋势、Scatter、Treemap、磁盘列表 |
+| 1x | Gauge、KPI、明细、Bullet、Sparkline 与 CPU 温度（半宽并排）、网卡列表、CPU/内存温度 Scatter |
+| 2x | Area 趋势、Treemap、磁盘列表 |
 
 无 `snapshot` 时显示骨架 `SkeletonLoader`。
 
