@@ -31,7 +31,11 @@
   "accent": "teal",
   "accent_custom": "#0d9488",
   "theme": "system",
-  "language": "zh"
+  "language": "zh",
+  "hide_title_bar": false,
+  "mobile_card_mode": false,
+  "mobile_auto_carousel": true,
+  "mobile_carousel_interval_s": 10
 }
 ```
 
@@ -44,6 +48,10 @@
 | `accent_custom` | `#RRGGBB`（`accent` 为 `custom` 时使用；非法则回退 `#0d9488`） |
 | `theme` | `light` / `dark` / `system` |
 | `language` | `zh` / `en` |
+| `hide_title_bar` | `true` / `false`；仅隐藏仪表盘标题栏 |
+| `mobile_card_mode` | `true` / `false`；手机启用 2x 分页卡片 |
+| `mobile_auto_carousel` | `true` / `false`；仅移动卡片模式生效 |
+| `mobile_carousel_interval_s` | `[5, 60]`，默认 `10` |
 
 配置变更会广播给所有已连接的 WebSocket 客户端，前端以服务端回传为准同步 UI。
 

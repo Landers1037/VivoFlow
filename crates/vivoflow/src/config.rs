@@ -7,6 +7,14 @@ fn default_accent_custom() -> String {
     "#0d9488".into()
 }
 
+fn default_mobile_auto_carousel() -> bool {
+    true
+}
+
+fn default_mobile_carousel_interval_s() -> u64 {
+    10
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub interval_ms: u64,
@@ -22,6 +30,14 @@ pub struct AppConfig {
     pub theme: String,
     #[serde(default)]
     pub language: String,
+    #[serde(default)]
+    pub hide_title_bar: bool,
+    #[serde(default)]
+    pub mobile_card_mode: bool,
+    #[serde(default = "default_mobile_auto_carousel")]
+    pub mobile_auto_carousel: bool,
+    #[serde(default = "default_mobile_carousel_interval_s")]
+    pub mobile_carousel_interval_s: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -44,6 +60,10 @@ impl Default for AppConfig {
             accent_custom: default_accent_custom(),
             theme: "system".into(),
             language: "zh".into(),
+            hide_title_bar: false,
+            mobile_card_mode: false,
+            mobile_auto_carousel: true,
+            mobile_carousel_interval_s: default_mobile_carousel_interval_s(),
         }
     }
 }
@@ -110,6 +130,7 @@ impl AppConfig {
         if !LANGS.contains(&self.language.as_str()) {
             self.language = "zh".into();
         }
+        self.mobile_carousel_interval_s = self.mobile_carousel_interval_s.clamp(5, 60);
         self
     }
 }
@@ -164,4 +185,44 @@ pub fn save_config(cfg: &AppConfig) -> anyhow::Result<()> {
     fs::write(&path, raw)?;
     tracing::debug!("saved config to {}", path.display());
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn legacy_config_gets_mobile_defaults() {
+        let raw = r###"{
+            "interval_ms": 1000,
+            "enabled": {"cpu": true, "memory": true, "gpu": true, "disk": true, "network": true},
+            "history_points": 60,
+            "ui_style": "amicro",
+            "accent": "teal",
+            "accent_custom": "#0d9488",
+            "theme": "system",
+            "language": "zh"
+        }"###;
+
+        let cfg: AppConfig = serde_json::from_str(raw).expect("legacy config should deserialize");
+        assert!(!cfg.hide_title_bar);
+        assert!(!cfg.mobile_card_mode);
+        assert!(cfg.mobile_auto_carousel);
+        assert_eq!(cfg.mobile_carousel_interval_s, 10);
+    }
+
+    #[test]
+    fn carousel_interval_is_sanitized() {
+        let low = AppConfig {
+            mobile_carousel_interval_s: 0,
+            ..AppConfig::default()
+        };
+        assert_eq!(low.sanitize().mobile_carousel_interval_s, 5);
+
+        let high = AppConfig {
+            mobile_carousel_interval_s: 120,
+            ..AppConfig::default()
+        };
+        assert_eq!(high.sanitize().mobile_carousel_interval_s, 60);
+    }
 }

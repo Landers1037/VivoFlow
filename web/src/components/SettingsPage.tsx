@@ -34,6 +34,10 @@ export function SettingsPage({
     setLanguage,
     setUiStyle,
     setThemeMode,
+    setHideTitleBar,
+    setMobileCardMode,
+    setMobileAutoCarousel,
+    setMobileCarouselInterval,
   } = useAppearance();
   const [tab, setTab] = useState<TabId>("appearance");
   const [savedFlash, setSavedFlash] = useState(false);
@@ -97,6 +101,10 @@ export function SettingsPage({
               setLanguage={setLanguage}
               setUiStyle={setUiStyle}
               setThemeMode={setThemeMode}
+              setHideTitleBar={setHideTitleBar}
+              setMobileCardMode={setMobileCardMode}
+              setMobileAutoCarousel={setMobileAutoCarousel}
+              setMobileCarouselInterval={setMobileCarouselInterval}
             />
           ) : null}
 
@@ -331,6 +339,10 @@ function AppearanceTab({
   setLanguage,
   setUiStyle,
   setThemeMode,
+  setHideTitleBar,
+  setMobileCardMode,
+  setMobileAutoCarousel,
+  setMobileCarouselInterval,
 }: {
   t: TFunction;
   config: AppConfig;
@@ -339,6 +351,10 @@ function AppearanceTab({
   setLanguage: (v: Lang) => void;
   setUiStyle: (v: UiStyle) => void;
   setThemeMode: (v: ThemeMode) => void;
+  setHideTitleBar: (v: boolean) => void;
+  setMobileCardMode: (v: boolean) => void;
+  setMobileAutoCarousel: (v: boolean) => void;
+  setMobileCarouselInterval: (v: number) => void;
 }) {
   const [hexDraft, setHexDraft] = useState(config.accent_custom);
 
@@ -501,6 +517,61 @@ function AppearanceTab({
               {t(labelKey)}
             </button>
           ))}
+        </div>
+      </div>
+
+      <div className="space-y-4 border-t border-border pt-5">
+        <div className="flex min-h-11 items-center justify-between gap-3">
+          <div className="min-w-0">
+            <Label htmlFor="hide-title-bar">{t("hideTitleBar")}</Label>
+            <p className="mt-1 text-xs text-muted-foreground">{t("hideTitleBarHint")}</p>
+          </div>
+          <Switch
+            id="hide-title-bar"
+            checked={config.hide_title_bar}
+            onCheckedChange={setHideTitleBar}
+          />
+        </div>
+        <div className="flex min-h-11 items-center justify-between gap-3">
+          <div className="min-w-0">
+            <Label htmlFor="mobile-card-mode">{t("mobileCardMode")}</Label>
+            <p className="mt-1 text-xs text-muted-foreground">{t("mobileCardModeHint")}</p>
+          </div>
+          <Switch
+            id="mobile-card-mode"
+            checked={config.mobile_card_mode}
+            onCheckedChange={setMobileCardMode}
+          />
+        </div>
+        <div className={cn("space-y-3", !config.mobile_card_mode && "opacity-50")}>
+          <div className="flex min-h-11 items-center justify-between gap-3">
+            <div className="min-w-0">
+              <Label htmlFor="mobile-auto-carousel">{t("mobileAutoCarousel")}</Label>
+              <p className="mt-1 text-xs text-muted-foreground">{t("mobileAutoCarouselHint")}</p>
+            </div>
+            <Switch
+              id="mobile-auto-carousel"
+              checked={config.mobile_auto_carousel}
+              disabled={!config.mobile_card_mode}
+              onCheckedChange={setMobileAutoCarousel}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="carousel-interval">
+              {t("carouselInterval")}: {config.mobile_carousel_interval_s}
+            </Label>
+            <input
+              id="carousel-interval"
+              type="range"
+              min={5}
+              max={60}
+              step={1}
+              value={config.mobile_carousel_interval_s}
+              disabled={!config.mobile_card_mode}
+              onChange={(e) => setMobileCarouselInterval(Number(e.target.value))}
+              className="w-full accent-primary"
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -63,6 +63,10 @@ export interface AppConfig {
   accent_custom: string;
   theme: ThemeMode;
   language: Lang;
+  hide_title_bar: boolean;
+  mobile_card_mode: boolean;
+  mobile_auto_carousel: boolean;
+  mobile_carousel_interval_s: number;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -74,6 +78,10 @@ export const DEFAULT_CONFIG: AppConfig = {
   accent_custom: DEFAULT_ACCENT_CUSTOM,
   theme: "system",
   language: "zh",
+  hide_title_bar: false,
+  mobile_card_mode: false,
+  mobile_auto_carousel: true,
+  mobile_carousel_interval_s: 10,
 };
 
 export interface CpuMetrics {

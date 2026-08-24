@@ -631,6 +631,140 @@ textarea,
   gap: var(--shell-gap);
 }
 
+/* Phone card mode: one section occupies a fixed 2x viewport page. The
+   * pager lives in the dedicated gutter beside the card grid. */
+.vf-mobile-dashboard {
+  --vf-mobile-page-height: calc(
+    100dvh - max(1.5rem, env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 2.5rem
+  );
+  --vf-mobile-title-height: 1.5rem;
+  --vf-widget-1x: max(
+    7rem,
+    calc(
+      (var(--vf-mobile-page-height) - var(--vf-mobile-title-height) - var(--shell-gap) - var(--shell-gap)) /
+        2
+    )
+  );
+  --vf-widget-2x: calc(var(--vf-widget-1x) * 2 + var(--shell-gap));
+  position: relative;
+  height: var(--vf-mobile-page-height);
+  min-height: 0;
+  padding-right: 1.75rem;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.vf-titlebar-reveal {
+  animation: vf-titlebar-slide-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+@keyframes vf-titlebar-slide-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -100%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.vf-mobile-page {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: var(--vf-mobile-title-height) minmax(0, 1fr);
+  gap: var(--shell-gap);
+  animation: vf-mobile-page-in 180ms ease-out both;
+}
+
+.vf-mobile-page-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-inline: 0.25rem;
+}
+
+.vf-mobile-grid {
+  min-height: 0;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: var(--shell-gap);
+}
+
+.vf-mobile-grid > * {
+  min-height: 0;
+  min-width: 0;
+}
+
+.vf-mobile-pager {
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  z-index: 60;
+  display: flex;
+  max-height: min(70dvh, 28rem);
+  transform: translateY(-50%);
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  overflow-y: auto;
+  padding: 0.35rem 0.15rem;
+  scrollbar-width: none;
+}
+
+.vf-mobile-pager::-webkit-scrollbar {
+  display: none;
+}
+
+.vf-mobile-pager-dot {
+  display: block;
+  width: 0.35rem;
+  min-height: 1rem;
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in oklch, var(--primary) 45%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--muted) 72%, transparent);
+  opacity: 0.75;
+  transition: min-height 160ms ease, background-color 160ms ease, opacity 160ms ease;
+}
+
+.vf-mobile-pager-dot:hover,
+.vf-mobile-pager-dot:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.vf-mobile-pager-dot-active {
+  min-height: 1.6rem;
+  border-color: var(--primary);
+  background: var(--primary);
+  opacity: 1;
+}
+
+@keyframes vf-mobile-page-in {
+  from {
+    opacity: 0;
+    transform: translateX(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vf-mobile-page,
+  .vf-mobile-pager-dot,
+  .vf-titlebar-reveal {
+    animation: none;
+    transition: none;
+  }
+}
+
 /* Fixed-height dashboard widgets (1x / 2x), content fills via flex */
 .vf-widget-1x,
 .vf-widget-2x {

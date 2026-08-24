@@ -246,8 +246,8 @@ export function GaugeArc({
               dataKey="value"
               startAngle={210}
               endAngle={-30}
-              innerRadius="68%"
-              outerRadius="88%"
+              innerRadius="84%"
+              outerRadius="100%"
               cornerRadius={cornerRadius(style)}
               paddingAngle={style === "line" ? 2 : 4}
               strokeLinecap="round"

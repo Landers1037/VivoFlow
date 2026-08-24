@@ -77,6 +77,12 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     accent_custom: normalizeHexColor(base.accent_custom),
     theme: themes.includes(base.theme as ThemeMode) ? (base.theme as ThemeMode) : "system",
     language: langs.includes(base.language as Lang) ? (base.language as Lang) : "zh",
+    hide_title_bar: Boolean(base.hide_title_bar),
+    mobile_card_mode: Boolean(base.mobile_card_mode),
+    mobile_auto_carousel: base.mobile_auto_carousel !== false,
+    mobile_carousel_interval_s: Number.isFinite(Number(base.mobile_carousel_interval_s))
+      ? Math.min(60, Math.max(5, Number(base.mobile_carousel_interval_s)))
+      : DEFAULT_CONFIG.mobile_carousel_interval_s,
   };
 }
 
@@ -116,6 +122,10 @@ interface AppearanceContextValue {
   setAccentCustom: (hex: string) => void;
   setLanguage: (v: Lang) => void;
   setThemeMode: (v: ThemeMode) => void;
+  setHideTitleBar: (v: boolean) => void;
+  setMobileCardMode: (v: boolean) => void;
+  setMobileAutoCarousel: (v: boolean) => void;
+  setMobileCarouselInterval: (v: number) => void;
   t: TFunction;
   lang: Lang;
 }
@@ -173,6 +183,11 @@ export function AppearanceProvider({
         patch({ accent: "custom", accent_custom: normalizeHexColor(hex) }),
       setLanguage: (language) => patch({ language }),
       setThemeMode: (theme) => patch({ theme }),
+      setHideTitleBar: (hide_title_bar) => patch({ hide_title_bar }),
+      setMobileCardMode: (mobile_card_mode) => patch({ mobile_card_mode }),
+      setMobileAutoCarousel: (mobile_auto_carousel) => patch({ mobile_auto_carousel }),
+      setMobileCarouselInterval: (mobile_carousel_interval_s) =>
+        patch({ mobile_carousel_interval_s }),
       t,
       lang: resolved.language,
     }),

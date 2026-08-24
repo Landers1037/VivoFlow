@@ -1,6 +1,10 @@
 import {
   Fragment,
+  useCallback,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
   type CSSProperties,
   type ReactNode,
 } from "react";
@@ -33,7 +37,8 @@ import {
   SkeletonLoader,
   SparklineRow,
 } from "@/components/viz";
-import { useAppearance } from "@/hooks/useAppearance";
+import { useAppearance, type TFunction } from "@/hooks/useAppearance";
+import { useHandheldViewport } from "@/hooks/useMobileViewport";
 import {
   type DashboardSectionId,
   useDashboardOrder,
@@ -79,6 +84,121 @@ function tempScatter(
 
 const LONG_PRESS_MS = 320;
 const LONG_PRESS_TOLERANCE_PX = 8;
+
+type DashboardWidget = {
+  span?: 1 | 2;
+  height?: 1 | 2;
+  node: ReactNode;
+};
+
+type DashboardSectionModel = {
+  id: DashboardSectionId;
+  title: string;
+  className?: string;
+  items: Record<string, DashboardWidget>;
+};
+
+type MobilePlacement = {
+  id: string;
+  row: number;
+  col: number;
+  rowSpan: 1 | 2;
+  colSpan: 1 | 2;
+  node: ReactNode;
+};
+
+type MobilePage = {
+  key: string;
+  sectionId: DashboardSectionId;
+  title: string;
+  placements: MobilePlacement[];
+};
+
+function findMobilePlacement(
+  occupied: boolean[][],
+  colSpan: 1 | 2,
+  rowSpan: 1 | 2,
+) {
+  for (let row = 0; row <= 2 - rowSpan; row += 1) {
+    for (let col = 0; col <= 2 - colSpan; col += 1) {
+      let available = true;
+      for (let y = row; y < row + rowSpan; y += 1) {
+        for (let x = col; x < col + colSpan; x += 1) {
+          if (occupied[y][x]) available = false;
+        }
+      }
+      if (available) return { row, col };
+    }
+  }
+  return null;
+}
+
+function occupyMobileCells(
+  occupied: boolean[][],
+  row: number,
+  col: number,
+  colSpan: 1 | 2,
+  rowSpan: 1 | 2,
+) {
+  for (let y = row; y < row + rowSpan; y += 1) {
+    for (let x = col; x < col + colSpan; x += 1) {
+      occupied[y][x] = true;
+    }
+  }
+}
+
+function packMobilePages(
+  sections: DashboardSectionId[],
+  widgets: Record<DashboardSectionId, string[]>,
+  models: Record<DashboardSectionId, DashboardSectionModel>,
+): MobilePage[] {
+  const pages: MobilePage[] = [];
+
+  for (const sectionId of sections) {
+    const model = models[sectionId];
+    let occupied = Array.from({ length: 2 }, () => [false, false]);
+    let placements: MobilePlacement[] = [];
+    let pageNumber = 0;
+
+    const flush = () => {
+      if (!placements.length) return;
+      pages.push({
+        key: `${sectionId}-${pageNumber}`,
+        sectionId,
+        title: model.title,
+        placements,
+      });
+      pageNumber += 1;
+      occupied = Array.from({ length: 2 }, () => [false, false]);
+      placements = [];
+    };
+
+    for (const id of widgets[sectionId]) {
+      const item = model.items[id];
+      if (!item || item.node == null) continue;
+      const colSpan = item.span ?? 1;
+      const rowSpan = item.height ?? 1;
+      let position = findMobilePlacement(occupied, colSpan, rowSpan);
+      if (!position) {
+        flush();
+        position = findMobilePlacement(occupied, colSpan, rowSpan);
+      }
+      if (!position) continue;
+      occupyMobileCells(occupied, position.row, position.col, colSpan, rowSpan);
+      placements.push({
+        id,
+        row: position.row,
+        col: position.col,
+        rowSpan,
+        colSpan,
+        node: item.node,
+      });
+    }
+    flush();
+  }
+
+  return pages;
+}
 
 function useLongPressSensors() {
   return useSensors(
@@ -220,7 +340,7 @@ function WidgetGrid({
   sectionId: DashboardSectionId;
   order: string[];
   onReorder: (next: string[]) => void;
-  items: Record<string, { span?: 1 | 2; node: ReactNode }>;
+  items: Record<string, DashboardWidget>;
 }) {
   const sensors = useLongPressSensors();
 
@@ -257,6 +377,141 @@ function WidgetGrid({
   );
 }
 
+function MobileDashboard({
+  pages,
+  autoCarousel,
+  intervalSeconds,
+  t,
+}: {
+  pages: MobilePage[];
+  autoCarousel: boolean;
+  intervalSeconds: number;
+  t: TFunction;
+}) {
+  const [pageIndex, setPageIndex] = useState(0);
+  const timer = useRef<number | null>(null);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+
+  const clearTimer = useCallback(() => {
+    if (timer.current != null) {
+      window.clearTimeout(timer.current);
+      timer.current = null;
+    }
+  }, []);
+
+  const scheduleTimer = useCallback(() => {
+    clearTimer();
+    if (!autoCarousel || pages.length <= 1 || document.visibilityState === "hidden") return;
+    timer.current = window.setTimeout(() => {
+      setPageIndex((current) => (current + 1) % pages.length);
+    }, intervalSeconds * 1000);
+  }, [autoCarousel, clearTimer, intervalSeconds, pages.length]);
+
+  useEffect(() => {
+    setPageIndex((current) => Math.min(current, Math.max(0, pages.length - 1)));
+  }, [pages.length]);
+
+  useEffect(() => {
+    scheduleTimer();
+    return clearTimer;
+  }, [clearTimer, pageIndex, scheduleTimer]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") clearTimer();
+      else scheduleTimer();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [clearTimer, scheduleTimer]);
+
+  const goToPage = useCallback(
+    (next: number) => {
+      if (!pages.length) return;
+      clearTimer();
+      setPageIndex((next + pages.length) % pages.length);
+      scheduleTimer();
+    },
+    [clearTimer, pages.length, scheduleTimer],
+  );
+
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse") return;
+    if (event.clientX >= window.innerWidth - 24) return;
+    const target = event.target as HTMLElement;
+    if (target.closest("button, a, input, textarea, select")) return;
+    swipeStart.current = { x: event.clientX, y: event.clientY };
+  };
+
+  const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (!start) return;
+    const target = event.target as HTMLElement;
+    if (target.closest("button, a, input, textarea, select")) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (Math.abs(dx) < 36 || Math.abs(dx) <= Math.abs(dy)) return;
+    goToPage(pageIndex + (dx < 0 ? 1 : -1));
+  };
+
+  if (!pages.length) return null;
+  const page = pages[pageIndex] ?? pages[0];
+
+  return (
+    <div
+      className="vf-mobile-dashboard"
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={() => {
+        swipeStart.current = null;
+      }}
+    >
+      <div key={page.key} className="vf-mobile-page" aria-live="polite">
+        <div className="vf-mobile-page-heading">
+          <h2 className="truncate text-sm font-semibold tracking-wide text-muted-foreground">
+            {page.title}
+          </h2>
+          <span className="vf-data text-[11px] text-muted-foreground">
+            {pageIndex + 1}/{pages.length}
+          </span>
+        </div>
+        <div className="vf-mobile-grid grid grid-cols-2">
+          {page.placements.map((placement) => (
+            <div
+              key={placement.id}
+              className="relative min-h-0"
+              style={{
+                gridColumn: `${placement.col + 1} / span ${placement.colSpan}`,
+                gridRow: `${placement.row + 1} / span ${placement.rowSpan}`,
+              }}
+            >
+              {placement.node}
+            </div>
+          ))}
+        </div>
+      </div>
+      {pages.length > 1 ? (
+        <nav className="vf-mobile-pager" aria-label={t("dashboardPages")}>
+          {pages.map((item, index) => (
+            <button
+              key={item.key}
+              type="button"
+              aria-label={`${item.title} ${index + 1}/${pages.length}`}
+              aria-current={index === pageIndex ? "page" : undefined}
+              className={cn(
+                "vf-mobile-pager-dot",
+                index === pageIndex && "vf-mobile-pager-dot-active",
+              )}
+              onClick={() => goToPage(index)}
+            />
+          ))}
+        </nav>
+      ) : null}
+    </div>
+  );
+}
+
 export function Dashboard({
   snapshot,
   history,
@@ -265,8 +520,9 @@ export function Dashboard({
   history: Snapshot[];
 }) {
   const { resolvedTheme } = useTheme();
-  const { t } = useAppearance();
+  const { t, config: appearanceConfig } = useAppearance();
   const { sections, widgets, setSections, setWidgets } = useDashboardOrder();
+  const handheldViewport = useHandheldViewport();
   const theme = resolvedTheme === "light" ? "light" : "dark";
   const naLabel = t("unavailable");
   const sectionSensors = useLongPressSensors();
@@ -335,336 +591,302 @@ export function Dashboard({
   const load5m = cpu?.load_5m ?? cpu?.usage_percent ?? 0;
   const load15m = cpu?.load_15m ?? cpu?.usage_percent ?? 0;
 
-  const sectionNodes: Record<DashboardSectionId, ReactNode> = {
-    cpu: (
-      <SortableSection id="cpu" title={t("cpu")}>
-        <WidgetGrid
-          sectionId="cpu"
-          order={widgets.cpu}
-          onReorder={(next) => setWidgets("cpu", next)}
-          items={{
-            gauge: {
-              node: (
-                <GaugeArc
-                  label={t("usage")}
-                  value={cpu?.usage_percent ?? 0}
-                  display={formatPercent(cpu?.usage_percent, naLabel)}
-                  theme={theme}
-                />
-              ),
-            },
-            kpi: {
-              node: (
-                <KpiCard
-                  title={t("frequency")}
-                  value={formatMhz(cpu?.current_mhz ?? cpu?.base_mhz, naLabel)}
-                  subtitle={t("coresModel", {
-                    cores: na(cpu?.cores, naLabel),
-                    model: na(cpu?.model, naLabel),
-                  })}
-                  data={cpuUsageSeries}
-                  theme={theme}
-                />
-              ),
-            },
-            load: {
-              span: 2,
-              node: (
-                <RoundedBullet
-                  title={t("cpuLoad")}
-                  theme={theme}
-                  domainMax={100}
-                  items={[
-                    { label: t("load5s"), value: load5s, target: 70 },
-                    { label: t("load5m"), value: load5m, target: 70 },
-                    { label: t("load15m"), value: load15m, target: 70 },
-                  ]}
-                />
-              ),
-            },
-            spark: {
-              node: (
-                <SparklineRow
-                  name={t("cpuUsageTrend")}
-                  value={formatPercent(cpu?.usage_percent, naLabel)}
-                  data={sparkFrom(history, (s) => s.cpu?.usage_percent)}
-                  theme={theme}
-                />
-              ),
-            },
-            temp: {
-              node: (
-                <div className="vf-surface vf-widget-1x justify-center">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {t("cpuTemp")}
-                  </p>
-                  <p className="vf-data mt-1 text-2xl font-semibold tracking-tight">
-                    {formatTemp(cpu?.temperature_c, naLabel)}
-                  </p>
-                </div>
-              ),
-            },
-          }}
-        />
-      </SortableSection>
-    ),
-    memory: (
-      <SortableSection id="memory" title={t("memory")}>
-        <WidgetGrid
-          sectionId="memory"
-          order={widgets.memory}
-          onReorder={(next) => setWidgets("memory", next)}
-          items={{
-            gauge: {
-              node: (
-                <GaugeArc
-                  label={t("usage")}
-                  value={mem?.usage_percent ?? 0}
-                  display={formatPercent(mem?.usage_percent, naLabel)}
-                  theme={theme}
-                />
-              ),
-            },
-            kpi: {
-              node: (
-                <KpiCard
-                  title={t("capacity")}
-                  value={formatBytes(mem?.total_bytes, naLabel)}
-                  subtitle={t("used", {
-                    value: formatBytes(mem?.used_bytes, naLabel),
-                  })}
-                  data={memUsageSeries}
-                  theme={theme}
-                />
-              ),
-            },
-            info: {
-              span: 2,
-              node: (
-                <div className="vf-surface vf-widget-1x justify-center space-y-1.5 text-sm">
-                  <Row k={t("model")} v={na(memModel, naLabel)} />
-                  <Row k={t("frequency")} v={formatMhz(memSpeed, naLabel)} />
-                  <Row k={t("memTemp")} v={formatTemp(mem?.temperature_c, naLabel)} />
-                </div>
-              ),
-            },
-          }}
-        />
-      </SortableSection>
-    ),
-    temp: (
-      <SortableSection
-        id="temp"
-        title={t("temperature")}
-        className="landscape:col-span-2"
-      >
-        <WidgetGrid
-          sectionId="temp"
-          order={widgets.temp}
-          onReorder={(next) => setWidgets("temp", next)}
-          items={{
-            cpuScatter: {
-              node: (
-                <RoundedScatter
-                  title={t("cpuTempTrend")}
-                  theme={theme}
-                  emptyLabel={t("noTempData")}
-                  series={[{ name: t("cpuTemp"), data: cpuTempScatter }]}
-                />
-              ),
-            },
-            memScatter: {
-              node: (
-                <RoundedScatter
-                  title={t("memTempTrend")}
-                  theme={theme}
-                  emptyLabel={t("noTempData")}
-                  series={[{ name: t("memTemp"), data: memTempScatter }]}
-                />
-              ),
-            },
-          }}
-        />
-      </SortableSection>
-    ),
-    gpu: (
-      <SortableSection id="gpu" title={t("gpu")}>
-        <WidgetGrid
-          sectionId="gpu"
-          order={widgets.gpu}
-          onReorder={(next) => setWidgets("gpu", next)}
-          items={{
-            gauge: {
-              node: (
-                <GaugeArc
-                  label={t("gpuUsage")}
-                  value={gpu?.usage_percent ?? 0}
-                  display={formatPercent(gpu?.usage_percent, naLabel)}
-                  theme={theme}
-                />
-              ),
-            },
-            kpi: {
-              node: (
-                <KpiCard
-                  title={t("vram")}
-                  value={formatBytes(gpu?.vram_bytes, naLabel)}
-                  subtitle={t("used", {
-                    value: formatBytes(gpu?.vram_used_bytes, naLabel),
-                  })}
-                  data={gpuUsageSeries}
-                  theme={theme}
-                />
-              ),
-            },
-            info: {
-              span: 2,
-              node: (
-                <div className="vf-surface vf-widget-1x justify-center space-y-1.5 text-sm">
-                  <Row k={t("model")} v={na(gpu?.name, naLabel)} />
-                  <Row
-                    k={t("temperature")}
-                    v={formatTemp(gpu?.temperature_c, naLabel)}
-                  />
-                  <Row
-                    k={t("memClock")}
-                    v={formatMhz(gpu?.memory_clock_mhz, naLabel)}
-                  />
-                  <Row
-                    k={t("coreClock")}
-                    v={formatMhz(gpu?.core_clock_mhz, naLabel)}
-                  />
-                </div>
-              ),
-            },
-          }}
-        />
-      </SortableSection>
-    ),
-    disk: (
-      <SortableSection
-        id="disk"
-        title={t("diskCount", { count: disks.length })}
-      >
-        <WidgetGrid
-          sectionId="disk"
-          order={widgets.disk}
-          onReorder={(next) => setWidgets("disk", next)}
-          items={{
-            treemap: {
-              span: 2,
-              node:
-                disks.length === 0 ? (
-                  <div
-                    className="vf-surface vf-widget-2x items-center justify-center text-sm text-muted-foreground"
-                    style={{ borderStyle: "dashed", opacity: 0.85 }}
-                  >
-                    {t("noDiskData")}
-                  </div>
-                ) : (
-                  <RoundedTreemap
-                    title={t("diskShare")}
-                    theme={theme}
-                    emptyLabel={t("noDiskData")}
-                    data={disks.map((d) => ({
-                      name: d.name,
-                      size: Math.max(d.total_bytes, 1),
-                      label: formatBytes(d.total_bytes, naLabel),
-                    }))}
-                  />
-                ),
-            },
-            list: {
-              span: 2,
-              node:
-                disks.length === 0 ? null : (
-                  <div className="vf-surface vf-widget-2x gap-2 overflow-y-auto">
-                    {disks.slice(0, 4).map((d) => (
-                      <div
-                        key={d.name}
-                        className="vf-row shrink-0 px-3 py-2 text-sm"
-                      >
-                        <p className="truncate font-medium">{d.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {na(d.model, naLabel)} · {na(d.kind, naLabel)} ·{" "}
-                          {formatBytes(d.total_bytes, naLabel)}
-                        </p>
-                        <div className="mt-1.5 flex gap-3 text-xs">
-                          <span className="vf-data">
-                            {t("read", { value: formatBps(d.read_bps, naLabel) })}
-                          </span>
-                          <span className="vf-data">
-                            {t("write", {
-                              value: formatBps(d.write_bps, naLabel),
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ),
-            },
-          }}
-        />
-      </SortableSection>
-    ),
-    network: (
-      <SortableSection
-        id="network"
-        title={t("network")}
-        className="landscape:col-span-2"
-      >
-        <WidgetGrid
-          sectionId="network"
-          order={widgets.network}
-          onReorder={(next) => setWidgets("network", next)}
-          items={{
-            area: {
-              span: 2,
-              node: (
-                <AreaTrend
-                  title={t("netDownTotal")}
-                  data={netRxSeries}
-                  theme={theme}
-                />
-              ),
-            },
-            nics: {
-              span: 2,
-              node: (
-                <div className="vf-surface vf-widget-1x gap-1.5 overflow-y-auto">
-                  {nets.length === 0 ? (
-                    <p className="m-auto text-sm text-muted-foreground">
-                      {t("noNetworkData")}
+  const sectionModels: Record<DashboardSectionId, DashboardSectionModel> = {
+    cpu: {
+      id: "cpu",
+      title: t("cpu"),
+      items: {
+        gauge: {
+          node: (
+            <GaugeArc
+              label={t("usage")}
+              value={cpu?.usage_percent ?? 0}
+              display={formatPercent(cpu?.usage_percent, naLabel)}
+              theme={theme}
+            />
+          ),
+        },
+        kpi: {
+          node: (
+            <KpiCard
+              title={t("frequency")}
+              value={formatMhz(cpu?.current_mhz ?? cpu?.base_mhz, naLabel)}
+              subtitle={t("coresModel", {
+                cores: na(cpu?.cores, naLabel),
+                model: na(cpu?.model, naLabel),
+              })}
+              data={cpuUsageSeries}
+              theme={theme}
+            />
+          ),
+        },
+        load: {
+          span: 2,
+          node: (
+            <RoundedBullet
+              title={t("cpuLoad")}
+              theme={theme}
+              domainMax={100}
+              items={[
+                { label: t("load5s"), value: load5s, target: 70 },
+                { label: t("load5m"), value: load5m, target: 70 },
+                { label: t("load15m"), value: load15m, target: 70 },
+              ]}
+            />
+          ),
+        },
+        spark: {
+          node: (
+            <SparklineRow
+              name={t("cpuUsageTrend")}
+              value={formatPercent(cpu?.usage_percent, naLabel)}
+              data={sparkFrom(history, (s) => s.cpu?.usage_percent)}
+              theme={theme}
+            />
+          ),
+        },
+        temp: {
+          node: (
+            <div className="vf-surface vf-widget-1x justify-center">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                {t("cpuTemp")}
+              </p>
+              <p className="vf-data mt-1 text-2xl font-semibold tracking-tight">
+                {formatTemp(cpu?.temperature_c, naLabel)}
+              </p>
+            </div>
+          ),
+        },
+      },
+    },
+    memory: {
+      id: "memory",
+      title: t("memory"),
+      items: {
+        gauge: {
+          node: (
+            <GaugeArc
+              label={t("usage")}
+              value={mem?.usage_percent ?? 0}
+              display={formatPercent(mem?.usage_percent, naLabel)}
+              theme={theme}
+            />
+          ),
+        },
+        kpi: {
+          node: (
+            <KpiCard
+              title={t("capacity")}
+              value={formatBytes(mem?.total_bytes, naLabel)}
+              subtitle={t("used", {
+                value: formatBytes(mem?.used_bytes, naLabel),
+              })}
+              data={memUsageSeries}
+              theme={theme}
+            />
+          ),
+        },
+        info: {
+          span: 2,
+          node: (
+            <div className="vf-surface vf-widget-1x justify-center space-y-1.5 text-sm">
+              <Row k={t("model")} v={na(memModel, naLabel)} />
+              <Row k={t("frequency")} v={formatMhz(memSpeed, naLabel)} />
+              <Row k={t("memTemp")} v={formatTemp(mem?.temperature_c, naLabel)} />
+            </div>
+          ),
+        },
+      },
+    },
+    temp: {
+      id: "temp",
+      title: t("temperature"),
+      className: "landscape:col-span-2",
+      items: {
+        cpuScatter: {
+          height: 2,
+          node: (
+            <RoundedScatter
+              title={t("cpuTempTrend")}
+              theme={theme}
+              emptyLabel={t("noTempData")}
+              series={[{ name: t("cpuTemp"), data: cpuTempScatter }]}
+            />
+          ),
+        },
+        memScatter: {
+          height: 2,
+          node: (
+            <RoundedScatter
+              title={t("memTempTrend")}
+              theme={theme}
+              emptyLabel={t("noTempData")}
+              series={[{ name: t("memTemp"), data: memTempScatter }]}
+            />
+          ),
+        },
+      },
+    },
+    gpu: {
+      id: "gpu",
+      title: t("gpu"),
+      items: {
+        gauge: {
+          node: (
+            <GaugeArc
+              label={t("gpuUsage")}
+              value={gpu?.usage_percent ?? 0}
+              display={formatPercent(gpu?.usage_percent, naLabel)}
+              theme={theme}
+            />
+          ),
+        },
+        kpi: {
+          node: (
+            <KpiCard
+              title={t("vram")}
+              value={formatBytes(gpu?.vram_bytes, naLabel)}
+              subtitle={t("used", {
+                value: formatBytes(gpu?.vram_used_bytes, naLabel),
+              })}
+              data={gpuUsageSeries}
+              theme={theme}
+            />
+          ),
+        },
+        info: {
+          span: 2,
+          node: (
+            <div className="vf-surface vf-widget-1x justify-center space-y-1.5 text-sm">
+              <Row k={t("model")} v={na(gpu?.name, naLabel)} />
+              <Row k={t("temperature")} v={formatTemp(gpu?.temperature_c, naLabel)} />
+              <Row k={t("memClock")} v={formatMhz(gpu?.memory_clock_mhz, naLabel)} />
+              <Row k={t("coreClock")} v={formatMhz(gpu?.core_clock_mhz, naLabel)} />
+            </div>
+          ),
+        },
+      },
+    },
+    disk: {
+      id: "disk",
+      title: t("diskCount", { count: disks.length }),
+      items: {
+        treemap: {
+          span: 2,
+          height: 2,
+          node:
+            disks.length === 0 ? (
+              <div
+                className="vf-surface vf-widget-2x items-center justify-center text-sm text-muted-foreground"
+                style={{ borderStyle: "dashed", opacity: 0.85 }}
+              >
+                {t("noDiskData")}
+              </div>
+            ) : (
+              <RoundedTreemap
+                title={t("diskShare")}
+                theme={theme}
+                emptyLabel={t("noDiskData")}
+                data={disks.map((d) => ({
+                  name: d.name,
+                  size: Math.max(d.total_bytes, 1),
+                  label: formatBytes(d.total_bytes, naLabel),
+                }))}
+              />
+            ),
+        },
+        list: {
+          span: 2,
+          height: 2,
+          node:
+            disks.length === 0 ? null : (
+              <div className="vf-surface vf-widget-2x gap-2 overflow-y-auto">
+                {disks.slice(0, 4).map((d) => (
+                  <div key={d.name} className="vf-row shrink-0 px-3 py-2 text-sm">
+                    <p className="truncate font-medium">{d.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {na(d.model, naLabel)} · {na(d.kind, naLabel)} · {formatBytes(d.total_bytes, naLabel)}
                     </p>
-                  ) : (
-                    <div className="grid h-full min-h-0 grid-cols-2 gap-1.5">
-                      {nets.slice(0, 4).map((n) => (
-                        <div
-                          key={n.name}
-                          className="vf-row flex min-h-0 flex-col justify-center px-2.5 py-1.5"
-                        >
-                          <p className="truncate text-xs font-medium">{n.name}</p>
-                          <div className="mt-0.5 flex gap-2 text-[10px] text-muted-foreground">
-                            <span className="vf-data truncate">
-                              ↓ {formatBps(n.rx_bps, naLabel)}
-                            </span>
-                            <span className="vf-data truncate">
-                              ↑ {formatBps(n.tx_bps, naLabel)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="mt-1.5 flex gap-3 text-xs">
+                      <span className="vf-data">{t("read", { value: formatBps(d.read_bps, naLabel) })}</span>
+                      <span className="vf-data">{t("write", { value: formatBps(d.write_bps, naLabel) })}</span>
                     </div>
-                  )}
+                  </div>
+                ))}
+              </div>
+            ),
+        },
+      },
+    },
+    network: {
+      id: "network",
+      title: t("network"),
+      className: "landscape:col-span-2",
+      items: {
+        area: {
+          span: 2,
+          height: 2,
+          node: <AreaTrend title={t("netDownTotal")} data={netRxSeries} theme={theme} />,
+        },
+        nics: {
+          span: 2,
+          node: (
+            <div className="vf-surface vf-widget-1x gap-1.5 overflow-y-auto">
+              {nets.length === 0 ? (
+                <p className="m-auto text-sm text-muted-foreground">{t("noNetworkData")}</p>
+              ) : (
+                <div className="grid h-full min-h-0 grid-cols-2 gap-1.5">
+                  {nets.slice(0, 4).map((n) => (
+                    <div
+                      key={n.name}
+                      className="vf-row flex min-h-0 flex-col justify-center px-2.5 py-1.5"
+                    >
+                      <p className="truncate text-xs font-medium">{n.name}</p>
+                      <div className="mt-0.5 flex gap-2 text-[10px] text-muted-foreground">
+                        <span className="vf-data truncate">↓ {formatBps(n.rx_bps, naLabel)}</span>
+                        <span className="vf-data truncate">↑ {formatBps(n.tx_bps, naLabel)}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ),
-            },
-          }}
-        />
-      </SortableSection>
-    ),
+              )}
+            </div>
+          ),
+        },
+      },
+    },
   };
+
+  const mobilePages = packMobilePages(sections, widgets, sectionModels);
+  const isMobileCardMode = handheldViewport && appearanceConfig.mobile_card_mode;
+
+  if (isMobileCardMode) {
+    return (
+      <MobileDashboard
+        pages={mobilePages}
+        autoCarousel={appearanceConfig.mobile_auto_carousel}
+        intervalSeconds={appearanceConfig.mobile_carousel_interval_s}
+        t={t}
+      />
+    );
+  }
+
+  const sectionNodes: Record<DashboardSectionId, ReactNode> = Object.fromEntries(
+    (Object.keys(sectionModels) as DashboardSectionId[]).map((id) => {
+      const model = sectionModels[id];
+      return [
+        id,
+        <SortableSection key={id} id={id} title={model.title} className={model.className}>
+          <WidgetGrid
+            sectionId={id}
+            order={widgets[id]}
+            onReorder={(next) => setWidgets(id, next)}
+            items={model.items}
+          />
+        </SortableSection>,
+      ];
+    }),
+  ) as Record<DashboardSectionId, ReactNode>;
 
   return (
     <DndContext

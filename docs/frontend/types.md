@@ -9,6 +9,7 @@
 - `AccentId`：`teal` | `zinc` | `blue` | `violet` | `amber` | `custom`
 - `accent_custom`：`#RRGGBB`（自定义主题色）
 - `ThemeMode` / `Lang`
+- `hide_title_bar`、`mobile_card_mode`、`mobile_auto_carousel`、`mobile_carousel_interval_s`
 - `Snapshot` 及 `CpuMetrics`、`MemoryMetrics`、`GpuMetrics`、`DiskMetrics`、`NetworkMetrics`
 - `ConnState`：`"connecting" | "connected" | "disconnected"`
 
