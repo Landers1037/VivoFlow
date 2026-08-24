@@ -3,6 +3,7 @@ import { Settings2, Wifi, WifiOff } from "lucide-react";
 import { ThemeProvider } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Dashboard } from "@/components/Dashboard";
+import { PhotoAlbumPage } from "@/components/albums/PhotoAlbumPage";
 import { SettingsPage } from "@/components/SettingsPage";
 import { FullPageLoader } from "@/components/viz";
 import { AppearanceProvider, useAppearance } from "@/hooks/useAppearance";
@@ -38,6 +39,14 @@ function AppShell({
   const handheldViewport = useHandheldViewport();
   const hideTitleBar = appearanceConfig.hide_title_bar && page === "dashboard";
   const mobileCardModeActive = appearanceConfig.mobile_card_mode && handheldViewport;
+
+  if (page === "dashboard" && appearanceConfig.photo_album_enabled) {
+    return (
+      <div className="vf-shell overflow-hidden">
+        <PhotoAlbumPage onOpenSettings={() => setPage("settings")} />
+      </div>
+    );
+  }
 
   const revealHeader = useCallback(() => {
     setHeaderRevealed(true);

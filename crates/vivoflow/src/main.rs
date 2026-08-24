@@ -1,3 +1,4 @@
+mod album;
 mod collectors;
 mod config;
 mod hub;
@@ -35,8 +36,9 @@ async fn main() -> anyhow::Result<()> {
     );
     let hub = MetricsHub::new(config);
     hub.clone().spawn_collector();
+    let albums = crate::album::AlbumStore::load()?;
 
     tracing::info!("VivoFlow listening on http://{addr}");
     tracing::info!("WebSocket JSON IPC at ws://{addr}/ws");
-    serve(addr, hub).await
+    serve(addr, hub, albums).await
 }

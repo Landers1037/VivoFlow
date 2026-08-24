@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, Lang, ThemeMode, UiStyle } from "@/types";
+import type { AccentId, AppConfig, Lang, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   DEFAULT_ACCENT_CUSTOM,
@@ -83,6 +83,12 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     mobile_carousel_interval_s: Number.isFinite(Number(base.mobile_carousel_interval_s))
       ? Math.min(60, Math.max(5, Number(base.mobile_carousel_interval_s)))
       : DEFAULT_CONFIG.mobile_carousel_interval_s,
+    photo_album_enabled: Boolean(base.photo_album_enabled),
+    photo_album_effect: (["single", "time_machine", "cover_flow"] as const).includes(
+      base.photo_album_effect as PhotoAlbumEffect,
+    )
+      ? (base.photo_album_effect as PhotoAlbumEffect)
+      : "single",
   };
 }
 
@@ -126,6 +132,8 @@ interface AppearanceContextValue {
   setMobileCardMode: (v: boolean) => void;
   setMobileAutoCarousel: (v: boolean) => void;
   setMobileCarouselInterval: (v: number) => void;
+  setPhotoAlbumEnabled: (v: boolean) => void;
+  setPhotoAlbumEffect: (v: PhotoAlbumEffect) => void;
   t: TFunction;
   lang: Lang;
 }
@@ -188,6 +196,8 @@ export function AppearanceProvider({
       setMobileAutoCarousel: (mobile_auto_carousel) => patch({ mobile_auto_carousel }),
       setMobileCarouselInterval: (mobile_carousel_interval_s) =>
         patch({ mobile_carousel_interval_s }),
+      setPhotoAlbumEnabled: (photo_album_enabled) => patch({ photo_album_enabled }),
+      setPhotoAlbumEffect: (photo_album_effect) => patch({ photo_album_effect }),
       t,
       lang: resolved.language,
     }),

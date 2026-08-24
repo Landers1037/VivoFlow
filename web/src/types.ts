@@ -25,6 +25,7 @@ export type UiStyle =
 export type AccentId = "teal" | "zinc" | "blue" | "violet" | "amber" | "custom";
 export type ThemeMode = "light" | "dark" | "system";
 export type Lang = "zh" | "en";
+export type PhotoAlbumEffect = "single" | "time_machine" | "cover_flow";
 
 export const UI_STYLES: UiStyle[] = [
   "amicro",
@@ -67,6 +68,8 @@ export interface AppConfig {
   mobile_card_mode: boolean;
   mobile_auto_carousel: boolean;
   mobile_carousel_interval_s: number;
+  photo_album_enabled: boolean;
+  photo_album_effect: PhotoAlbumEffect;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -82,7 +85,28 @@ export const DEFAULT_CONFIG: AppConfig = {
   mobile_card_mode: false,
   mobile_auto_carousel: true,
   mobile_carousel_interval_s: 10,
+  photo_album_enabled: false,
+  photo_album_effect: "single",
 };
+
+export interface AlbumImage {
+  id: string;
+  original_name: string;
+  mime_type: string;
+  size_bytes: number;
+  content_url: string;
+}
+
+export interface Album {
+  id: string;
+  title: string;
+  description: string | null;
+  date: string | null;
+  show_on_home: boolean;
+  shuffle: boolean;
+  interval_s: number;
+  images: AlbumImage[];
+}
 
 export interface CpuMetrics {
   cores: number;

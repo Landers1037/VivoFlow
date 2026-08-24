@@ -15,6 +15,10 @@ fn default_mobile_carousel_interval_s() -> u64 {
     10
 }
 
+fn default_photo_album_effect() -> String {
+    "single".into()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub interval_ms: u64,
@@ -38,6 +42,10 @@ pub struct AppConfig {
     pub mobile_auto_carousel: bool,
     #[serde(default = "default_mobile_carousel_interval_s")]
     pub mobile_carousel_interval_s: u64,
+    #[serde(default)]
+    pub photo_album_enabled: bool,
+    #[serde(default = "default_photo_album_effect")]
+    pub photo_album_effect: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -64,6 +72,8 @@ impl Default for AppConfig {
             mobile_card_mode: false,
             mobile_auto_carousel: true,
             mobile_carousel_interval_s: default_mobile_carousel_interval_s(),
+            photo_album_enabled: false,
+            photo_album_effect: default_photo_album_effect(),
         }
     }
 }
@@ -131,6 +141,9 @@ impl AppConfig {
             self.language = "zh".into();
         }
         self.mobile_carousel_interval_s = self.mobile_carousel_interval_s.clamp(5, 60);
+        if !["single", "time_machine", "cover_flow"].contains(&self.photo_album_effect.as_str()) {
+            self.photo_album_effect = default_photo_album_effect();
+        }
         self
     }
 }
@@ -165,7 +178,10 @@ pub fn load_config() -> AppConfig {
                 cfg.sanitize()
             }
             Err(err) => {
-                tracing::warn!("invalid config at {}: {err}; using defaults", path.display());
+                tracing::warn!(
+                    "invalid config at {}: {err}; using defaults",
+                    path.display()
+                );
                 AppConfig::default()
             }
         },
@@ -209,6 +225,8 @@ mod tests {
         assert!(!cfg.mobile_card_mode);
         assert!(cfg.mobile_auto_carousel);
         assert_eq!(cfg.mobile_carousel_interval_s, 10);
+        assert!(!cfg.photo_album_enabled);
+        assert_eq!(cfg.photo_album_effect, "single");
     }
 
     #[test]
@@ -224,5 +242,14 @@ mod tests {
             ..AppConfig::default()
         };
         assert_eq!(high.sanitize().mobile_carousel_interval_s, 60);
+    }
+
+    #[test]
+    fn invalid_photo_album_effect_uses_default() {
+        let cfg = AppConfig {
+            photo_album_effect: "unknown".into(),
+            ..AppConfig::default()
+        };
+        assert_eq!(cfg.sanitize().photo_album_effect, "single");
     }
 }

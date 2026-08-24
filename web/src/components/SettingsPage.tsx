@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Info, Palette, Radio } from "lucide-react";
+import { ArrowLeft, Images, Info, Palette, Radio } from "lucide-react";
+import { AlbumSettings } from "@/components/albums/AlbumSettings";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -15,7 +16,7 @@ import { DEFAULT_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
 
-type TabId = "appearance" | "collection" | "about";
+type TabId = "appearance" | "collection" | "albums" | "about";
 
 export function SettingsPage({
   config,
@@ -50,6 +51,7 @@ export function SettingsPage({
   const tabs: { id: TabId; label: string; icon: typeof Palette }[] = [
     { id: "appearance", label: t("appearance"), icon: Palette },
     { id: "collection", label: t("collection"), icon: Radio },
+    { id: "albums", label: t("albums"), icon: Images },
     { id: "about", label: t("about"), icon: Info },
   ];
 
@@ -188,6 +190,8 @@ export function SettingsPage({
               </Button>
             </div>
           ) : null}
+
+          {tab === "albums" ? <AlbumSettings /> : null}
 
           {tab === "about" ? <AboutTab t={t} /> : null}
         </section>

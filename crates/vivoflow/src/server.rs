@@ -9,6 +9,7 @@ use axum::{Json, Router};
 use rust_embed::Embed;
 use tower_http::cors::{Any, CorsLayer};
 
+use crate::album::AlbumStore;
 use crate::hub::MetricsHub;
 use crate::ipc::handle_socket;
 
@@ -22,7 +23,7 @@ struct AppState {
     hub: MetricsHub,
 }
 
-pub async fn serve(addr: SocketAddr, hub: MetricsHub) -> anyhow::Result<()> {
+pub async fn serve(addr: SocketAddr, hub: MetricsHub, albums: AlbumStore) -> anyhow::Result<()> {
     let state = AppState { hub };
 
     let app = Router::new()
@@ -38,7 +39,8 @@ pub async fn serve(addr: SocketAddr, hub: MetricsHub) -> anyhow::Result<()> {
                 .allow_methods(Any)
                 .allow_headers(Any),
         )
-        .with_state(state);
+        .with_state(state)
+        .merge(crate::album::router(albums));
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;

@@ -1069,6 +1069,35 @@ textarea,
   background-size: var(--shell-bg-size, auto);
 }
 
+.photo-frame {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  color: white;
+  background: #08090b;
+  isolation: isolate;
+  touch-action: pan-y;
+}
+
+.photo-frame .swiper-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-frame *,
+  .photo-frame *::before,
+  .photo-frame *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .vf-surface,
 .vf-panel,
 .vf-kpi {
