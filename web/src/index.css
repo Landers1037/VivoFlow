@@ -494,10 +494,8 @@ html[data-ui-style="hud"] {
 }
 
 html[data-ui-style="hud"] .vf-shell {
-  background-image:
-    linear-gradient(color-mix(in oklch, var(--primary) 6%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklch, var(--primary) 6%, transparent) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image: var(--shell-bg);
+  background-size: var(--shell-bg-size, 24px 24px);
   background-color: var(--background);
 }
 
@@ -509,10 +507,8 @@ html[data-ui-style="hud"]:not(.dark) {
 }
 
 html[data-ui-style="hud"]:not(.dark) .vf-shell {
-  background-image:
-    linear-gradient(color-mix(in oklch, var(--primary) 10%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklch, var(--primary) 10%, transparent) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image: var(--shell-bg);
+  background-size: var(--shell-bg-size, 24px 24px);
   background-color: var(--background);
 }
 
@@ -551,6 +547,484 @@ html[data-ui-style="editorial"] .vf-surface > p:first-child {
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.35rem;
   margin-bottom: 0.5rem;
+}
+
+/* ——— refined visual directions (Amicro remains the baseline) ———
+   These tokens are deliberately scoped per style. They keep the existing
+   component system intact while giving every alternative style a stronger
+   material, typographic rhythm and light/dark contrast. */
+
+html[data-ui-style="neumorph"] {
+  --background: oklch(0.925 0.024 242);
+  --card: oklch(0.936 0.02 242);
+  --foreground: oklch(0.24 0.035 255);
+  --muted: oklch(0.875 0.026 242);
+  --border: oklch(0.84 0.022 242);
+  --surface-bg: linear-gradient(
+    145deg,
+    color-mix(in oklch, var(--card) 94%, white),
+    color-mix(in oklch, var(--card) 94%, oklch(0.82 0.03 242))
+  );
+  --surface-border-width: 1px;
+  --surface-border-color: color-mix(in oklch, var(--card) 70%, var(--foreground) 10%);
+  --surface-shadow:
+    12px 14px 26px oklch(0.66 0.04 242 / 30%),
+    -10px -10px 24px oklch(1 0 0 / 82%),
+    inset 0 1px 0 oklch(1 0 0 / 60%);
+  --surface-inset:
+    inset 2px 2px 5px oklch(0.68 0.04 242 / 26%),
+    inset -2px -2px 5px oklch(1 0 0 / 66%);
+  --surface-padding: 1rem;
+  --shell-bg:
+    radial-gradient(circle at 12% 0%, oklch(1 0 0 / 46%), transparent 35%),
+    radial-gradient(circle at 95% 100%, oklch(0.82 0.04 242 / 18%), transparent 42%),
+    var(--background);
+}
+
+html.dark[data-ui-style="neumorph"] {
+  --background: oklch(0.19 0.03 252);
+  --card: oklch(0.225 0.03 252);
+  --foreground: oklch(0.93 0.014 95);
+  --muted: oklch(0.275 0.03 252);
+  --border: oklch(0.29 0.03 252);
+  --surface-bg: linear-gradient(
+    145deg,
+    color-mix(in oklch, var(--card) 98%, white 5%),
+    color-mix(in oklch, var(--card) 96%, black 18%)
+  );
+  --surface-border-color: oklch(1 0 0 / 8%);
+  --surface-shadow:
+    12px 14px 28px oklch(0.05 0.02 252 / 74%),
+    -8px -8px 20px oklch(0.34 0.035 252 / 48%),
+    inset 0 1px 0 oklch(1 0 0 / 8%);
+  --surface-inset:
+    inset 2px 2px 6px oklch(0.06 0.02 252 / 48%),
+    inset -2px -2px 6px oklch(0.4 0.035 252 / 28%);
+  --shell-bg:
+    radial-gradient(circle at 12% 0%, oklch(0.38 0.05 252 / 20%), transparent 36%),
+    radial-gradient(circle at 96% 100%, oklch(0.08 0.02 252 / 45%), transparent 44%),
+    var(--background);
+}
+
+html[data-ui-style="line"] {
+  --background: oklch(0.975 0.008 95);
+  --card: oklch(0.995 0.004 95);
+  --foreground: oklch(0.2 0.025 245);
+  --muted: oklch(0.92 0.012 235);
+  --border: oklch(0.84 0.018 230);
+  --surface-bg: color-mix(in oklch, var(--card) 84%, transparent);
+  --surface-border-color: color-mix(in oklch, var(--foreground) 24%, var(--primary) 54%);
+  --surface-shadow: 0 12px 26px oklch(0.44 0.04 240 / 6%);
+  --surface-padding: 1.1rem;
+  --shell-gap: 1.1rem;
+  --shell-bg:
+    linear-gradient(90deg, color-mix(in oklch, var(--primary) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(0deg, color-mix(in oklch, var(--primary) 4%, transparent) 1px, transparent 1px),
+    var(--background);
+  --shell-bg-size: 32px 32px;
+}
+
+html.dark[data-ui-style="line"] {
+  --background: oklch(0.15 0.02 250);
+  --card: oklch(0.19 0.024 250);
+  --foreground: oklch(0.94 0.01 95);
+  --muted: oklch(0.25 0.025 250);
+  --border: oklch(1 0 0 / 13%);
+  --surface-bg: color-mix(in oklch, var(--card) 70%, transparent);
+  --surface-border-color: color-mix(in oklch, var(--foreground) 42%, var(--primary) 42%);
+  --surface-shadow: 0 14px 32px oklch(0 0 0 / 24%);
+  --shell-bg:
+    linear-gradient(90deg, color-mix(in oklch, var(--primary) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(0deg, color-mix(in oklch, var(--primary) 6%, transparent) 1px, transparent 1px),
+    var(--background);
+}
+
+html[data-ui-style="glass"] {
+  /* Optical glass: cool ambient light sits behind a milky, low-opacity pane. */
+  --background: oklch(0.92 0.045 230);
+  --card: oklch(0.99 0.014 225);
+  --foreground: oklch(0.19 0.035 245);
+  --muted: oklch(0.84 0.045 230);
+  --border: oklch(1 0 0 / 24%);
+  --surface-bg: linear-gradient(
+    135deg,
+    color-mix(in oklch, white 36%, transparent),
+    color-mix(in oklch, var(--primary) 8%, transparent) 48%,
+    color-mix(in oklch, white 13%, transparent)
+  );
+  --surface-border-color: color-mix(in oklch, white 64%, var(--primary) 28%);
+  --surface-shadow:
+    0 22px 54px oklch(0.3 0.08 240 / 16%),
+    0 3px 8px oklch(0.3 0.07 240 / 9%),
+    inset 0 1px 0 oklch(1 0 0 / 58%);
+  --surface-inset:
+    inset 0 1px 0 oklch(1 0 0 / 32%),
+    inset 0 -18px 32px color-mix(in oklch, var(--primary) 8%, transparent);
+  --surface-blur: 28px;
+  --surface-padding: 1rem;
+  --shell-bg:
+    radial-gradient(circle at 0% 0%, oklch(0.74 0.13 195 / 52%), transparent 34%),
+    radial-gradient(circle at 100% 10%, oklch(0.78 0.12 285 / 42%), transparent 36%),
+    radial-gradient(circle at 68% 100%, oklch(0.76 0.13 170 / 38%), transparent 44%),
+    linear-gradient(135deg, oklch(0.87 0.055 220), oklch(0.96 0.025 260) 52%, oklch(0.9 0.05 180));
+  --shell-bg-size: auto;
+}
+
+html.dark[data-ui-style="glass"] {
+  --background: oklch(0.09 0.04 250);
+  --card: oklch(0.17 0.045 250);
+  --foreground: oklch(0.95 0.014 95);
+  --muted: oklch(0.23 0.045 250);
+  --border: oklch(1 0 0 / 16%);
+  --surface-bg: linear-gradient(
+    135deg,
+    color-mix(in oklch, white 16%, transparent),
+    color-mix(in oklch, var(--primary) 15%, transparent) 48%,
+    color-mix(in oklch, white 5%, transparent)
+  );
+  --surface-border-color: color-mix(in oklch, white 42%, var(--primary) 38%);
+  --surface-shadow:
+    0 26px 64px oklch(0 0 0 / 54%),
+    0 4px 12px oklch(0 0 0 / 34%),
+    inset 0 1px 0 oklch(1 0 0 / 22%);
+  --surface-inset:
+    inset 0 1px 0 oklch(1 0 0 / 18%),
+    inset 0 -20px 34px color-mix(in oklch, var(--primary) 13%, transparent);
+  --surface-blur: 30px;
+  --shell-bg:
+    radial-gradient(circle at 0% 0%, oklch(0.5 0.14 195 / 34%), transparent 36%),
+    radial-gradient(circle at 100% 10%, oklch(0.52 0.14 285 / 30%), transparent 38%),
+    radial-gradient(circle at 68% 100%, oklch(0.48 0.14 170 / 24%), transparent 44%),
+    linear-gradient(135deg, oklch(0.12 0.045 240), oklch(0.08 0.035 270) 55%, oklch(0.1 0.05 190));
+}
+
+html[data-ui-style="console"] {
+  --background: oklch(0.965 0.018 150);
+  --card: oklch(0.985 0.01 145);
+  --foreground: oklch(0.22 0.055 155);
+  --muted: oklch(0.91 0.025 150);
+  --border: oklch(0.8 0.055 155);
+  --surface-bg: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--card) 98%, white),
+    color-mix(in oklch, var(--card) 90%, var(--primary) 4%)
+  );
+  --surface-border-color: color-mix(in oklch, var(--primary) 56%, var(--border));
+  --surface-shadow: 0 7px 16px oklch(0.25 0.06 155 / 9%), inset 0 1px 0 oklch(1 0 0 / 72%);
+  --surface-padding: 0.85rem;
+  --shell-gap: 0.65rem;
+  --shell-bg:
+    linear-gradient(90deg, oklch(0.25 0.08 155 / 7%) 1px, transparent 1px),
+    linear-gradient(0deg, oklch(0.25 0.08 155 / 6%) 1px, transparent 1px),
+    repeating-linear-gradient(0deg, transparent, transparent 3px, oklch(0.2 0.08 155 / 2%) 4px),
+    var(--background);
+  --shell-bg-size: 24px 24px, 24px 24px, auto, auto;
+}
+
+html.dark[data-ui-style="console"] {
+  --background: oklch(0.105 0.04 155);
+  --card: oklch(0.15 0.045 155);
+  --foreground: oklch(0.86 0.12 150);
+  --muted: oklch(0.22 0.055 155);
+  --border: oklch(0.31 0.08 155);
+  --surface-bg: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--card) 98%, white 3%),
+    color-mix(in oklch, var(--card) 88%, black 16%)
+  );
+  --surface-border-color: color-mix(in oklch, var(--primary) 64%, var(--border));
+  --surface-shadow: 0 10px 22px oklch(0 0 0 / 42%), inset 0 1px 0 oklch(1 0 0 / 9%);
+  --shell-bg:
+    linear-gradient(90deg, oklch(0.64 0.13 150 / 12%) 1px, transparent 1px),
+    linear-gradient(0deg, oklch(0.64 0.13 150 / 9%) 1px, transparent 1px),
+    repeating-linear-gradient(0deg, transparent, transparent 3px, oklch(0.7 0.12 150 / 3%) 4px),
+    var(--background);
+}
+
+html[data-ui-style="paper"] {
+  --background: oklch(0.95 0.028 82);
+  --card: oklch(0.992 0.011 88);
+  --foreground: oklch(0.27 0.04 48);
+  --muted: oklch(0.9 0.025 78);
+  --border: oklch(0.82 0.035 76);
+  --surface-border-color: oklch(0.77 0.04 70);
+  --surface-shadow: 0 1px 0 oklch(0.7 0.04 70 / 38%), 0 10px 24px oklch(0.46 0.05 60 / 9%);
+  --surface-padding: 1rem 1.05rem;
+  --shell-bg:
+    radial-gradient(circle at 15% 0%, oklch(1 0 0 / 45%), transparent 40%),
+    repeating-linear-gradient(0deg, transparent, transparent 11px, oklch(0.72 0.04 75 / 15%) 11px, oklch(0.72 0.04 75 / 15%) 12px),
+    var(--background);
+  --font-display: Georgia, "Songti SC", "Noto Serif SC", serif;
+}
+
+html.dark[data-ui-style="paper"] {
+  --background: oklch(0.17 0.024 250);
+  --card: oklch(0.215 0.027 250);
+  --foreground: oklch(0.91 0.02 90);
+  --muted: oklch(0.27 0.03 250);
+  --border: oklch(1 0 0 / 14%);
+  --surface-border-color: oklch(0.76 0.04 82 / 38%);
+  --surface-shadow: 0 1px 0 oklch(1 0 0 / 9%), 0 12px 28px oklch(0 0 0 / 34%);
+  --shell-bg:
+    radial-gradient(circle at 15% 0%, oklch(0.5 0.05 82 / 12%), transparent 40%),
+    repeating-linear-gradient(0deg, transparent, transparent 11px, oklch(1 0 0 / 4%) 11px, oklch(1 0 0 / 4%) 12px),
+    var(--background);
+}
+
+html[data-ui-style="instrument"] {
+  --radius: 1.05rem;
+  --background: oklch(0.145 0.04 250);
+  --card: oklch(0.19 0.045 250);
+  --foreground: oklch(0.94 0.02 95);
+  --surface-bg:
+    radial-gradient(circle at 50% 22%, oklch(0.31 0.055 240), transparent 58%),
+    linear-gradient(145deg, oklch(0.24 0.045 250), oklch(0.13 0.03 250));
+  --surface-border-width: 1px;
+  --surface-border-color: color-mix(in oklch, var(--primary) 48%, oklch(0.52 0.035 245));
+  --surface-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 13%),
+    inset 0 0 0 1px oklch(0.03 0.01 250 / 55%),
+    0 12px 28px oklch(0 0 0 / 48%);
+  --surface-inset: inset 0 -12px 20px oklch(0 0 0 / 17%);
+  --surface-padding: 0.95rem;
+  --shell-bg:
+    radial-gradient(ellipse at 50% -10%, oklch(0.34 0.055 245 / 45%), transparent 52%),
+    linear-gradient(145deg, oklch(0.18 0.035 250), oklch(0.09 0.02 250));
+}
+
+html[data-ui-style="instrument"]:not(.dark) {
+  --background: oklch(0.89 0.022 235);
+  --card: oklch(0.94 0.018 235);
+  --foreground: oklch(0.2 0.03 250);
+  --surface-bg:
+    radial-gradient(circle at 50% 18%, oklch(1 0 0 / 90%), transparent 55%),
+    linear-gradient(145deg, oklch(0.97 0.015 235), oklch(0.86 0.025 235));
+  --surface-border-color: color-mix(in oklch, var(--primary) 46%, oklch(0.5 0.025 240));
+  --surface-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 76%),
+    inset 0 0 0 1px oklch(0.4 0.03 240 / 12%),
+    0 10px 22px oklch(0.38 0.04 245 / 18%);
+  --surface-inset: inset 0 -10px 18px oklch(0.4 0.04 245 / 8%);
+  --shell-bg:
+    radial-gradient(ellipse at 50% -10%, oklch(1 0 0 / 80%), transparent 52%),
+    linear-gradient(145deg, oklch(0.93 0.02 235), oklch(0.83 0.025 235));
+}
+
+html[data-ui-style="dense"] {
+  --radius: 0.32rem;
+  --background: oklch(0.965 0.012 230);
+  --card: oklch(0.99 0.006 230);
+  --foreground: oklch(0.2 0.03 245);
+  --muted: oklch(0.9 0.018 230);
+  --border: oklch(0.82 0.025 230);
+  --surface-bg: linear-gradient(180deg, var(--card), color-mix(in oklch, var(--card) 92%, var(--primary) 4%));
+  --surface-border-color: color-mix(in oklch, var(--border) 72%, var(--primary) 32%);
+  --surface-shadow: 0 2px 8px oklch(0.35 0.04 240 / 8%), inset 0 1px 0 oklch(1 0 0 / 60%);
+  --surface-padding: 0.68rem;
+  --shell-gap: 0.55rem;
+  --shell-bg:
+    linear-gradient(90deg, color-mix(in oklch, var(--primary) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(0deg, color-mix(in oklch, var(--primary) 5%, transparent) 1px, transparent 1px),
+    var(--background);
+  --shell-bg-size: 20px 20px;
+}
+
+html.dark[data-ui-style="dense"] {
+  --background: oklch(0.145 0.024 250);
+  --card: oklch(0.19 0.028 250);
+  --foreground: oklch(0.92 0.015 95);
+  --muted: oklch(0.25 0.03 250);
+  --border: oklch(1 0 0 / 13%);
+  --surface-bg: linear-gradient(180deg, var(--card), color-mix(in oklch, var(--card) 88%, black 14%));
+  --surface-border-color: color-mix(in oklch, var(--border) 72%, var(--primary) 40%);
+  --surface-shadow: 0 5px 12px oklch(0 0 0 / 32%), inset 0 1px 0 oklch(1 0 0 / 7%);
+  --shell-bg:
+    linear-gradient(90deg, color-mix(in oklch, var(--primary) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(0deg, color-mix(in oklch, var(--primary) 8%, transparent) 1px, transparent 1px),
+    var(--background);
+}
+
+html[data-ui-style="clay"] {
+  --background: oklch(0.945 0.035 70);
+  --card: oklch(0.975 0.022 84);
+  --foreground: oklch(0.27 0.045 48);
+  --muted: oklch(0.89 0.035 72);
+  --border: oklch(0.84 0.035 74);
+  --surface-bg: linear-gradient(145deg, oklch(0.99 0.012 88), color-mix(in oklch, var(--card) 92%, oklch(0.86 0.05 35)));
+  --surface-border-width: 1px;
+  --surface-border-color: color-mix(in oklch, var(--primary) 16%, var(--foreground) 10%);
+  --surface-shadow: 0 14px 28px oklch(0.48 0.06 55 / 16%), 0 2px 0 oklch(1 0 0 / 76%), inset 0 -2px 0 oklch(0.7 0.04 60 / 20%);
+  --surface-inset: inset 0 1px 0 oklch(1 0 0 / 50%);
+  --shell-bg:
+    radial-gradient(circle at 12% 4%, oklch(1 0 0 / 56%), transparent 35%),
+    radial-gradient(circle at 95% 90%, oklch(0.84 0.08 30 / 18%), transparent 42%),
+    var(--background);
+}
+
+html.dark[data-ui-style="clay"] {
+  --background: oklch(0.19 0.035 250);
+  --card: oklch(0.25 0.04 250);
+  --foreground: oklch(0.92 0.02 95);
+  --muted: oklch(0.29 0.04 250);
+  --border: oklch(1 0 0 / 10%);
+  --surface-bg: linear-gradient(145deg, oklch(0.3 0.045 250), oklch(0.22 0.035 250));
+  --surface-border-color: color-mix(in oklch, var(--primary) 24%, oklch(1 0 0 / 7%));
+  --surface-shadow: 0 16px 34px oklch(0 0 0 / 48%), 0 1px 0 oklch(1 0 0 / 9%), inset 0 -2px 0 oklch(0 0 0 / 24%);
+  --surface-inset: inset 0 1px 0 oklch(1 0 0 / 8%);
+  --shell-bg:
+    radial-gradient(circle at 12% 4%, oklch(0.42 0.06 250 / 28%), transparent 37%),
+    radial-gradient(circle at 95% 90%, oklch(0.08 0.02 250 / 46%), transparent 44%),
+    var(--background);
+}
+
+html[data-ui-style="metal"] {
+  --background: oklch(0.78 0.018 245);
+  --card: oklch(0.87 0.014 245);
+  --foreground: oklch(0.22 0.03 250);
+  --border: oklch(0.62 0.025 245);
+  --surface-bg: linear-gradient(135deg, oklch(0.94 0.01 245), oklch(0.76 0.018 245) 44%, oklch(0.9 0.012 245) 70%, oklch(0.72 0.02 245));
+  --surface-border-color: oklch(0.55 0.028 245);
+  --surface-shadow: inset 0 1px 0 oklch(1 0 0 / 70%), inset 0 -1px 0 oklch(0.4 0.03 245 / 24%), 0 7px 16px oklch(0.32 0.04 245 / 24%);
+  --surface-inset: inset 0 0 0 1px oklch(1 0 0 / 18%);
+  --shell-bg:
+    linear-gradient(115deg, oklch(1 0 0 / 16%), transparent 28%, oklch(0.35 0.03 245 / 7%) 70%, transparent),
+    repeating-linear-gradient(90deg, oklch(0.42 0.02 245 / 18%) 0 1px, oklch(0.82 0.015 245 / 18%) 1px 4px),
+    var(--background);
+}
+
+html.dark[data-ui-style="metal"] {
+  --background: oklch(0.19 0.025 250);
+  --card: oklch(0.27 0.028 250);
+  --foreground: oklch(0.92 0.015 95);
+  --border: oklch(0.4 0.04 250);
+  --surface-bg: linear-gradient(135deg, oklch(0.38 0.03 250), oklch(0.23 0.025 250) 48%, oklch(0.33 0.03 250) 72%, oklch(0.2 0.025 250));
+  --surface-border-color: oklch(0.48 0.04 250);
+  --surface-shadow: inset 0 1px 0 oklch(1 0 0 / 16%), inset 0 -1px 0 oklch(0 0 0 / 46%), 0 9px 20px oklch(0 0 0 / 48%);
+  --surface-inset: inset 0 0 0 1px oklch(1 0 0 / 6%);
+  --shell-bg:
+    linear-gradient(115deg, oklch(1 0 0 / 8%), transparent 28%, oklch(0 0 0 / 15%) 70%, transparent),
+    repeating-linear-gradient(90deg, oklch(0.08 0.02 250 / 55%) 0 1px, oklch(0.28 0.028 250 / 45%) 1px 4px),
+    var(--background);
+}
+
+html[data-ui-style="ink"] {
+  --background: oklch(0.97 0.014 74);
+  --card: oklch(0.992 0.007 80);
+  --foreground: oklch(0.19 0.025 38);
+  --muted: oklch(0.9 0.025 70);
+  --border: oklch(0.24 0.03 38 / 28%);
+  --surface-bg: color-mix(in oklch, var(--card) 78%, transparent);
+  --surface-border-color: color-mix(in oklch, var(--foreground) 78%, var(--primary) 18%);
+  --surface-shadow: 4px 4px 0 color-mix(in oklch, var(--foreground) 20%, transparent);
+  --surface-padding: 1.05rem;
+  --shell-gap: 1rem;
+  --shell-bg:
+    radial-gradient(circle at 84% 8%, oklch(0.84 0.08 38 / 10%), transparent 32%),
+    linear-gradient(0deg, oklch(0.25 0.03 38 / 4%) 1px, transparent 1px),
+    var(--background);
+  --shell-bg-size: auto, 100% 7px, auto;
+  --font-display: Georgia, "Songti SC", "Noto Serif SC", serif;
+}
+
+html.dark[data-ui-style="ink"] {
+  --background: oklch(0.16 0.025 250);
+  --card: oklch(0.21 0.03 250);
+  --foreground: oklch(0.94 0.014 90);
+  --muted: oklch(0.28 0.03 250);
+  --border: oklch(1 0 0 / 15%);
+  --surface-bg: color-mix(in oklch, var(--card) 76%, transparent);
+  --surface-border-color: color-mix(in oklch, var(--foreground) 64%, var(--primary) 24%);
+  --surface-shadow: 4px 4px 0 oklch(0 0 0 / 45%);
+  --shell-bg:
+    radial-gradient(circle at 84% 8%, oklch(0.6 0.08 38 / 13%), transparent 32%),
+    linear-gradient(0deg, oklch(1 0 0 / 4%) 1px, transparent 1px),
+    var(--background);
+}
+
+html[data-ui-style="swiss"] {
+  --background: oklch(0.98 0.006 95);
+  --card: oklch(0.995 0.003 95);
+  --foreground: oklch(0.17 0.025 250);
+  --muted: oklch(0.91 0.01 240);
+  --border: oklch(0.8 0.018 245);
+  --surface-bg: linear-gradient(180deg, var(--card), color-mix(in oklch, var(--card) 92%, var(--primary) 5%));
+  --surface-border-color: color-mix(in oklch, var(--foreground) 32%, var(--primary) 56%);
+  --surface-padding: 0.95rem 0.35rem 0.95rem 0;
+  --shell-bg: linear-gradient(90deg, color-mix(in oklch, var(--primary) 5%, transparent) 1px, transparent 1px), var(--background);
+  --shell-bg-size: 56px 56px;
+}
+
+html.dark[data-ui-style="swiss"] {
+  --background: oklch(0.14 0.02 250);
+  --card: oklch(0.19 0.025 250);
+  --foreground: oklch(0.95 0.01 95);
+  --muted: oklch(0.26 0.025 250);
+  --border: oklch(1 0 0 / 13%);
+  --surface-bg: linear-gradient(180deg, var(--card), color-mix(in oklch, var(--card) 88%, var(--primary) 7%));
+  --surface-border-color: color-mix(in oklch, var(--foreground) 40%, var(--primary) 48%);
+  --shell-bg: linear-gradient(90deg, color-mix(in oklch, var(--primary) 8%, transparent) 1px, transparent 1px), var(--background);
+}
+
+html[data-ui-style="hud"] {
+  --background: oklch(0.11 0.045 220);
+  --card: oklch(0.15 0.05 220);
+  --foreground: oklch(0.93 0.06 195);
+  --surface-bg: linear-gradient(145deg, color-mix(in oklch, var(--card) 90%, white 4%), color-mix(in oklch, var(--card) 83%, black 14%));
+  --surface-border-color: color-mix(in oklch, var(--primary) 72%, transparent);
+  --surface-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 22%, transparent), 0 0 30px color-mix(in oklch, var(--primary) 15%, transparent), 0 12px 24px oklch(0 0 0 / 24%);
+  --surface-padding: 0.78rem;
+  --shell-bg:
+    radial-gradient(circle at 50% -20%, color-mix(in oklch, var(--primary) 18%, transparent), transparent 45%),
+    linear-gradient(color-mix(in oklch, var(--primary) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklch, var(--primary) 8%, transparent) 1px, transparent 1px),
+    var(--background);
+  --shell-bg-size: auto, 24px 24px, 24px 24px, auto;
+}
+
+html[data-ui-style="hud"]:not(.dark) {
+  --background: oklch(0.94 0.024 220);
+  --card: oklch(0.98 0.015 220);
+  --foreground: oklch(0.21 0.045 220);
+  --surface-bg: linear-gradient(145deg, oklch(0.995 0.008 220), color-mix(in oklch, var(--card) 88%, var(--primary) 8%));
+  --surface-border-color: color-mix(in oklch, var(--primary) 66%, oklch(0.35 0.04 220));
+  --surface-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 16%, transparent), 0 0 24px color-mix(in oklch, var(--primary) 10%, transparent), 0 8px 18px oklch(0.25 0.04 220 / 13%);
+  --shell-bg:
+    radial-gradient(circle at 50% -20%, color-mix(in oklch, var(--primary) 15%, transparent), transparent 45%),
+    linear-gradient(color-mix(in oklch, var(--primary) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklch, var(--primary) 10%, transparent) 1px, transparent 1px),
+    var(--background);
+}
+
+html[data-ui-style="editorial"] {
+  --background: oklch(0.972 0.014 82);
+  --card: oklch(0.995 0.008 88);
+  --foreground: oklch(0.23 0.03 38);
+  --muted: oklch(0.9 0.024 78);
+  --border: oklch(0.76 0.032 66);
+  --surface-bg: color-mix(in oklch, var(--card) 86%, var(--background));
+  --surface-border-width: 0 0 1px 0;
+  --surface-border-color: color-mix(in oklch, var(--foreground) 28%, var(--primary) 42%);
+  --surface-padding: 0.7rem 0.4rem 1.1rem;
+  --shell-gap: 1.25rem;
+  --shell-bg:
+    radial-gradient(circle at 92% 0%, oklch(0.84 0.08 38 / 12%), transparent 34%),
+    linear-gradient(90deg, oklch(0.25 0.03 38 / 4%) 1px, transparent 1px),
+    var(--background);
+  --shell-bg-size: auto, 64px 64px, auto;
+}
+
+html.dark[data-ui-style="editorial"] {
+  --background: oklch(0.15 0.022 250);
+  --card: oklch(0.2 0.027 250);
+  --foreground: oklch(0.93 0.015 90);
+  --muted: oklch(0.27 0.028 250);
+  --border: oklch(1 0 0 / 14%);
+  --surface-bg: color-mix(in oklch, var(--card) 84%, var(--background));
+  --surface-border-color: color-mix(in oklch, var(--foreground) 34%, var(--primary) 36%);
+  --shell-bg:
+    radial-gradient(circle at 92% 0%, oklch(0.6 0.08 38 / 14%), transparent 34%),
+    linear-gradient(90deg, oklch(1 0 0 / 5%) 1px, transparent 1px),
+    var(--background);
 }
 
 * {
@@ -592,6 +1066,7 @@ textarea,
 .vf-shell {
   min-height: 100dvh;
   background: var(--shell-bg);
+  background-size: var(--shell-bg-size, auto);
 }
 
 .vf-surface,
@@ -811,4 +1286,407 @@ html[data-ui-style="neumorph"] .vf-row {
 html[data-ui-style="console"] h1,
 html[data-ui-style="console"] .vf-data {
   letter-spacing: -0.02em;
+}
+
+/* ——— material finish and interaction states ——— */
+
+html[data-ui-style]:not([data-ui-style="amicro"]) .vf-surface,
+html[data-ui-style]:not([data-ui-style="amicro"]) .vf-panel,
+html[data-ui-style]:not([data-ui-style="amicro"]) .vf-kpi {
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease,
+    filter 180ms ease;
+}
+
+html[data-ui-style]:not([data-ui-style="amicro"]) button,
+html[data-ui-style]:not([data-ui-style="amicro"]) input[type="range"] {
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+  opacity 160ms ease;
+}
+
+html[data-ui-style]:not([data-ui-style="amicro"]) .vf-style-option {
+  box-shadow: 0 2px 0 color-mix(in oklch, var(--foreground) 7%, transparent);
+}
+
+html[data-ui-style]:not([data-ui-style="amicro"]) .vf-style-option:hover {
+  border-color: color-mix(in oklch, var(--primary) 56%, var(--border));
+  box-shadow: 0 5px 14px color-mix(in oklch, var(--foreground) 10%, transparent);
+}
+
+html[data-ui-style]:not([data-ui-style="amicro"]) button:focus-visible,
+html[data-ui-style]:not([data-ui-style="amicro"]) input:focus-visible,
+html[data-ui-style]:not([data-ui-style="amicro"]) textarea:focus-visible,
+html[data-ui-style]:not([data-ui-style="amicro"]) select:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--ring) 84%, white 10%);
+  outline-offset: 3px;
+}
+
+html[data-ui-style="neumorph"] .vf-surface:hover,
+html[data-ui-style="neumorph"] .vf-panel:hover,
+html[data-ui-style="neumorph"] .vf-kpi:hover {
+  box-shadow:
+    14px 16px 30px oklch(0.62 0.04 242 / 28%),
+    -11px -11px 25px oklch(1 0 0 / 86%),
+    inset 0 1px 0 oklch(1 0 0 / 64%);
+}
+
+html.dark[data-ui-style="neumorph"] .vf-surface:hover,
+html.dark[data-ui-style="neumorph"] .vf-panel:hover,
+html.dark[data-ui-style="neumorph"] .vf-kpi:hover {
+  box-shadow:
+    14px 16px 32px oklch(0.04 0.02 252 / 78%),
+    -9px -9px 22px oklch(0.36 0.035 252 / 52%),
+    inset 0 1px 0 oklch(1 0 0 / 9%);
+}
+
+html[data-ui-style="neumorph"] .vf-row {
+  border: 1px solid color-mix(in oklch, var(--foreground) 7%, transparent);
+}
+
+html[data-ui-style="line"] .vf-surface,
+html[data-ui-style="line"] .vf-panel,
+html[data-ui-style="line"] .vf-kpi {
+  border-top-color: color-mix(in oklch, var(--primary) 74%, var(--foreground) 20%);
+  border-bottom-color: color-mix(in oklch, var(--foreground) 26%, var(--border));
+}
+
+html[data-ui-style="line"] .vf-row {
+  border: 1px solid color-mix(in oklch, var(--primary) 24%, var(--border));
+  background: color-mix(in oklch, var(--primary) 4%, transparent);
+}
+
+html[data-ui-style="line"] button:hover {
+  background: color-mix(in oklch, var(--primary) 10%, var(--background));
+}
+
+html[data-ui-style="glass"] .vf-shell {
+  background: var(--shell-bg);
+  background-size: var(--shell-bg-size, auto);
+  background-position: center;
+  background-attachment: fixed;
+}
+
+html[data-ui-style="glass"] .vf-surface,
+html[data-ui-style="glass"] .vf-panel,
+html[data-ui-style="glass"] .vf-kpi {
+  position: relative;
+  isolation: isolate;
+  background: var(--surface-bg);
+  backdrop-filter: blur(var(--surface-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--surface-blur)) saturate(150%);
+}
+
+html[data-ui-style="glass"] .vf-surface::before,
+html[data-ui-style="glass"] .vf-panel::before,
+html[data-ui-style="glass"] .vf-kpi::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 14% -18%, oklch(1 0 0 / 34%), transparent 43%),
+    linear-gradient(118deg, oklch(1 0 0 / 24%), transparent 30%, transparent 67%, color-mix(in oklch, var(--primary) 10%, transparent));
+  mix-blend-mode: screen;
+  opacity: 0.78;
+}
+
+html[data-ui-style="glass"] .vf-surface::after,
+html[data-ui-style="glass"] .vf-panel::after,
+html[data-ui-style="glass"] .vf-kpi::after {
+  position: absolute;
+  inset: 1px;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  border: 1px solid oklch(1 0 0 / 24%);
+  border-radius: calc(var(--radius) - 1px);
+  box-shadow: inset 0 0 18px oklch(1 0 0 / 8%);
+  opacity: 0.8;
+}
+
+html[data-ui-style="glass"] .vf-surface > *,
+html[data-ui-style="glass"] .vf-panel > *,
+html[data-ui-style="glass"] .vf-kpi > * {
+  position: relative;
+  z-index: 1;
+}
+
+html[data-ui-style="glass"] .vf-row {
+  border: 1px solid color-mix(in oklch, white 32%, var(--primary) 28%);
+  background: color-mix(in oklch, white 12%, transparent);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 18%), inset 0 -1px 0 color-mix(in oklch, var(--primary) 10%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+html.dark[data-ui-style="glass"] .vf-row {
+  border-color: color-mix(in oklch, white 20%, var(--primary) 34%);
+  background: color-mix(in oklch, white 7%, transparent);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 13%), inset 0 -1px 0 color-mix(in oklch, var(--primary) 16%, transparent);
+}
+
+html[data-ui-style="glass"] .vf-surface:hover,
+html[data-ui-style="glass"] .vf-panel:hover,
+html[data-ui-style="glass"] .vf-kpi:hover {
+  border-color: color-mix(in oklch, white 78%, var(--primary) 30%);
+  box-shadow:
+    0 28px 64px oklch(0.28 0.08 240 / 19%),
+    0 4px 10px oklch(0.28 0.08 240 / 11%),
+    inset 0 1px 0 oklch(1 0 0 / 64%);
+}
+
+html.dark[data-ui-style="glass"] .vf-surface:hover,
+html.dark[data-ui-style="glass"] .vf-panel:hover,
+html.dark[data-ui-style="glass"] .vf-kpi:hover {
+  border-color: color-mix(in oklch, white 60%, var(--primary) 46%);
+  box-shadow:
+    0 32px 72px oklch(0 0 0 / 62%),
+    0 5px 14px oklch(0 0 0 / 38%),
+    inset 0 1px 0 oklch(1 0 0 / 26%);
+}
+
+html[data-ui-style="glass"] button:not(.vf-mobile-pager-dot) {
+  border-color: color-mix(in oklch, white 34%, var(--primary) 24%);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+}
+
+html[data-ui-style="glass"] .vf-mobile-pager {
+  border-color: color-mix(in oklch, white 48%, var(--primary) 30%);
+  background: color-mix(in oklch, white 20%, transparent);
+  box-shadow: 0 10px 26px oklch(0.28 0.08 240 / 16%), inset 0 1px 0 oklch(1 0 0 / 42%);
+}
+
+html[data-ui-style="glass"] .vf-mobile-pager-dot {
+  border-color: color-mix(in oklch, white 54%, var(--primary) 28%);
+  background: color-mix(in oklch, white 28%, transparent);
+}
+
+html[data-ui-style="glass"] .vf-mobile-pager-dot-active {
+  box-shadow: 0 0 16px color-mix(in oklch, var(--primary) 58%, transparent);
+}
+
+html[data-ui-style="console"] .vf-surface,
+html[data-ui-style="console"] .vf-panel,
+html[data-ui-style="console"] .vf-kpi {
+  position: relative;
+  overflow: hidden;
+}
+
+html[data-ui-style="console"] .vf-surface::after,
+html[data-ui-style="console"] .vf-panel::after,
+html[data-ui-style="console"] .vf-kpi::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 3px,
+    color-mix(in oklch, var(--primary) 5%, transparent) 4px
+  );
+  opacity: 0.45;
+}
+
+html[data-ui-style="console"] .vf-surface > *,
+html[data-ui-style="console"] .vf-panel > *,
+html[data-ui-style="console"] .vf-kpi > * {
+  position: relative;
+  z-index: 1;
+}
+
+html[data-ui-style="console"] .vf-row {
+  border: 1px solid color-mix(in oklch, var(--primary) 32%, var(--border));
+  background: color-mix(in oklch, var(--primary) 7%, transparent);
+}
+
+html[data-ui-style="paper"] .vf-surface,
+html[data-ui-style="paper"] .vf-panel,
+html[data-ui-style="paper"] .vf-kpi {
+  background-image: linear-gradient(90deg, oklch(0.65 0.04 70 / 5%) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+html[data-ui-style="paper"] .vf-row {
+  border-bottom: 1px solid color-mix(in oklch, var(--foreground) 16%, transparent);
+  border-radius: 0;
+  background: color-mix(in oklch, var(--card) 50%, transparent);
+}
+
+html[data-ui-style="instrument"] .vf-surface,
+html[data-ui-style="instrument"] .vf-panel,
+html[data-ui-style="instrument"] .vf-kpi {
+  background-clip: padding-box;
+}
+
+html[data-ui-style="instrument"] .vf-row {
+  border: 1px solid color-mix(in oklch, var(--primary) 32%, transparent);
+  background: color-mix(in oklch, var(--card) 72%, black 18%);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 10%);
+}
+
+html[data-ui-style="dense"] .vf-row {
+  border-left: 2px solid color-mix(in oklch, var(--primary) 52%, transparent);
+  border-radius: 0 calc(var(--radius) - 0.1rem) calc(var(--radius) - 0.1rem) 0;
+  background: color-mix(in oklch, var(--primary) 5%, var(--row-bg));
+}
+
+html[data-ui-style="dense"] .vf-surface:hover,
+html[data-ui-style="dense"] .vf-panel:hover,
+html[data-ui-style="dense"] .vf-kpi:hover {
+  border-color: color-mix(in oklch, var(--primary) 62%, var(--border));
+  box-shadow: 0 5px 14px oklch(0.32 0.05 240 / 13%), inset 0 1px 0 oklch(1 0 0 / 60%);
+}
+
+html[data-ui-style="clay"] .vf-surface:hover,
+html[data-ui-style="clay"] .vf-panel:hover,
+html[data-ui-style="clay"] .vf-kpi:hover {
+  filter: saturate(1.04) brightness(1.015);
+  box-shadow: 0 17px 32px oklch(0.48 0.06 55 / 18%), 0 2px 0 oklch(1 0 0 / 80%), inset 0 -2px 0 oklch(0.7 0.04 60 / 20%);
+}
+
+html[data-ui-style="clay"] .vf-row {
+  border: 1px solid color-mix(in oklch, var(--primary) 12%, transparent);
+  background: color-mix(in oklch, var(--primary) 6%, var(--card));
+}
+
+html[data-ui-style="metal"] .vf-surface,
+html[data-ui-style="metal"] .vf-panel,
+html[data-ui-style="metal"] .vf-kpi {
+  background-size: 180% 180%;
+  background-position: 0% 0%;
+}
+
+html[data-ui-style="metal"] .vf-surface:hover,
+html[data-ui-style="metal"] .vf-panel:hover,
+html[data-ui-style="metal"] .vf-kpi:hover {
+  background-position: 100% 100%;
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 78%), inset 0 -1px 0 oklch(0.4 0.03 245 / 28%), 0 10px 20px oklch(0.32 0.04 245 / 30%);
+}
+
+html[data-ui-style="metal"] .vf-row {
+  border: 1px solid color-mix(in oklch, var(--foreground) 20%, var(--border));
+  border-radius: 0.25rem;
+  background: linear-gradient(90deg, oklch(1 0 0 / 12%), transparent 42%, oklch(0 0 0 / 8%));
+}
+
+html[data-ui-style="ink"] .vf-row {
+  border-bottom: 1px solid color-mix(in oklch, var(--foreground) 28%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+html[data-ui-style="ink"] .vf-surface:hover,
+html[data-ui-style="ink"] .vf-panel:hover,
+html[data-ui-style="ink"] .vf-kpi:hover {
+  box-shadow: 5px 5px 0 color-mix(in oklch, var(--foreground) 23%, transparent);
+}
+
+html[data-ui-style="swiss"] .vf-surface,
+html[data-ui-style="swiss"] .vf-panel,
+html[data-ui-style="swiss"] .vf-kpi {
+  border-bottom-width: 1px;
+}
+
+html[data-ui-style="swiss"] .vf-row {
+  border-bottom: 1px solid color-mix(in oklch, var(--foreground) 18%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+html[data-ui-style="swiss"] section > div:first-child h2,
+html[data-ui-style="swiss"] .vf-mobile-page-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--foreground);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html[data-ui-style="swiss"] section > div:first-child h2::before,
+html[data-ui-style="swiss"] .vf-mobile-page-heading h2::before {
+  width: 1.2rem;
+  height: 0.32rem;
+  flex: 0 0 auto;
+  content: "";
+  background: var(--primary);
+}
+
+html[data-ui-style="hud"] .vf-surface,
+html[data-ui-style="hud"] .vf-panel,
+html[data-ui-style="hud"] .vf-kpi {
+  position: relative;
+  overflow: hidden;
+  background-image:
+    linear-gradient(135deg, color-mix(in oklch, var(--primary) 12%, transparent) 0 1px, transparent 1px 100%),
+    var(--surface-bg);
+  background-size: 100% 100%, 100% 100%;
+}
+
+html[data-ui-style="hud"] .vf-surface::after,
+html[data-ui-style="hud"] .vf-panel::after,
+html[data-ui-style="hud"] .vf-kpi::after {
+  position: absolute;
+  inset: 0.35rem;
+  pointer-events: none;
+  content: "";
+  border: 1px solid color-mix(in oklch, var(--primary) 17%, transparent);
+  opacity: 0.7;
+}
+
+html[data-ui-style="hud"] .vf-row {
+  border: 1px solid color-mix(in oklch, var(--primary) 24%, transparent);
+  border-radius: 0;
+  background: color-mix(in oklch, var(--primary) 7%, transparent);
+}
+
+html[data-ui-style="editorial"] .vf-surface,
+html[data-ui-style="editorial"] .vf-panel,
+html[data-ui-style="editorial"] .vf-kpi {
+  background-image: linear-gradient(90deg, transparent 0 78%, color-mix(in oklch, var(--primary) 7%, transparent) 78% 78.3%, transparent 78.3% 100%);
+}
+
+html[data-ui-style="editorial"] section > div:first-child h2,
+html[data-ui-style="editorial"] .vf-mobile-page-heading h2 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+html[data-ui-style="editorial"] .vf-row {
+  border-bottom: 1px solid color-mix(in oklch, var(--foreground) 16%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+html[data-ui-style]:not([data-ui-style="amicro"]) .vf-mobile-pager {
+  padding: 0.45rem 0.25rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 30%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--card) 76%, transparent);
+  box-shadow: 0 6px 18px oklch(0 0 0 / 12%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui-style]:not([data-ui-style="amicro"]) .vf-surface,
+  html[data-ui-style]:not([data-ui-style="amicro"]) .vf-panel,
+  html[data-ui-style]:not([data-ui-style="amicro"]) .vf-kpi,
+  html[data-ui-style]:not([data-ui-style="amicro"]) button,
+  html[data-ui-style]:not([data-ui-style="amicro"]) input[type="range"] {
+    transition: none;
+  }
 }

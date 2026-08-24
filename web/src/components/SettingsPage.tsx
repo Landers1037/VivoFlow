@@ -197,7 +197,7 @@ export function SettingsPage({
 }
 
 function StylePreview({ id }: { id: UiStyle }) {
-  const base = "h-10 w-full";
+  const base = "h-11 w-full overflow-hidden";
   switch (id) {
     case "neumorph":
       return (
@@ -205,66 +205,84 @@ function StylePreview({ id }: { id: UiStyle }) {
           className={base}
           style={{
             borderRadius: "0.85rem",
-            background: "oklch(0.9 0.01 240)",
+            background:
+              "linear-gradient(145deg, oklch(0.97 0.015 242), oklch(0.86 0.025 242))",
             boxShadow:
-              "4px 4px 8px oklch(0.72 0.02 240 / 55%), -3px -3px 7px oklch(1 0 0 / 85%)",
+              "6px 7px 12px oklch(0.66 0.04 242 / 30%), -5px -5px 10px oklch(1 0 0 / 86%), inset 0 1px 0 oklch(1 0 0 / 65%)",
           }}
         />
       );
     case "line":
       return (
         <div
-          className={`${base} border border-foreground/70 bg-transparent`}
-          style={{ borderRadius: "0.1rem" }}
+          className={`${base} border border-primary/70 bg-transparent`}
+          style={{
+            borderRadius: "0.15rem",
+            borderTopWidth: "2px",
+            backgroundImage:
+              "linear-gradient(90deg, color-mix(in oklch, var(--primary) 7%, transparent) 1px, transparent 1px)",
+            backgroundSize: "16px 16px",
+          }}
         />
       );
     case "glass":
       return (
         <div
-          className={`${base} border border-white/40`}
+          className={`${base} border border-white/50 shadow-lg`}
           style={{
             borderRadius: "0.75rem",
-            background: "color-mix(in oklch, white 45%, transparent)",
-            backdropFilter: "blur(6px)",
+            background:
+              "radial-gradient(circle at 14% -18%, oklch(1 0 0 / 46%), transparent 43%), linear-gradient(135deg, oklch(1 0 0 / 34%), color-mix(in oklch, var(--primary) 13%, transparent) 54%, oklch(1 0 0 / 11%))",
+            backdropFilter: "blur(14px) saturate(150%)",
+            boxShadow:
+              "0 10px 20px oklch(0.28 0.08 240 / 18%), inset 0 1px 0 oklch(1 0 0 / 54%)",
           }}
         />
       );
     case "console":
       return (
         <div
-          className={`${base} flex items-center border border-primary/60 bg-card/80 px-2 font-mono text-[10px] text-primary`}
-          style={{ borderRadius: "0.2rem" }}
+          className={`${base} flex items-center border border-primary/60 px-2 font-mono text-[10px] text-primary`}
+          style={{
+            borderRadius: "0.2rem",
+            background:
+              "repeating-linear-gradient(0deg, transparent 0 3px, color-mix(in oklch, var(--primary) 8%, transparent) 4px), linear-gradient(180deg, color-mix(in oklch, var(--card) 96%, white), color-mix(in oklch, var(--card) 88%, var(--primary) 5%))",
+            boxShadow: "inset 0 1px 0 oklch(1 0 0 / 65%), 0 5px 10px oklch(0.25 0.06 155 / 10%)",
+          }}
         >
-          0xVF
+          <span className="mr-2 opacity-60">›</span>0xVF <span className="ml-auto opacity-60">READY</span>
         </div>
       );
     case "paper":
       return (
         <div
-          className={`${base} border border-stone-300 bg-stone-50`}
+          className={`${base} border border-stone-300 bg-stone-50 shadow-sm`}
           style={{
             borderRadius: "0.25rem",
             backgroundImage:
-              "repeating-linear-gradient(0deg, transparent, transparent 5px, oklch(0.85 0.02 90 / 25%) 5px, oklch(0.85 0.02 90 / 25%) 6px)",
+              "linear-gradient(90deg, oklch(0.55 0.04 70 / 7%) 1px, transparent 1px), repeating-linear-gradient(0deg, transparent, transparent 6px, oklch(0.75 0.03 80 / 25%) 6px, oklch(0.75 0.03 80 / 25%) 7px)",
+            backgroundSize: "22px 22px, auto",
           }}
         />
       );
     case "instrument":
       return (
         <div
-          className={`${base} border-2 border-primary/50`}
+          className={`${base} border border-primary/60`}
           style={{
-            borderRadius: "999px",
+            borderRadius: "0.8rem",
             background:
-              "radial-gradient(circle at 50% 40%, oklch(0.35 0.03 250), oklch(0.18 0.02 250))",
+              "radial-gradient(circle at 50% 18%, oklch(0.36 0.06 240), transparent 58%), linear-gradient(145deg, oklch(0.28 0.045 250), oklch(0.13 0.03 250))",
+            boxShadow:
+              "inset 0 1px 0 oklch(1 0 0 / 16%), inset 0 0 0 1px oklch(0 0 0 / 45%), 0 8px 14px oklch(0 0 0 / 32%)",
           }}
         />
       );
     case "dense":
       return (
-        <div className={`${base} grid grid-cols-4 gap-0.5 border border-border p-1`} style={{ borderRadius: "0.25rem" }}>
+        <div className={`${base} grid grid-cols-4 gap-0.5 border border-border bg-card p-1`} style={{ borderRadius: "0.25rem" }}>
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-muted" />
+            <div key={i} className={cn("bg-muted", i === 2 && "bg-primary/60")} />
           ))}
         </div>
       );
@@ -274,8 +292,11 @@ function StylePreview({ id }: { id: UiStyle }) {
           className={base}
           style={{
             borderRadius: "1.1rem",
-            background: "oklch(0.95 0.015 95)",
-            boxShadow: "0 8px 16px oklch(0.55 0.04 80 / 18%)",
+            background:
+              "linear-gradient(145deg, oklch(0.99 0.012 88), oklch(0.9 0.04 54))",
+            border: "1px solid color-mix(in oklch, var(--primary) 16%, transparent)",
+            boxShadow:
+              "0 10px 18px oklch(0.48 0.06 55 / 17%), 0 2px 0 oklch(1 0 0 / 80%), inset 0 -2px 0 oklch(0.7 0.04 60 / 20%)",
           }}
         />
       );
@@ -286,7 +307,10 @@ function StylePreview({ id }: { id: UiStyle }) {
           style={{
             borderRadius: "0.3rem",
             background:
-              "linear-gradient(135deg, oklch(0.88 0.01 250), oklch(0.72 0.015 250), oklch(0.86 0.01 250))",
+              "linear-gradient(135deg, oklch(0.96 0.01 245), oklch(0.75 0.018 245) 44%, oklch(0.92 0.012 245) 70%, oklch(0.7 0.02 245))",
+            backgroundSize: "180% 180%",
+            boxShadow:
+              "inset 0 1px 0 oklch(1 0 0 / 72%), inset 0 -1px 0 oklch(0.4 0.03 245 / 24%), 0 6px 12px oklch(0.3 0.04 245 / 22%)",
           }}
         />
       );
@@ -294,31 +318,38 @@ function StylePreview({ id }: { id: UiStyle }) {
       return (
         <div
           className={`${base} border-[1.5px] border-foreground bg-transparent`}
-          style={{ borderRadius: "0.05rem", boxShadow: "3px 3px 0 oklch(0.3 0 0 / 20%)" }}
+          style={{
+            borderRadius: "0.05rem",
+            boxShadow: "4px 4px 0 oklch(0.3 0 0 / 20%)",
+            backgroundImage: "linear-gradient(0deg, oklch(0.25 0.03 38 / 5%) 1px, transparent 1px)",
+            backgroundSize: "100% 7px",
+          }}
         />
       );
     case "swiss":
       return (
-        <div className={`${base} border-b border-foreground bg-transparent`} style={{ borderRadius: 0 }} />
+        <div className={`${base} flex items-end border-b border-foreground bg-transparent`} style={{ borderRadius: 0 }}>
+          <span className="mb-2 block h-1.5 w-8 bg-primary" />
+        </div>
       );
     case "hud":
       return (
         <div
-          className={`${base} border border-primary/70`}
+          className={`${base} border border-primary/70 shadow-lg`}
           style={{
             borderRadius: 0,
             backgroundImage:
-              "linear-gradient(color-mix(in oklch, var(--primary) 15%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklch, var(--primary) 15%, transparent) 1px, transparent 1px)",
-            backgroundSize: "8px 8px",
-            backgroundColor: "oklch(0.15 0.03 220)",
+              "linear-gradient(color-mix(in oklch, var(--primary) 18%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklch, var(--primary) 18%, transparent) 1px, transparent 1px), radial-gradient(circle at 50% 0%, color-mix(in oklch, var(--primary) 24%, transparent), transparent 65%)",
+            backgroundSize: "8px 8px, 8px 8px, 100% 100%",
+            backgroundColor: "oklch(0.12 0.04 220)",
           }}
         />
       );
     case "editorial":
       return (
         <div className={`${base} flex flex-col justify-end border-0 bg-transparent pb-0`} style={{ borderRadius: "0.15rem" }}>
-          <span className="font-serif text-lg font-semibold leading-none">Aa</span>
-          <span className="mt-1 block h-px w-full bg-border" />
+          <span className="font-serif text-xl font-semibold leading-none tracking-tight">Aa</span>
+          <span className="mt-1 block h-px w-full bg-primary/60" />
         </div>
       );
     default:
@@ -376,7 +407,7 @@ function AppearanceTab({
                 type="button"
                 onClick={() => setUiStyle(opt.id)}
                 className={cn(
-                  "flex flex-col gap-2 border px-3 py-3 text-left text-sm transition-colors",
+                  "vf-style-option flex flex-col gap-2 border px-3 py-3 text-left text-sm transition-colors",
                   selected ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40",
                 )}
                 style={{ borderRadius: "var(--nav-radius)" }}
