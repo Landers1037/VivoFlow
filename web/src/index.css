@@ -1742,6 +1742,79 @@ html[data-ui-style="editorial"] .vf-row {
   background: transparent;
 }
 
+/* Album chrome inherits the selected UI material while retaining enough
+   contrast over arbitrary photography. */
+.photo-frame .photo-frame-meta,
+.photo-frame .photo-frame-control,
+.photo-frame .photo-frame-card,
+.photo-frame .photo-frame-empty-icon {
+  color: var(--card-foreground);
+  background-color: color-mix(in oklch, var(--card) 84%, transparent);
+  backdrop-filter: blur(max(12px, var(--surface-blur))) saturate(135%);
+  -webkit-backdrop-filter: blur(max(12px, var(--surface-blur))) saturate(135%);
+}
+
+.photo-frame .photo-frame-meta {
+  padding: var(--surface-padding);
+}
+
+.photo-frame .photo-frame-control {
+  padding: 0;
+  border-radius: var(--nav-radius);
+}
+
+.photo-frame .photo-frame-control:hover {
+  color: var(--card-foreground);
+  background-color: color-mix(in oklch, var(--card) 94%, var(--primary) 6%);
+}
+
+.photo-frame .vf-surface.photo-frame-card {
+  position: absolute;
+  padding: 0;
+  background-color: color-mix(in oklch, var(--card) 92%, black 8%);
+}
+
+/* Neumorphism becomes noisy when the time-machine effect stacks several
+   surfaces. Keep the material's soft relief, but use one quiet cast shadow
+   instead of repeating the dashboard's opposing light/dark shadows. */
+html[data-ui-style="neumorph"] .photo-frame .photo-frame-meta,
+html[data-ui-style="neumorph"] .photo-frame .photo-frame-control,
+html[data-ui-style="neumorph"] .photo-frame .photo-frame-card,
+html[data-ui-style="neumorph"] .photo-frame .photo-frame-empty-icon,
+html[data-ui-style="neumorph"] .photo-frame .photo-frame-control:hover {
+  box-shadow:
+    0 4px 12px oklch(0.45 0.04 242 / 16%),
+    inset 0 1px 0 oklch(1 0 0 / 52%);
+}
+
+html[data-ui-style="neumorph"] .photo-frame .photo-frame-card {
+  box-shadow:
+    0 3px 10px oklch(0.45 0.04 242 / 14%),
+    inset 0 0 0 1px oklch(1 0 0 / 32%);
+}
+
+html.dark[data-ui-style="neumorph"] .photo-frame .photo-frame-meta,
+html.dark[data-ui-style="neumorph"] .photo-frame .photo-frame-control,
+html.dark[data-ui-style="neumorph"] .photo-frame .photo-frame-card,
+html.dark[data-ui-style="neumorph"] .photo-frame .photo-frame-empty-icon,
+html.dark[data-ui-style="neumorph"] .photo-frame .photo-frame-control:hover {
+  box-shadow:
+    0 4px 12px oklch(0.03 0.02 252 / 34%),
+    inset 0 1px 0 oklch(1 0 0 / 7%);
+}
+
+html.dark[data-ui-style="neumorph"] .photo-frame .photo-frame-card {
+  box-shadow:
+    0 3px 10px oklch(0.03 0.02 252 / 28%),
+    inset 0 0 0 1px oklch(1 0 0 / 6%);
+}
+
+.photo-frame .photo-frame-empty {
+  color: var(--foreground);
+  background: var(--shell-bg);
+  background-size: var(--shell-bg-size, auto);
+}
+
 html[data-ui-style]:not([data-ui-style="amicro"]) .vf-mobile-pager {
   padding: 0.45rem 0.25rem;
   border: 1px solid color-mix(in oklch, var(--primary) 30%, var(--border));

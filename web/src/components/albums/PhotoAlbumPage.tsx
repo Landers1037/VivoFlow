@@ -202,7 +202,7 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
               <Button
                 variant="outline"
                 size="icon"
-                className="pointer-events-auto relative z-10 touch-manipulation border-white/20 bg-black/35 text-white backdrop-blur-xl hover:bg-black/55"
+                className="vf-surface photo-frame-control pointer-events-auto relative z-10 touch-manipulation"
                 aria-label={t("settings")}
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={(event) => {
@@ -215,13 +215,13 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
             </div>
             {current ? (
               <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-[max(1rem,env(safe-area-inset-bottom))]">
-                <div className="max-w-2xl rounded-2xl bg-black/28 px-4 py-3 text-white shadow-2xl backdrop-blur-xl sm:px-5 sm:py-4" aria-live="polite">
+                <div className="vf-surface photo-frame-meta max-w-2xl" aria-live="polite">
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                     <h1 className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight sm:text-3xl">{current.album.title}</h1>
-                    {current.album.date ? <time className="text-xs font-medium tracking-[0.12em] text-white/60">{current.album.date}</time> : null}
+                    {current.album.date ? <time className="text-xs font-medium tracking-[0.12em] text-muted-foreground">{current.album.date}</time> : null}
                   </div>
-                  {current.album.description ? <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-white/72">{current.album.description}</p> : null}
-                  <p className="mt-2 text-[10px] font-semibold tracking-[0.18em] text-white/45">{String(index + 1).padStart(2, "0")} / {String(playlist.length).padStart(2, "0")}</p>
+                  {current.album.description ? <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{current.album.description}</p> : null}
+                  <p className="vf-data mt-2 text-[10px] font-semibold tracking-[0.18em] text-muted-foreground">{String(index + 1).padStart(2, "0")} / {String(playlist.length).padStart(2, "0")}</p>
                 </div>
                 <div className="pointer-events-auto relative z-10 hidden items-center gap-2 sm:flex">
                   <FrameButton label={t("previousPhoto")} onClick={previous}><ChevronLeft /></FrameButton>
@@ -252,7 +252,7 @@ function FrameButton({ label, onClick, children }: { label: string; onClick: () 
         event.stopPropagation();
         onClick();
       }}
-      className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-white/18 bg-black/30 text-white backdrop-blur-xl transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 [&_svg]:h-5 [&_svg]:w-5"
+      className="vf-surface photo-frame-control flex h-11 w-11 touch-manipulation items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&_svg]:h-5 [&_svg]:w-5"
     >
       {children}
     </button>
@@ -262,11 +262,11 @@ function FrameButton({ label, onClick, children }: { label: string; onClick: () 
 function EmptyFrame({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { t } = useAppearance();
   return (
-    <div className="flex h-full items-center justify-center bg-[#08090b] p-6 text-center text-white">
+    <div className="photo-frame-empty flex h-full items-center justify-center p-6 text-center text-foreground">
       <div className="max-w-md">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5"><Images className="h-7 w-7 text-white/65" /></div>
+        <div className="vf-surface photo-frame-empty-icon mx-auto flex h-16 w-16 items-center justify-center"><Images className="h-7 w-7 text-muted-foreground" /></div>
         <h1 className="mt-5 text-2xl font-semibold tracking-tight">{t("photoFrameEmpty")}</h1>
-        <p className="mt-2 text-sm leading-relaxed text-white/55">{t("photoFrameEmptyHint")}</p>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t("photoFrameEmptyHint")}</p>
         <Button className="mt-5" onClick={onOpenSettings}><Settings2 className="h-4 w-4" />{t("openAlbumSettings")}</Button>
       </div>
     </div>
@@ -397,7 +397,7 @@ function TimeMachine({ playlist, index, onSelect, onImageError }: { playlist: Pl
               }}
               transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 230, damping: 27 }}
               style={{ zIndex: albumItems.length - position }}
-              className="absolute inset-0 overflow-hidden rounded-[1.5rem] border border-white/12 bg-black shadow-[0_28px_80px_rgba(0,0,0,.5)]"
+              className="vf-surface photo-frame-card absolute inset-0 overflow-hidden"
             >
               <img src={item.image.content_url} alt={item.image.original_name} onError={() => onImageError(item.image)} className="h-full w-full object-contain" draggable={false} />
             </motion.button>
@@ -438,7 +438,7 @@ function CoverFlow({ playlist, index, onSelect, onImageError }: { playlist: Play
               }}
               transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 190, damping: 26 }}
               style={{ zIndex: 100 - absolute }}
-              className="absolute left-1/2 top-1/2 h-[min(62vh,680px)] w-[min(68vw,840px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[1.5rem] border border-white/12 bg-black shadow-[0_30px_90px_rgba(0,0,0,.55)]"
+              className="vf-surface photo-frame-card absolute left-1/2 top-1/2 h-[min(62vh,680px)] w-[min(68vw,840px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden"
             >
               <img src={item.image.content_url} alt={item.image.original_name} onError={() => onImageError(item.image)} className="h-full w-full object-contain" draggable={false} />
             </motion.button>
