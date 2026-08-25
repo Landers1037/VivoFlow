@@ -12,6 +12,8 @@ import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, Lang, Ph
 import {
   ACCENT_PRESETS,
   DEFAULT_BACKGROUND_COLOR,
+  DEFAULT_GLASS_GRADIENT_END,
+  DEFAULT_GLASS_GRADIENT_START,
   DEFAULT_ACCENT_CUSTOM,
   DEFAULT_CONFIG,
   UI_STYLES,
@@ -56,11 +58,14 @@ const ACCENT_HUES: Record<
   },
 };
 
-export function normalizeHexColor(raw: string | null | undefined): string {
+export function normalizeHexColor(
+  raw: string | null | undefined,
+  fallback = DEFAULT_ACCENT_CUSTOM,
+): string {
   const s = (raw ?? "").trim();
   if (/^#[0-9A-Fa-f]{6}$/.test(s)) return s.toLowerCase();
   if (/^[0-9A-Fa-f]{6}$/.test(s)) return `#${s.toLowerCase()}`;
-  return DEFAULT_ACCENT_CUSTOM;
+  return fallback;
 }
 
 function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
@@ -77,6 +82,14 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     accent: accents.includes(base.accent as AccentId) ? (base.accent as AccentId) : "teal",
     accent_custom: normalizeHexColor(base.accent_custom),
     background_color: normalizeHexColor(base.background_color || DEFAULT_BACKGROUND_COLOR),
+    glass_gradient_start: normalizeHexColor(
+      base.glass_gradient_start || DEFAULT_GLASS_GRADIENT_START,
+      DEFAULT_GLASS_GRADIENT_START,
+    ),
+    glass_gradient_end: normalizeHexColor(
+      base.glass_gradient_end || DEFAULT_GLASS_GRADIENT_END,
+      DEFAULT_GLASS_GRADIENT_END,
+    ),
     theme: themes.includes(base.theme as ThemeMode) ? (base.theme as ThemeMode) : "system",
     language: langs.includes(base.language as Lang) ? (base.language as Lang) : "zh",
     hide_title_bar: Boolean(base.hide_title_bar),
@@ -137,6 +150,18 @@ function applyBackgroundColor(backgroundColor: string) {
   );
 }
 
+function applyGlassGradient(start: string, end: string) {
+  const root = document.documentElement;
+  root.style.setProperty(
+    "--vf-glass-gradient-start",
+    normalizeHexColor(start, DEFAULT_GLASS_GRADIENT_START),
+  );
+  root.style.setProperty(
+    "--vf-glass-gradient-end",
+    normalizeHexColor(end, DEFAULT_GLASS_GRADIENT_END),
+  );
+}
+
 interface AppearanceContextValue {
   config: AppConfig;
   synced: boolean;
@@ -144,6 +169,7 @@ interface AppearanceContextValue {
   setAccent: (v: AccentId) => void;
   setAccentCustom: (hex: string) => void;
   setBackgroundColor: (hex: string) => void;
+  setGlassGradient: (start: string, end: string) => void;
   setLanguage: (v: Lang) => void;
   setThemeMode: (v: ThemeMode) => void;
   setHideTitleBar: (v: boolean) => void;
@@ -181,6 +207,7 @@ export function AppearanceProvider({
   useEffect(() => {
     applyAccent(resolved.accent, resolved.accent_custom);
     applyBackgroundColor(resolved.background_color);
+    applyGlassGradient(resolved.glass_gradient_start, resolved.glass_gradient_end);
     document.documentElement.dataset.uiStyle = resolved.ui_style;
     document.documentElement.lang = resolved.language === "en" ? "en" : "zh-CN";
     setTheme(resolved.theme);
@@ -188,6 +215,8 @@ export function AppearanceProvider({
     resolved.accent,
     resolved.accent_custom,
     resolved.background_color,
+    resolved.glass_gradient_start,
+    resolved.glass_gradient_end,
     resolved.language,
     resolved.theme,
     resolved.ui_style,
@@ -218,6 +247,17 @@ export function AppearanceProvider({
         patch({ accent: "custom", accent_custom: normalizeHexColor(hex) }),
       setBackgroundColor: (background_color) =>
         patch({ background_color: normalizeHexColor(background_color) }),
+      setGlassGradient: (glass_gradient_start, glass_gradient_end) =>
+        patch({
+          glass_gradient_start: normalizeHexColor(
+            glass_gradient_start,
+            DEFAULT_GLASS_GRADIENT_START,
+          ),
+          glass_gradient_end: normalizeHexColor(
+            glass_gradient_end,
+            DEFAULT_GLASS_GRADIENT_END,
+          ),
+        }),
       setLanguage: (language) => patch({ language }),
       setThemeMode: (theme) => patch({ theme }),
       setHideTitleBar: (hide_title_bar) => patch({ hide_title_bar }),
@@ -264,6 +304,32 @@ export const BACKGROUND_OPTIONS: { id: string; labelKey: "backgroundSignal" | "b
   { id: "slate", labelKey: "backgroundSlate", swatch: "#17202a" },
   { id: "plum", labelKey: "backgroundPlum", swatch: "#211a2d" },
   { id: "sand", labelKey: "backgroundSand", swatch: "#f4efe7" },
+];
+
+export const GLASS_GRADIENT_OPTIONS: {
+  id: string;
+  labelKey: "glassGradientMorning" | "glassGradientGlacier" | "glassGradientMint";
+  start: string;
+  end: string;
+}[] = [
+  {
+    id: "morning",
+    labelKey: "glassGradientMorning",
+    start: DEFAULT_GLASS_GRADIENT_START,
+    end: DEFAULT_GLASS_GRADIENT_END,
+  },
+  {
+    id: "glacier",
+    labelKey: "glassGradientGlacier",
+    start: "#d9f2ff",
+    end: "#dbe8ff",
+  },
+  {
+    id: "mint",
+    labelKey: "glassGradientMint",
+    start: "#e0f7f4",
+    end: "#bdebd8",
+  },
 ];
 
 export const UI_STYLE_OPTIONS: {

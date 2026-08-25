@@ -8,6 +8,8 @@
 - `UiStyle`：14 种（`UI_STYLES`）— 含 amicro / neumorph / line / glass / console 与 paper / instrument / dense / clay / metal / ink / swiss / hud / editorial
 - `AccentId`：`teal` | `zinc` | `blue` | `violet` | `amber` | `custom`
 - `accent_custom`：`#RRGGBB`（自定义主题色）
+- `background_color`：页面背景基色
+- `glass_gradient_start` / `glass_gradient_end`：毛玻璃背景渐变两端色（`#RRGGBB`）
 - `ThemeMode` / `Lang`
 - `hide_title_bar`、`mobile_card_mode`、`mobile_auto_carousel`、`mobile_carousel_interval_s`
 - `Snapshot` 及 `CpuMetrics`、`MemoryMetrics`、`GpuMetrics`、`DiskMetrics`、`NetworkMetrics`

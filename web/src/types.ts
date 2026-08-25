@@ -77,6 +77,8 @@ export const ACCENT_PRESETS: Exclude<AccentId, "custom">[] = [
 
 export const DEFAULT_ACCENT_CUSTOM = "#0d9488";
 export const DEFAULT_BACKGROUND_COLOR = "#0b1a20";
+export const DEFAULT_GLASS_GRADIENT_START = "#d9f8ff";
+export const DEFAULT_GLASS_GRADIENT_END = "#d7f4ee";
 
 export interface AppConfig {
   interval_ms: number;
@@ -88,6 +90,10 @@ export interface AppConfig {
   accent_custom: string;
   /** `#RRGGBB`，作为应用背景基色，随明暗主题混合 */
   background_color: string;
+  /** `#RRGGBB`，毛玻璃背景渐变的起始色 */
+  glass_gradient_start: string;
+  /** `#RRGGBB`，毛玻璃背景渐变的结束色 */
+  glass_gradient_end: string;
   theme: ThemeMode;
   language: Lang;
   hide_title_bar: boolean;
@@ -114,6 +120,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   accent: "teal",
   accent_custom: DEFAULT_ACCENT_CUSTOM,
   background_color: DEFAULT_BACKGROUND_COLOR,
+  glass_gradient_start: DEFAULT_GLASS_GRADIENT_START,
+  glass_gradient_end: DEFAULT_GLASS_GRADIENT_END,
   theme: "system",
   language: "zh",
   hide_title_bar: false,

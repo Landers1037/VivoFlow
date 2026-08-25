@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   ACCENT_OPTIONS,
   BACKGROUND_OPTIONS,
+  GLASS_GRADIENT_OPTIONS,
   UI_STYLE_OPTIONS,
   useAppearance,
   type AccentId,
@@ -41,6 +42,7 @@ export function SettingsPage({
     setAccent,
     setAccentCustom,
     setBackgroundColor,
+    setGlassGradient,
     setLanguage,
     setUiStyle,
     setThemeMode,
@@ -132,6 +134,7 @@ export function SettingsPage({
               setAccent={setAccent}
               setAccentCustom={setAccentCustom}
               setBackgroundColor={setBackgroundColor}
+              setGlassGradient={setGlassGradient}
                 setLanguage={setLanguage}
                 setUiStyle={setUiStyle}
                 setThemeMode={setThemeMode}
@@ -407,6 +410,7 @@ function AppearanceTab({
   setAccent,
   setAccentCustom,
   setBackgroundColor,
+  setGlassGradient,
   setLanguage,
   setUiStyle,
   setThemeMode,
@@ -420,6 +424,7 @@ function AppearanceTab({
   setAccent: (v: AccentId) => void;
   setAccentCustom: (hex: string) => void;
   setBackgroundColor: (hex: string) => void;
+  setGlassGradient: (start: string, end: string) => void;
   setLanguage: (v: Lang) => void;
   setUiStyle: (v: UiStyle) => void;
   setThemeMode: (v: ThemeMode) => void;
@@ -430,6 +435,8 @@ function AppearanceTab({
 }) {
   const [hexDraft, setHexDraft] = useState(config.accent_custom);
   const [backgroundHexDraft, setBackgroundHexDraft] = useState(config.background_color);
+  const [glassGradientStartDraft, setGlassGradientStartDraft] = useState(config.glass_gradient_start);
+  const [glassGradientEndDraft, setGlassGradientEndDraft] = useState(config.glass_gradient_end);
 
   useEffect(() => {
     setHexDraft(config.accent_custom);
@@ -438,6 +445,11 @@ function AppearanceTab({
   useEffect(() => {
     setBackgroundHexDraft(config.background_color);
   }, [config.background_color]);
+
+  useEffect(() => {
+    setGlassGradientStartDraft(config.glass_gradient_start);
+    setGlassGradientEndDraft(config.glass_gradient_end);
+  }, [config.glass_gradient_start, config.glass_gradient_end]);
 
   return (
     <div className="settings-appearance-tab space-y-6">
@@ -611,6 +623,135 @@ function AppearanceTab({
           </div>
         </div>
       </div>
+
+      {config.ui_style === "glass" ? (
+        <div className="settings-form-section settings-glass-gradient-section space-y-3">
+          <div>
+            <Label>{t("glassGradient")}</Label>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {t("glassGradientHint")}
+            </p>
+          </div>
+          <div className="settings-glass-gradient-options">
+            {GLASS_GRADIENT_OPTIONS.map((option) => {
+              const selected =
+                config.glass_gradient_start === option.start &&
+                config.glass_gradient_end === option.end;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  aria-label={t(option.labelKey)}
+                  className={cn(
+                    "settings-glass-gradient-option",
+                    selected && "settings-glass-gradient-option-active",
+                  )}
+                  onClick={() => {
+                    setGlassGradientStartDraft(option.start);
+                    setGlassGradientEndDraft(option.end);
+                    setGlassGradient(option.start, option.end);
+                  }}
+                >
+                  <span
+                    className="settings-glass-gradient-swatch"
+                    style={{ background: `linear-gradient(135deg, ${option.start}, ${option.end})` }}
+                  />
+                  <span>{t(option.labelKey)}</span>
+                </button>
+              );
+            })}
+            <div
+              className={cn(
+                "settings-glass-gradient-option settings-glass-gradient-custom",
+                !GLASS_GRADIENT_OPTIONS.some(
+                  (option) =>
+                    option.start === config.glass_gradient_start &&
+                    option.end === config.glass_gradient_end,
+                ) && "settings-glass-gradient-option-active",
+              )}
+            >
+              <span
+                className="settings-glass-gradient-swatch"
+                style={{
+                  background: `linear-gradient(135deg, ${config.glass_gradient_start}, ${config.glass_gradient_end})`,
+                }}
+              />
+              <span>{t("glassGradientCustom")}</span>
+            </div>
+          </div>
+          <div className="settings-glass-gradient-preview" aria-hidden="true">
+            <span
+              style={{
+                background: `linear-gradient(135deg, ${config.glass_gradient_start}, ${config.glass_gradient_end})`,
+              }}
+            />
+            <div>
+              <strong>VivoFlow</strong>
+              <small>{t("glassGradientPreview")}</small>
+            </div>
+          </div>
+          <div className="settings-glass-gradient-stop-grid">
+            <label className="settings-glass-gradient-stop">
+              <span className="settings-glass-gradient-stop-heading">
+                <span className="settings-glass-gradient-stop-dot" style={{ backgroundColor: config.glass_gradient_start }} />
+                {t("glassGradientStart")}
+              </span>
+              <span className="settings-glass-gradient-stop-input">
+                <input
+                  type="color"
+                  aria-label={t("glassGradientStart")}
+                  value={config.glass_gradient_start}
+                  onChange={(event) => {
+                    setGlassGradientStartDraft(event.target.value);
+                    setGlassGradient(event.target.value, config.glass_gradient_end);
+                  }}
+                />
+                <input
+                  type="text"
+                  spellCheck={false}
+                  value={glassGradientStartDraft}
+                  onChange={(event) => setGlassGradientStartDraft(event.target.value)}
+                  onBlur={() => setGlassGradient(glassGradientStartDraft, config.glass_gradient_end)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") event.currentTarget.blur();
+                  }}
+                  aria-label={t("glassGradientStart")}
+                  placeholder="#d9f8ff"
+                />
+              </span>
+            </label>
+            <label className="settings-glass-gradient-stop">
+              <span className="settings-glass-gradient-stop-heading">
+                <span className="settings-glass-gradient-stop-dot" style={{ backgroundColor: config.glass_gradient_end }} />
+                {t("glassGradientEnd")}
+              </span>
+              <span className="settings-glass-gradient-stop-input">
+                <input
+                  type="color"
+                  aria-label={t("glassGradientEnd")}
+                  value={config.glass_gradient_end}
+                  onChange={(event) => {
+                    setGlassGradientEndDraft(event.target.value);
+                    setGlassGradient(config.glass_gradient_start, event.target.value);
+                  }}
+                />
+                <input
+                  type="text"
+                  spellCheck={false}
+                  value={glassGradientEndDraft}
+                  onChange={(event) => setGlassGradientEndDraft(event.target.value)}
+                  onBlur={() => setGlassGradient(config.glass_gradient_start, glassGradientEndDraft)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") event.currentTarget.blur();
+                  }}
+                  aria-label={t("glassGradientEnd")}
+                  placeholder="#d7f4ee"
+                />
+              </span>
+            </label>
+          </div>
+        </div>
+      ) : null}
 
       <div className="settings-form-section settings-theme-section space-y-2">
         <Label>{t("themeMode")}</Label>

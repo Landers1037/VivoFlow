@@ -11,6 +11,14 @@ fn default_background_color() -> String {
     "#0b1a20".into()
 }
 
+fn default_glass_gradient_start() -> String {
+    "#d9f8ff".into()
+}
+
+fn default_glass_gradient_end() -> String {
+    "#d7f4ee".into()
+}
+
 fn default_mobile_auto_carousel() -> bool {
     true
 }
@@ -55,6 +63,10 @@ pub struct AppConfig {
     pub accent_custom: String,
     #[serde(default = "default_background_color")]
     pub background_color: String,
+    #[serde(default = "default_glass_gradient_start")]
+    pub glass_gradient_start: String,
+    #[serde(default = "default_glass_gradient_end")]
+    pub glass_gradient_end: String,
     #[serde(default)]
     pub theme: String,
     #[serde(default)]
@@ -108,6 +120,8 @@ impl Default for AppConfig {
             accent: "teal".into(),
             accent_custom: default_accent_custom(),
             background_color: default_background_color(),
+            glass_gradient_start: default_glass_gradient_start(),
+            glass_gradient_end: default_glass_gradient_end(),
             theme: "system".into(),
             language: "zh".into(),
             hide_title_bar: false,
@@ -188,6 +202,16 @@ impl AppConfig {
             self.background_color = default_background_color();
         } else {
             self.background_color = self.background_color.to_ascii_lowercase();
+        }
+        if !is_hex_color(&self.glass_gradient_start) {
+            self.glass_gradient_start = default_glass_gradient_start();
+        } else {
+            self.glass_gradient_start = self.glass_gradient_start.to_ascii_lowercase();
+        }
+        if !is_hex_color(&self.glass_gradient_end) {
+            self.glass_gradient_end = default_glass_gradient_end();
+        } else {
+            self.glass_gradient_end = self.glass_gradient_end.to_ascii_lowercase();
         }
         if !THEMES.contains(&self.theme.as_str()) {
             self.theme = "system".into();
@@ -319,6 +343,8 @@ mod tests {
         assert!(cfg.mobile_auto_carousel);
         assert_eq!(cfg.mobile_carousel_interval_s, 10);
         assert_eq!(cfg.background_color, "#0b1a20");
+        assert_eq!(cfg.glass_gradient_start, "#d9f8ff");
+        assert_eq!(cfg.glass_gradient_end, "#d7f4ee");
         assert!(!cfg.photo_album_enabled);
         assert_eq!(cfg.photo_album_effect, "single");
         assert!(!cfg.audio_visualizer_enabled);
@@ -356,6 +382,18 @@ mod tests {
             ..AppConfig::default()
         };
         assert_eq!(cfg.sanitize().background_color, "#0b1a20");
+    }
+
+    #[test]
+    fn invalid_glass_gradient_colors_use_defaults() {
+        let cfg = AppConfig {
+            glass_gradient_start: "not-a-color".into(),
+            glass_gradient_end: "#AABBCC".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(cfg.glass_gradient_start, "#d9f8ff");
+        assert_eq!(cfg.glass_gradient_end, "#aabbcc");
     }
 
     #[test]

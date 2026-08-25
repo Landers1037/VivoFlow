@@ -641,6 +641,9 @@ html.dark[data-ui-style="line"] {
 
 html[data-ui-style="glass"] {
   /* Optical glass: cool ambient light sits behind a milky, low-opacity pane. */
+  --vf-glass-gradient-start: #d9f8ff;
+  --vf-glass-gradient-end: #d7f4ee;
+  --vf-glass-gradient-mid: color-mix(in oklch, var(--vf-glass-gradient-start) 50%, var(--vf-glass-gradient-end));
   --background: oklch(0.92 0.045 230);
   --card: oklch(0.99 0.014 225);
   --foreground: oklch(0.19 0.035 245);
@@ -663,10 +666,10 @@ html[data-ui-style="glass"] {
   --surface-blur: 28px;
   --surface-padding: 1rem;
   --shell-bg:
-    radial-gradient(circle at 0% 0%, oklch(0.74 0.13 195 / 52%), transparent 34%),
-    radial-gradient(circle at 100% 10%, oklch(0.78 0.12 285 / 42%), transparent 36%),
-    radial-gradient(circle at 68% 100%, oklch(0.76 0.13 170 / 38%), transparent 44%),
-    linear-gradient(135deg, oklch(0.87 0.055 220), oklch(0.96 0.025 260) 52%, oklch(0.9 0.05 180));
+    radial-gradient(circle at 0% 0%, color-mix(in oklch, var(--vf-glass-gradient-start) 62%, transparent), transparent 34%),
+    radial-gradient(circle at 100% 10%, color-mix(in oklch, var(--vf-glass-gradient-end) 55%, transparent), transparent 36%),
+    radial-gradient(circle at 68% 100%, color-mix(in oklch, var(--vf-glass-gradient-end) 45%, transparent), transparent 44%),
+    linear-gradient(135deg, var(--vf-glass-gradient-start), var(--vf-glass-gradient-mid) 52%, var(--vf-glass-gradient-end));
   --shell-bg-size: auto;
 }
 
@@ -692,10 +695,15 @@ html.dark[data-ui-style="glass"] {
     inset 0 -20px 34px color-mix(in oklch, var(--primary) 13%, transparent);
   --surface-blur: 30px;
   --shell-bg:
-    radial-gradient(circle at 0% 0%, oklch(0.5 0.14 195 / 34%), transparent 36%),
-    radial-gradient(circle at 100% 10%, oklch(0.52 0.14 285 / 30%), transparent 38%),
-    radial-gradient(circle at 68% 100%, oklch(0.48 0.14 170 / 24%), transparent 44%),
-    linear-gradient(135deg, oklch(0.12 0.045 240), oklch(0.08 0.035 270) 55%, oklch(0.1 0.05 190));
+    radial-gradient(circle at 0% 0%, color-mix(in oklch, var(--vf-glass-gradient-start) 34%, transparent), transparent 36%),
+    radial-gradient(circle at 100% 10%, color-mix(in oklch, var(--vf-glass-gradient-end) 30%, transparent), transparent 38%),
+    radial-gradient(circle at 68% 100%, color-mix(in oklch, var(--vf-glass-gradient-end) 24%, transparent), transparent 44%),
+    linear-gradient(
+      135deg,
+      color-mix(in oklch, var(--vf-glass-gradient-start) 30%, oklch(0.12 0.045 240)),
+      color-mix(in oklch, var(--vf-glass-gradient-mid) 25%, oklch(0.08 0.035 270)) 55%,
+      color-mix(in oklch, var(--vf-glass-gradient-end) 30%, oklch(0.1 0.05 190))
+    );
 }
 
 html[data-ui-style="console"] {
@@ -2411,6 +2419,160 @@ html.dark[data-ui-style="amicro"] {
   box-shadow: 0 0 12px color-mix(in oklch, var(--primary) 70%, transparent);
 }
 
+.settings-glass-gradient-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.settings-glass-gradient-option {
+  display: flex;
+  min-height: 4.8rem;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0.45rem;
+  border: 1px solid color-mix(in oklch, var(--border) 80%, var(--primary) 20%);
+  border-radius: 0.9rem;
+  padding: 0.58rem;
+  color: var(--muted-foreground);
+  background: color-mix(in oklch, var(--card) 78%, var(--muted) 22%);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: left;
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.settings-glass-gradient-option:hover,
+.settings-glass-gradient-option-active {
+  border-color: color-mix(in oklch, var(--primary) 48%, var(--border));
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--primary) 8%, var(--card));
+  transform: translateY(-1px);
+}
+
+.settings-glass-gradient-option-active {
+  box-shadow: 0 8px 20px color-mix(in oklch, var(--primary) 9%, transparent), inset 0 0 0 1px color-mix(in oklch, var(--primary) 12%, transparent);
+}
+
+.settings-glass-gradient-swatch {
+  display: block;
+  width: 100%;
+  height: 2.1rem;
+  border: 1px solid oklch(1 0 0 / 28%);
+  border-radius: 0.56rem;
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 28%);
+}
+
+.settings-glass-gradient-preview {
+  position: relative;
+  display: flex;
+  min-height: 5.2rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklch, var(--border) 65%, white 35%);
+  border-radius: 0.95rem;
+  padding: 0.85rem 1rem;
+  isolation: isolate;
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 22%), 0 10px 24px color-mix(in oklch, var(--primary) 10%, transparent);
+}
+
+.settings-glass-gradient-preview > span {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background-size: 140% 140%;
+  filter: saturate(112%);
+}
+
+.settings-glass-gradient-preview::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background:
+    radial-gradient(circle at 14% 0%, oklch(1 0 0 / 52%), transparent 36%),
+    linear-gradient(135deg, oklch(1 0 0 / 18%), transparent 58%);
+  backdrop-filter: blur(7px);
+}
+
+.settings-glass-gradient-preview div {
+  display: flex;
+  flex-direction: column;
+  color: color-mix(in oklch, var(--foreground) 88%, black);
+}
+
+.settings-glass-gradient-preview strong {
+  font-size: 0.88rem;
+  letter-spacing: -0.02em;
+}
+
+.settings-glass-gradient-preview small {
+  margin-top: 0.1rem;
+  color: color-mix(in oklch, var(--foreground) 62%, transparent);
+  font-size: 0.66rem;
+}
+
+.settings-glass-gradient-stop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.settings-glass-gradient-stop {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.42rem;
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.settings-glass-gradient-stop-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.settings-glass-gradient-stop-dot {
+  display: block;
+  width: 0.62rem;
+  height: 0.62rem;
+  border: 1px solid oklch(1 0 0 / 34%);
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--border) 75%, transparent);
+}
+
+.settings-glass-gradient-stop-input {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.settings-glass-gradient-stop-input input[type="color"] {
+  width: 2.7rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in oklch, var(--border) 78%, var(--primary) 22%);
+  border-radius: 0.78rem;
+  padding: 0.22rem;
+  background: color-mix(in oklch, var(--card) 76%, var(--muted) 24%);
+  cursor: pointer;
+}
+
+.settings-glass-gradient-stop-input input[type="text"] {
+  min-width: 0;
+  min-height: 2.5rem;
+  flex: 1;
+  padding-inline: 0.7rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.74rem;
+}
+
 .settings-appearance-tab input[type="text"],
 .settings-appearance-tab input[type="range"] {
   accent-color: var(--primary);
@@ -2648,6 +2810,10 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
 
   .settings-background-options {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .settings-glass-gradient-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .settings-background-option {
