@@ -17,7 +17,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CalendarDays, GripVertical, ImagePlus, Pencil, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, FolderOpen, GripVertical, ImagePlus, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -321,7 +321,7 @@ export function AlbumSettings() {
             </Button>
 
             {editing ? (
-              <ImageManager album={editing} busy={busy} onUpload={upload} onChange={replaceAlbum} onBusy={setBusy} onError={setError} />
+              <ImageManager album={editing} busy={busy} onUpload={upload} onChange={replaceAlbum} onBusy={setBusy} onError={setError} onMessage={setMessage} />
             ) : null}
 
             {message ? <p className="text-sm text-primary">{message}</p> : null}
@@ -378,6 +378,7 @@ function ImageManager({
   onChange,
   onBusy,
   onError,
+  onMessage,
 }: {
   album: Album;
   busy: boolean;
@@ -385,9 +386,16 @@ function ImageManager({
   onChange: (album: Album) => void;
   onBusy: (busy: boolean) => void;
   onError: (error: string | null) => void;
+  onMessage: (message: string | null) => void;
 }) {
   const { t } = useAppearance();
+  const [pathOpen, setPathOpen] = useState(false);
+  const [localPath, setLocalPath] = useState(album.source_dir ?? "");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
+
+  useEffect(() => {
+    setLocalPath(album.source_dir ?? "");
+  }, [album.id, album.source_dir]);
 
   const dragEnd = async ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return;
@@ -415,19 +423,74 @@ function ImageManager({
     }
   };
 
+  const scanLocal = async () => {
+    const path = localPath.trim();
+    if (!path) return;
+    const previous = album.images.length;
+    onBusy(true);
+    onError(null);
+    onMessage(null);
+    try {
+      const next = await albumApi.importFromPath(album.id, path);
+      onChange(next);
+      const added = Math.max(0, next.images.length - previous);
+      onMessage(added > 0 ? t("localPathLoaded", { count: added }) : t("localPathNoNew"));
+    } catch (reason) {
+      onError(`${t("albumActionFailed")}: ${(reason as Error).message}`);
+    } finally {
+      onBusy(false);
+    }
+  };
+
   return (
     <section className="space-y-3 border-t border-border pt-5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="font-medium">{t("albumImages")}</h3>
           <p className="text-xs text-muted-foreground">{t("emptyAlbumHint")}</p>
         </div>
-        <label className={cn("inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground", busy && "pointer-events-none opacity-60")}>
-          <ImagePlus className="h-4 w-4" />
-          {busy ? t("uploadingImages") : t("uploadImages")}
-          <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="sr-only" onChange={onUpload} />
-        </label>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => setPathOpen((open) => !open)}
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-muted"
+          >
+            <FolderOpen className="h-4 w-4" />
+            {t("configureLocalPath")}
+          </button>
+          <label className={cn("inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground", busy && "pointer-events-none opacity-60")}>
+            <ImagePlus className="h-4 w-4" />
+            {busy ? t("uploadingImages") : t("uploadImages")}
+            <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="sr-only" onChange={onUpload} />
+          </label>
+        </div>
       </div>
+
+      {pathOpen ? (
+        <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+          <Label htmlFor="album-local-path">{t("localPathLabel")}</Label>
+          <p className="text-xs text-muted-foreground">{t("configureLocalPathHint")}</p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              id="album-local-path"
+              value={localPath}
+              placeholder={t("localPathPlaceholder")}
+              onChange={(event) => setLocalPath(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  void scanLocal();
+                }
+              }}
+              className={INPUT_CLASS}
+            />
+            <Button className="shrink-0" disabled={busy || !localPath.trim()} onClick={() => void scanLocal()}>
+              {busy ? t("scanningLocalPath") : t("scanLocalPath")}
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       {album.images.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">{t("emptyAlbum")}</div>

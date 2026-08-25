@@ -15,6 +15,7 @@
 | `PATCH/DELETE /api/albums/{id}` | 更新或删除相册及其图片 |
 | `PUT /api/albums/order` | 保存完整相册顺序 |
 | `POST /api/albums/{id}/images` | multipart 批量上传图片 |
+| `POST /api/albums/{id}/images/from-path` | 扫描本机目录并加载图片（不复制原文件） |
 | `PUT /api/albums/{id}/images/order` | 保存完整图片顺序 |
 | `DELETE /api/albums/{id}/images/{image_id}` | 删除单张图片 |
 | `GET /api/albums/{id}/images/{image_id}/content` | 返回图片内容 |
@@ -39,6 +40,7 @@ struct Assets;
 
 - `CorsLayer`：允许任意源，方便 Vite 开发代理联调。
 - `AppState` 仅持有可克隆的 `MetricsHub`。
-- 相册元数据保存在配置目录的 `albums.json`，媒体文件位于同目录的 `albums/{album_id}/`。
+- 相册元数据保存在配置目录的 `albums.json`，上传的媒体文件位于同目录的 `albums/{album_id}/`。
+- 也可为相册配置本机目录：`POST /api/albums/{id}/images/from-path` 会扫描该目录下的图片并按原路径引用，删除相册或图片时不会删除原文件。
 - 音频捕获仅在 Windows 可用；指定设备失效时保留配置并临时回退到系统默认设备。
-- 上传按文件签名接受 JPEG、PNG、WebP、GIF、AVIF；单图最大 25 MB，单批最多 50 张。
+- 上传与本地扫描均按文件签名接受 JPEG、PNG、WebP、GIF、AVIF；单图最大 25 MB。上传单批最多 50 张，目录扫描每次最多加载 500 张新图。

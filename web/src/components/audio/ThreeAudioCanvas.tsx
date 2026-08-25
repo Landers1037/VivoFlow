@@ -29,6 +29,17 @@ const previewBins = (time: number) => Array.from({ length: 64 }, (_, i) => {
   return Math.max(0.025, (0.34 + Math.sin(time * 2.15 + i * 0.31) * 0.17 + Math.sin(time * 0.72 + i * 0.105) * 0.15) * envelope);
 });
 
+function bloomSettings(dark: boolean) {
+  return dark
+    ? { strength: 0.28, radius: 0.36, threshold: 0.76 }
+    : { strength: 0.14, radius: 0.28, threshold: 0.84 };
+}
+
+function exposureFor(dark: boolean, preview: boolean) {
+  if (!dark) return 0.86;
+  return preview ? 1.02 : 0.9;
+}
+
 export default function ThreeAudioCanvas(props: ThreeAudioCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const propsRef = useRef(props);
@@ -57,16 +68,17 @@ export default function ThreeAudioCanvas(props: ThreeAudioCanvasProps) {
     camera.lookAt(0, 0.8, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = resolvedTheme === "dark" ? (props.preview ? 1.28 : 1.1) : 0.92;
+    renderer.toneMappingExposure = exposureFor(resolvedTheme === "dark", Boolean(props.preview));
     renderer.setPixelRatio(props.preview ? 1 : Math.min(1.5, window.devicePixelRatio || 1));
 
     let composer: EffectComposer | null = null;
     let bloom: UnrealBloomPass | null = null;
     if (!props.preview) {
+      const bloomConfig = bloomSettings(resolvedTheme === "dark");
       composer = new EffectComposer(renderer);
       composer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
       composer.addPass(new RenderPass(scene, camera));
-      bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), resolvedTheme === "dark" ? 0.82 : 0.24, 0.55, 0.16);
+      bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), bloomConfig.strength, bloomConfig.radius, bloomConfig.threshold);
       composer.addPass(bloom);
       composer.addPass(new OutputPass());
     }
@@ -121,8 +133,13 @@ export default function ThreeAudioCanvas(props: ThreeAudioCanvasProps) {
       if (lastTheme !== String(dark)) {
         lastTheme = String(dark);
         audioScene.setTheme(dark);
-        renderer.toneMappingExposure = dark ? (latest.preview ? 1.28 : 1.1) : 0.92;
-        if (bloom) bloom.strength = dark ? 0.82 : 0.24;
+        renderer.toneMappingExposure = exposureFor(dark, Boolean(latest.preview));
+        if (bloom) {
+          const bloomConfig = bloomSettings(dark);
+          bloom.strength = bloomConfig.strength;
+          bloom.radius = bloomConfig.radius;
+          bloom.threshold = bloomConfig.threshold;
+        }
       }
       audioScene.update({
         bins: smoothed,

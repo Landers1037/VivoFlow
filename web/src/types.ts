@@ -168,6 +168,7 @@ export interface Album {
   show_on_home: boolean;
   shuffle: boolean;
   interval_s: number;
+  source_dir: string | null;
   images: AlbumImage[];
 }
 

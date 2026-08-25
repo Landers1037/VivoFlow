@@ -35,6 +35,6 @@
 
 [`web/src/components/audio/`](../../web/src/components/audio/) 的 `AudioRenderer` 统一接收 64 段频谱、RMS、峰值和节拍数据，并分派到 2D `AudioCanvas` 或延迟加载的 `ThreeAudioCanvas`。2D 提供粒子、方阵、极光与环形模式；Three.js 提供频谱都市、粒子星云、声波地形与晶体核心。
 
-3D 首页使用 WebGLRenderer、OrbitControls 与 EffectComposer（ACES tone mapping、Bloom、OutputPass），DPR 上限为 1.5。设置页仅创建一个共享预览 WebGL 上下文，DPR 为 1、最高 24 FPS并关闭后处理。页面隐藏、离开视口或卸载时会暂停或释放渲染资源；WebGL 2 不可用及上下文丢失会回退到 2D 环形模式。
+3D 首页使用 WebGLRenderer、OrbitControls 与 EffectComposer（ACES tone mapping、Bloom、OutputPass），DPR 上限为 1.5。Bloom 只点亮高能峰值（暗色阈值约 0.76、强度 0.28），避免中心过曝。设置页仅创建一个共享预览 WebGL 上下文，DPR 为 1、最高 24 FPS并关闭后处理。页面隐藏、离开视口或卸载时会暂停或释放渲染资源；WebGL 2 不可用及上下文丢失会回退到 2D 环形模式。
 
 所有几何体、粒子与 Shader 均为程序化生成，不加载模型或贴图。`prefers-reduced-motion` 下停止自动运镜、持续旋转和粒子爆发，仅保留低幅度音频形变。

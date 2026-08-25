@@ -55,7 +55,7 @@ function createCity(scene: THREE.Scene, mobile: boolean, preview: boolean): Audi
     faceShading[index * 3 + 2] = shade;
   }
   geometry.setAttribute("color", new THREE.BufferAttribute(faceShading, 3));
-  const material = new THREE.MeshBasicMaterial({ color: "#ffffff", vertexColors: true, toneMapped: false });
+  const material = new THREE.MeshBasicMaterial({ color: "#ffffff", vertexColors: true });
   const buildings = new THREE.InstancedMesh(geometry, material, count);
   buildings.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   const dummy = new THREE.Object3D();
@@ -81,9 +81,9 @@ function createCity(scene: THREE.Scene, mobile: boolean, preview: boolean): Audi
   const gridPositions = grid.geometry.getAttribute("position") as THREE.BufferAttribute;
   const gridColors = grid.geometry.getAttribute("color") as THREE.BufferAttribute;
   group.add(grid);
-  scene.add(new THREE.AmbientLight("#ffffff", 2.15));
-  scene.add(new THREE.HemisphereLight("#d9f8ff", "#11152a", 2.35));
-  const key = new THREE.DirectionalLight("#ffffff", 2.8);
+  scene.add(new THREE.AmbientLight("#ffffff", 0.55));
+  scene.add(new THREE.HemisphereLight("#d9f8ff", "#11152a", 0.85));
+  const key = new THREE.DirectionalLight("#ffffff", 1.15);
   key.position.set(7, 12, 5);
   scene.add(key);
   let dark = true;
@@ -101,7 +101,7 @@ function createCity(scene: THREE.Scene, mobile: boolean, preview: boolean): Audi
         dummy.scale.set(1, height, 1);
         dummy.updateMatrix();
         buildings.setMatrixAt(index, dummy.matrix);
-        buildings.setColorAt(index, colorA.clone().lerp(colorB, bandMap[index] / 63).multiplyScalar(dark ? 0.82 + energy * 0.52 : 0.9 + energy * 0.26));
+        buildings.setColorAt(index, colorA.clone().lerp(colorB, bandMap[index] / 63).multiplyScalar(dark ? 0.36 + energy * 0.58 : 0.62 + energy * 0.28));
       }
       for (let index = 0; index < gridPositions.count; index++) {
         const distance = Math.hypot(gridPositions.getX(index), gridPositions.getZ(index));
@@ -160,13 +160,13 @@ function createNebula(scene: THREE.Scene, mobile: boolean, preview: boolean): Au
         positions[i * 3] = Math.cos(angle) * radius;
         positions[i * 3 + 1] = heights[i] + Math.sin(angle * 2.2 + data.time) * energy * 0.34;
         positions[i * 3 + 2] = Math.sin(angle) * radius;
-        const color = a.clone().lerp(b, bands[i] / 63).multiplyScalar(dark ? 0.55 + energy * 1.7 : 0.62 + energy * 0.82);
+        const color = a.clone().lerp(b, bands[i] / 63).multiplyScalar(dark ? 0.38 + energy * 0.72 : 0.52 + energy * 0.42);
         color.toArray(colors, i * 3);
       }
       geometry.attributes.position.needsUpdate = true;
       geometry.attributes.color.needsUpdate = true;
       if (!data.reduced) points.rotation.z = Math.sin(data.time * 0.11) * 0.1;
-      material.size = (preview ? 0.055 : 0.075) * (1 + data.peak * 0.85);
+      material.size = (preview ? 0.055 : 0.075) * (1 + data.peak * 0.4);
     },
     setTheme(nextDark) {
       dark = nextDark;
@@ -197,8 +197,8 @@ function createTerrain(scene: THREE.Scene, mobile: boolean, preview: boolean): A
   group.add(surface, wire);
   group.position.z = -1.5;
   scene.add(group);
-  scene.add(new THREE.HemisphereLight("#ffffff", "#253354", 2.1));
-  const light = new THREE.DirectionalLight("#ffffff", 2.5);
+  scene.add(new THREE.HemisphereLight("#ffffff", "#253354", 0.95));
+  const light = new THREE.DirectionalLight("#ffffff", 1.15);
   light.position.set(-5, 9, 5);
   scene.add(light);
   let lastSeq = -1, dark = true;
@@ -215,7 +215,7 @@ function createTerrain(scene: THREE.Scene, mobile: boolean, preview: boolean): A
         const index = row * columns + x;
         const energy = history[index];
         position.setY(index, energy * (3.6 - row / rows * 0.8));
-        a.clone().lerp(b, x / (columns - 1)).multiplyScalar(dark ? 0.45 + energy * 1.1 : 0.74 + energy * 0.42).toArray(colors, index * 3);
+        a.clone().lerp(b, x / (columns - 1)).multiplyScalar(dark ? 0.34 + energy * 0.52 : 0.62 + energy * 0.32).toArray(colors, index * 3);
       }
       position.needsUpdate = true;
       geometry.attributes.color.needsUpdate = true;
@@ -228,7 +228,7 @@ function createTerrain(scene: THREE.Scene, mobile: boolean, preview: boolean): A
       scene.fog = new THREE.FogExp2(themeFog(nextDark), nextDark ? 0.055 : 0.042);
       surfaceMaterial.opacity = nextDark ? 0.68 : 0.62;
       surfaceMaterial.metalness = nextDark ? 0.28 : 0.08;
-      wireMaterial.opacity = nextDark ? 0.42 : 0.24;
+      wireMaterial.opacity = nextDark ? 0.26 : 0.18;
       wireMaterial.blending = nextDark ? THREE.AdditiveBlending : THREE.NormalBlending;
       wireMaterial.needsUpdate = true;
     },
@@ -266,7 +266,7 @@ function createCrystal(scene: THREE.Scene, mobile: boolean, preview: boolean): A
       vec3 color = mix(uPrimary, uSecondary, vBand);
       float light = max(0.12, dot(normalize(vNormal), normalize(vec3(0.4, 0.8, 0.6))));
       float rim = pow(1.0 - abs(vNormal.z), 2.4);
-      vec3 shaded = color * (mix(0.72, 0.38, uDark) + light * mix(0.45, 0.72, uDark) + rim * (0.55 + vEnergy));
+      vec3 shaded = color * (mix(0.68, 0.32, uDark) + light * mix(0.38, 0.52, uDark) + rim * (0.18 + vEnergy * 0.32));
       gl_FragColor = vec4(shaded, mix(0.88, 0.96, uDark));
     }`;
   const material = new THREE.ShaderMaterial({ uniforms, vertexShader, fragmentShader, transparent: true });
@@ -282,7 +282,7 @@ function createCrystal(scene: THREE.Scene, mobile: boolean, preview: boolean): A
   group.add(crystal, wire);
   const rings: THREE.Mesh[] = [];
   for (let i = 0; i < 3; i++) {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(3.5 + i * 0.42, 0.018 + i * 0.006, 6, 120), new THREE.MeshBasicMaterial({ color: i % 2 ? "#a855f7" : "#22d3ee", transparent: true, opacity: 0.38, blending: THREE.AdditiveBlending }));
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(3.5 + i * 0.42, 0.018 + i * 0.006, 6, 120), new THREE.MeshBasicMaterial({ color: i % 2 ? "#a855f7" : "#22d3ee", transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending }));
     ring.rotation.set(Math.PI * (0.26 + i * 0.18), i * 0.72, i * 0.4);
     rings.push(ring); group.add(ring);
   }
@@ -310,7 +310,7 @@ function createCrystal(scene: THREE.Scene, mobile: boolean, preview: boolean): A
       wireMaterial.opacity = dark ? 0.3 : 0.16;
       rings.forEach((ring) => {
         const mat = ring.material as THREE.MeshBasicMaterial;
-        mat.opacity = dark ? 0.38 : 0.22;
+        mat.opacity = dark ? 0.22 : 0.16;
         mat.blending = dark ? THREE.AdditiveBlending : THREE.NormalBlending;
         mat.needsUpdate = true;
       });

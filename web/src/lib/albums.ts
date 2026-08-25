@@ -42,6 +42,8 @@ export const albumApi = {
     files.forEach((file) => body.append("images", file));
     return request<Album>(`/api/albums/${id}/images`, { method: "POST", body });
   },
+  importFromPath: (id: string, path: string) =>
+    request<Album>(`/api/albums/${id}/images/from-path`, json("POST", { path })),
   orderImages: (id: string, ids: string[]) =>
     request<Album>(`/api/albums/${id}/images/order`, json("PUT", { ids })),
   removeImage: (albumId: string, imageId: string) =>

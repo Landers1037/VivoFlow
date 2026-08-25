@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::fs;
+use std::io::Read;
 use std::path::{Path as FsPath, PathBuf};
 use std::sync::Arc;
 
@@ -17,6 +18,7 @@ use uuid::Uuid;
 
 const MAX_IMAGE_BYTES: usize = 25 * 1024 * 1024;
 const MAX_BATCH_IMAGES: usize = 50;
+const MAX_SCAN_IMAGES: usize = 500;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct StoredImage {
@@ -25,6 +27,8 @@ struct StoredImage {
     original_name: String,
     mime_type: String,
     size_bytes: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    source_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -36,6 +40,8 @@ struct StoredAlbum {
     show_on_home: bool,
     shuffle: bool,
     interval_s: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    source_dir: Option<String>,
     #[serde(default)]
     images: Vec<StoredImage>,
 }
@@ -58,6 +64,7 @@ pub struct Album {
     show_on_home: bool,
     shuffle: bool,
     interval_s: u64,
+    source_dir: Option<String>,
     images: Vec<AlbumImage>,
 }
 
@@ -71,6 +78,7 @@ impl From<&StoredAlbum> for Album {
             show_on_home: album.show_on_home,
             shuffle: album.shuffle,
             interval_s: album.interval_s,
+            source_dir: album.source_dir.clone(),
             images: album
                 .images
                 .iter()
@@ -135,6 +143,56 @@ impl AlbumStore {
 
     fn album_dir(&self, album_id: &str) -> PathBuf {
         self.media_root.join(album_id)
+    }
+
+    fn image_file_path(&self, album_id: &str, image: &StoredImage) -> PathBuf {
+        image
+            .source_path
+            .as_deref()
+            .map(PathBuf::from)
+            .unwrap_or_else(|| self.album_dir(album_id).join(&image.file_name))
+    }
+
+    fn import_from_directory(&self, album_id: &str, raw_path: &str) -> Result<Album, ApiError> {
+        let dir = resolve_directory(raw_path)?;
+        let discovered = collect_local_images(&dir)?;
+        let source_dir = raw_path.trim().to_string();
+        let mut albums = self.albums.write();
+        let index = albums
+            .iter()
+            .position(|album| album.id == album_id)
+            .ok_or_else(|| ApiError::not_found("album not found"))?;
+        let previous = albums[index].clone();
+        albums[index].source_dir = Some(source_dir);
+        let mut existing: HashSet<String> = albums[index]
+            .images
+            .iter()
+            .filter_map(|image| image.source_path.clone())
+            .collect();
+        let mut added = 0;
+        for image in discovered {
+            if !existing.insert(image.source_path.clone()) {
+                continue;
+            }
+            if added >= MAX_SCAN_IMAGES {
+                break;
+            }
+            let id = Uuid::new_v4().to_string();
+            albums[index].images.push(StoredImage {
+                file_name: format!("{id}.{}", image.extension),
+                original_name: image.original_name,
+                mime_type: image.mime_type,
+                size_bytes: image.size_bytes,
+                source_path: Some(image.source_path),
+                id,
+            });
+            added += 1;
+        }
+        if let Err(error) = self.save_locked(&albums) {
+            albums[index] = previous;
+            return Err(error);
+        }
+        Ok(Album::from(&albums[index]))
     }
 }
 
@@ -204,6 +262,19 @@ struct OrderedIds {
     ids: Vec<String>,
 }
 
+#[derive(Debug, Deserialize)]
+struct ImportPath {
+    path: String,
+}
+
+struct LocalImage {
+    original_name: String,
+    source_path: String,
+    mime_type: String,
+    extension: &'static str,
+    size_bytes: u64,
+}
+
 fn default_interval() -> u64 {
     5
 }
@@ -225,6 +296,85 @@ fn image_kind(bytes: &[u8]) -> Option<(&'static str, &'static str)> {
     } else {
         None
     }
+}
+
+fn image_extension_ok(path: &FsPath) -> bool {
+    matches!(
+        path.extension()
+            .and_then(|ext| ext.to_str())
+            .map(|ext| ext.to_ascii_lowercase())
+            .as_deref(),
+        Some("jpg" | "jpeg" | "png" | "gif" | "webp" | "avif")
+    )
+}
+
+fn stored_source_path(path: &FsPath) -> String {
+    let raw = path
+        .canonicalize()
+        .unwrap_or_else(|_| path.to_path_buf())
+        .to_string_lossy()
+        .into_owned();
+    raw.strip_prefix(r"\\?\").unwrap_or(&raw).to_string()
+}
+
+fn resolve_directory(raw: &str) -> Result<PathBuf, ApiError> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Err(ApiError::bad_request("path must not be empty"));
+    }
+    if trimmed.chars().count() > 4096 {
+        return Err(ApiError::bad_request("path is too long"));
+    }
+    let path = PathBuf::from(trimmed);
+    let meta = fs::metadata(&path).map_err(|_| ApiError::bad_request("path does not exist"))?;
+    if !meta.is_dir() {
+        return Err(ApiError::bad_request("path must be a directory"));
+    }
+    Ok(path)
+}
+
+fn inspect_image_file(path: &FsPath) -> Option<LocalImage> {
+    let mut file = fs::File::open(path).ok()?;
+    let mut header = [0u8; 16];
+    let read = file.read(&mut header).ok()?;
+    let (mime_type, extension) = image_kind(&header[..read])?;
+    let size_bytes = file.metadata().ok()?.len();
+    if size_bytes == 0 || size_bytes > MAX_IMAGE_BYTES as u64 {
+        return None;
+    }
+    let original_name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("image")
+        .replace('\0', "");
+    let original_name: String = original_name.chars().take(255).collect();
+    Some(LocalImage {
+        original_name,
+        source_path: stored_source_path(path),
+        mime_type: mime_type.to_string(),
+        extension,
+        size_bytes,
+    })
+}
+
+fn collect_local_images(dir: &FsPath) -> Result<Vec<LocalImage>, ApiError> {
+    let mut files = Vec::new();
+    let entries = fs::read_dir(dir)
+        .map_err(|error| ApiError::bad_request(format!("cannot read directory: {error}")))?;
+    for entry in entries {
+        let Ok(entry) = entry else {
+            continue;
+        };
+        let path = entry.path();
+        if path.is_file() && image_extension_ok(&path) {
+            files.push(path);
+        }
+    }
+    files.sort();
+    Ok(files
+        .iter()
+        .filter_map(|path| inspect_image_file(path))
+        .collect())
 }
 
 fn validate_fields(
@@ -285,6 +435,10 @@ pub fn router(store: AlbumStore) -> Router {
                 MAX_IMAGE_BYTES * MAX_BATCH_IMAGES + 1024 * 1024,
             )),
         )
+        .route(
+            "/api/albums/{album_id}/images/from-path",
+            post(import_from_path),
+        )
         .route("/api/albums/{album_id}/images/order", put(order_images))
         .route(
             "/api/albums/{album_id}/images/{image_id}",
@@ -315,6 +469,7 @@ async fn create_album(
         show_on_home: input.show_on_home,
         shuffle: input.shuffle,
         interval_s,
+        source_dir: None,
         images: Vec::new(),
     };
     let response = Album::from(&album);
@@ -447,6 +602,7 @@ async fn upload_images(
             original_name,
             mime_type,
             size_bytes: bytes.len() as u64,
+            source_path: None,
         });
     }
     if let Err(error) = store.save_locked(&albums) {
@@ -457,6 +613,16 @@ async fn upload_images(
         return Err(error);
     }
     Ok(Json(Album::from(&albums[index])))
+}
+
+async fn import_from_path(
+    State(store): State<AlbumStore>,
+    Path(album_id): Path<String>,
+    Json(input): Json<ImportPath>,
+) -> Result<Json<Album>, ApiError> {
+    store
+        .import_from_directory(&album_id, &input.path)
+        .map(Json)
 }
 
 async fn order_images(
@@ -503,9 +669,11 @@ async fn delete_image(
         albums[album_index].images.insert(image_index, image);
         return Err(error);
     }
-    let path = store.album_dir(&album_id).join(&image.file_name);
-    if path.exists() {
-        fs::remove_file(path).map_err(ApiError::internal)?;
+    if image.source_path.is_none() {
+        let path = store.album_dir(&album_id).join(&image.file_name);
+        if path.exists() {
+            fs::remove_file(path).map_err(ApiError::internal)?;
+        }
     }
     Ok(Json(Album::from(&albums[album_index])))
 }
@@ -526,7 +694,7 @@ async fn image_content(
             .find(|image| image.id == image_id)
             .ok_or_else(|| ApiError::not_found("image not found"))?;
         (
-            store.album_dir(&album_id).join(&image.file_name),
+            store.image_file_path(&album_id, image),
             image.mime_type.clone(),
         )
     };
@@ -602,6 +770,7 @@ mod tests {
             show_on_home: true,
             shuffle: false,
             interval_s: 5,
+            source_dir: None,
             images: Vec::new(),
         };
         {
@@ -612,6 +781,108 @@ mod tests {
         let loaded = AlbumStore::load_from(metadata, media).unwrap();
         assert_eq!(loaded.albums.read()[0].title, album.title);
         assert!(loaded.albums.read()[0].show_on_home);
+        let _ = fs::remove_dir_all(root);
+    }
+
+    fn sample_png() -> Vec<u8> {
+        let mut bytes = vec![0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a];
+        bytes.extend_from_slice(&[0; 8]);
+        bytes
+    }
+
+    fn temp_store(label: &str) -> (AlbumStore, PathBuf) {
+        let root = std::env::temp_dir().join(format!("vivoflow-album-{label}-{}", Uuid::new_v4()));
+        let store = AlbumStore::load_from(root.join("albums.json"), root.join("albums")).unwrap();
+        (store, root)
+    }
+
+    fn push_album(store: &AlbumStore, title: &str) -> String {
+        let album = StoredAlbum {
+            id: Uuid::new_v4().to_string(),
+            title: title.into(),
+            description: None,
+            date: None,
+            show_on_home: false,
+            shuffle: false,
+            interval_s: 5,
+            source_dir: None,
+            images: Vec::new(),
+        };
+        let id = album.id.clone();
+        let mut albums = store.albums.write();
+        albums.push(album);
+        store.save_locked(&albums).unwrap();
+        id
+    }
+
+    #[test]
+    fn imports_images_from_a_local_directory_without_copying() {
+        let (store, root) = temp_store("import");
+        let album_id = push_album(&store, "Local");
+        let photos = root.join("photos");
+        fs::create_dir_all(&photos).unwrap();
+        let png = photos.join("cover.png");
+        fs::write(&png, sample_png()).unwrap();
+        fs::write(photos.join("notes.txt"), b"ignore me").unwrap();
+
+        let album = store
+            .import_from_directory(&album_id, photos.to_str().unwrap())
+            .unwrap();
+        assert_eq!(album.images.len(), 1);
+        assert_eq!(album.images[0].original_name, "cover.png");
+        assert_eq!(album.source_dir.as_deref(), photos.to_str());
+        assert!(png.exists());
+        assert!(!store
+            .album_dir(&album_id)
+            .join(&format!("{}.png", album.images[0].id))
+            .exists());
+
+        let again = store
+            .import_from_directory(&album_id, photos.to_str().unwrap())
+            .unwrap();
+        assert_eq!(again.images.len(), 1);
+
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn rejects_missing_or_non_directory_paths() {
+        let (store, root) = temp_store("bad-path");
+        let album_id = push_album(&store, "Local");
+        let missing = root.join("missing");
+        assert!(store
+            .import_from_directory(&album_id, missing.to_str().unwrap())
+            .is_err());
+        let file = root.join("file.png");
+        fs::write(&file, sample_png()).unwrap();
+        assert!(store
+            .import_from_directory(&album_id, file.to_str().unwrap())
+            .is_err());
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn deleting_local_image_keeps_the_original_file() {
+        let (store, root) = temp_store("keep-original");
+        let album_id = push_album(&store, "Local");
+        let photos = root.join("photos");
+        fs::create_dir_all(&photos).unwrap();
+        let png = photos.join("keep.png");
+        fs::write(&png, sample_png()).unwrap();
+        let album = store
+            .import_from_directory(&album_id, photos.to_str().unwrap())
+            .unwrap();
+        let image_id = album.images[0].id.clone();
+
+        let mut albums = store.albums.write();
+        let album_index = 0;
+        let image = albums[album_index].images.remove(0);
+        assert_eq!(image.id, image_id);
+        store.save_locked(&albums).unwrap();
+        drop(albums);
+        assert!(image.source_path.is_some());
+        assert!(png.exists());
+
         let _ = fs::remove_dir_all(root);
     }
 }
