@@ -233,7 +233,7 @@ export function GaugeArc({
   return (
     <div
       className={cn(
-        "vf-gauge vf-kpi relative items-center overflow-visible",
+        "vf-gauge vf-kpi relative min-w-0 items-center overflow-hidden",
         tileClass(tile, className),
       )}
     >
@@ -248,8 +248,8 @@ export function GaugeArc({
               dataKey="value"
               startAngle={210}
               endAngle={-30}
-              innerRadius={handheldViewport ? "90%" : "84%"}
-              outerRadius={handheldViewport ? "150%" : "88%"}
+              innerRadius={handheldViewport ? "72%" : "84%"}
+              outerRadius={handheldViewport ? "90%" : "88%"}
               cornerRadius={cornerRadius(style)}
               paddingAngle={style === "line" ? 2 : 4}
               strokeLinecap="round"
@@ -261,8 +261,8 @@ export function GaugeArc({
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pt-3">
-          <span className="vf-data text-xl font-semibold tracking-tight">{display}</span>
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-1 pt-2">
+          <span className="vf-data whitespace-nowrap text-[clamp(0.95rem,4vmin,1.25rem)] font-semibold tracking-tight">{display}</span>
         </div>
       </div>
     </div>

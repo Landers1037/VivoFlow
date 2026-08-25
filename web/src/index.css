@@ -1311,12 +1311,25 @@ textarea,
 }
 
 .vf-gauge {
-  overflow: visible !important;
+  min-width: 0;
+  overflow: hidden !important;
 }
 
 .vf-gauge .recharts-wrapper,
 .vf-gauge .recharts-surface {
-  overflow: visible !important;
+  overflow: hidden !important;
+}
+
+/* In mobile landscape, card height is the gauge's limiting dimension.
+   Reclaim vertical padding so the chart can grow without overflowing. */
+@media (orientation: landscape) and (max-height: 640px) and (pointer: coarse) {
+  .vf-mobile-dashboard .vf-gauge {
+    padding-block: 0.5rem;
+  }
+
+  .vf-mobile-dashboard .vf-gauge > p {
+    margin-bottom: 0;
+  }
 }
 
 .vf-widget-body {
