@@ -248,8 +248,8 @@ export function GaugeArc({
               dataKey="value"
               startAngle={210}
               endAngle={-30}
-              innerRadius={handheldViewport ? "72%" : "84%"}
-              outerRadius={handheldViewport ? "90%" : "88%"}
+              innerRadius={handheldViewport ? "72%" : "74%"}
+              outerRadius="90%"
               cornerRadius={cornerRadius(style)}
               paddingAngle={style === "line" ? 2 : 4}
               strokeLinecap="round"
