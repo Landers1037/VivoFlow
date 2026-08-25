@@ -26,7 +26,28 @@ export type AccentId = "teal" | "zinc" | "blue" | "violet" | "amber" | "custom";
 export type ThemeMode = "light" | "dark" | "system";
 export type Lang = "zh" | "en";
 export type PhotoAlbumEffect = "single" | "time_machine" | "cover_flow";
-export type AudioVisualizerMode = "particles" | "grid" | "aurora" | "radial";
+export type AudioVisualizerMode =
+  | "particles"
+  | "grid"
+  | "aurora"
+  | "radial"
+  | "city3d"
+  | "nebula3d"
+  | "terrain3d"
+  | "crystal3d";
+
+export type ThreeAudioVisualizerMode = Extract<AudioVisualizerMode, `${string}3d`>;
+
+export const THREE_AUDIO_MODES: ThreeAudioVisualizerMode[] = [
+  "city3d",
+  "nebula3d",
+  "terrain3d",
+  "crystal3d",
+];
+
+export function isThreeAudioMode(mode: AudioVisualizerMode): mode is ThreeAudioVisualizerMode {
+  return THREE_AUDIO_MODES.includes(mode as ThreeAudioVisualizerMode);
+}
 export type AudioColorMode = "single" | "gradient";
 
 export const UI_STYLES: UiStyle[] = [

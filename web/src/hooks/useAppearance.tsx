@@ -91,7 +91,7 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
       : "single",
     audio_visualizer_enabled: Boolean(base.audio_visualizer_enabled),
     audio_device_id: typeof base.audio_device_id === "string" && base.audio_device_id.trim() ? base.audio_device_id : null,
-    audio_visualizer_mode: (["particles", "grid", "aurora", "radial"] as const).includes(base.audio_visualizer_mode as AudioVisualizerMode) ? base.audio_visualizer_mode as AudioVisualizerMode : "particles",
+    audio_visualizer_mode: (["particles", "grid", "aurora", "radial", "city3d", "nebula3d", "terrain3d", "crystal3d"] as const).includes(base.audio_visualizer_mode as AudioVisualizerMode) ? base.audio_visualizer_mode as AudioVisualizerMode : "particles",
     audio_color_mode: (["single", "gradient"] as const).includes(base.audio_color_mode as AudioColorMode) ? base.audio_color_mode as AudioColorMode : "gradient",
     audio_color_primary: normalizeHexColor(base.audio_color_primary || "#22d3ee"),
     audio_color_secondary: normalizeHexColor(base.audio_color_secondary || "#a855f7"),

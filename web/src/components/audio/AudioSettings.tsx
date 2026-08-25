@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AudioLines, Check, ChevronDown, MonitorSpeaker, RefreshCw } from "lucide-react";
-import { AudioCanvas } from "@/components/audio/AudioCanvas";
+import { AudioLines, Box, Check, ChevronDown, MonitorSpeaker, RefreshCw } from "lucide-react";
+import { AudioRenderer } from "@/components/audio/AudioRenderer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { normalizeHexColor, useAppearance } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
-import type { AudioDevice, AudioFrame, AudioStatus, AudioVisualizerMode } from "@/types";
+import { isThreeAudioMode, type AudioDevice, type AudioFrame, type AudioStatus, type AudioVisualizerMode, type ThreeAudioVisualizerMode } from "@/types";
 
-const MODES: { id: AudioVisualizerMode; key: "audioModeParticles" | "audioModeGrid" | "audioModeAurora" | "audioModeRadial" }[] = [
+const TWO_D_MODES: { id: AudioVisualizerMode; key: "audioModeParticles" | "audioModeGrid" | "audioModeAurora" | "audioModeRadial" }[] = [
   { id: "particles", key: "audioModeParticles" }, { id: "grid", key: "audioModeGrid" },
   { id: "aurora", key: "audioModeAurora" }, { id: "radial", key: "audioModeRadial" },
+];
+const THREE_D_MODES: { id: ThreeAudioVisualizerMode; key: "audioModeCity3d" | "audioModeNebula3d" | "audioModeTerrain3d" | "audioModeCrystal3d" }[] = [
+  { id: "city3d", key: "audioModeCity3d" }, { id: "nebula3d", key: "audioModeNebula3d" },
+  { id: "terrain3d", key: "audioModeTerrain3d" }, { id: "crystal3d", key: "audioModeCrystal3d" },
 ];
 const INPUT = "min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
@@ -21,8 +25,10 @@ export function AudioSettings({ frame, status, onSubscribe }: { frame: AudioFram
   const [deviceError, setDeviceError] = useState<string | null>(null);
   const [primary, setPrimary] = useState(config.audio_color_primary);
   const [secondary, setSecondary] = useState(config.audio_color_secondary);
+  const [threePreviewMode, setThreePreviewMode] = useState<ThreeAudioVisualizerMode>(isThreeAudioMode(config.audio_visualizer_mode) ? config.audio_visualizer_mode : "city3d");
 
   useEffect(() => { setPrimary(config.audio_color_primary); setSecondary(config.audio_color_secondary); }, [config.audio_color_primary, config.audio_color_secondary]);
+  useEffect(() => { if (isThreeAudioMode(config.audio_visualizer_mode)) setThreePreviewMode(config.audio_visualizer_mode); }, [config.audio_visualizer_mode]);
   useEffect(() => { onSubscribe(true); return () => onSubscribe(false); }, [onSubscribe]);
   const loadDevices = useCallback(async () => {
     setLoading(true); setDeviceError(null);
@@ -52,10 +58,20 @@ export function AudioSettings({ frame, status, onSubscribe }: { frame: AudioFram
     </section>
 
     <section className="space-y-3 border-t border-border pt-5"><div><h2 className="text-sm font-semibold">{t("audioSpectrumMode")}</h2><p className="text-xs text-muted-foreground">{t("audioSpectrumModeHint")}</p></div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{MODES.map((mode) => <button key={mode.id} type="button" disabled={!synced} onClick={() => setAudioVisualizerMode(mode.id)} className={cn("group overflow-hidden border text-left outline-none transition focus-visible:ring-2 focus-visible:ring-ring", config.audio_visualizer_mode === mode.id ? "border-primary bg-primary/8" : "border-border bg-card hover:border-primary/45")} style={{ borderRadius: "var(--radius)" }}>
-        <div className="h-28 bg-background/55"><AudioCanvas preview frame={frame} mode={mode.id} primary={config.audio_color_primary} secondary={config.audio_color_secondary} gradient={config.audio_color_mode === "gradient"} amplitude={config.audio_amplitude} smoothing={config.audio_smoothing} className="h-full w-full" /></div>
+      <p className="flex items-center gap-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"><AudioLines className="h-3.5 w-3.5" />{t("audioFlatModes")}</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{TWO_D_MODES.map((mode) => <button key={mode.id} type="button" disabled={!synced} onClick={() => setAudioVisualizerMode(mode.id)} className={cn("group overflow-hidden border text-left outline-none transition focus-visible:ring-2 focus-visible:ring-ring", config.audio_visualizer_mode === mode.id ? "border-primary bg-primary/8" : "border-border bg-card hover:border-primary/45")} style={{ borderRadius: "var(--radius)" }}>
+        <div className="h-28 bg-background/55"><AudioRenderer preview frame={frame} mode={mode.id} primary={config.audio_color_primary} secondary={config.audio_color_secondary} gradient={config.audio_color_mode === "gradient"} amplitude={config.audio_amplitude} smoothing={config.audio_smoothing} className="h-full w-full" /></div>
         <div className="flex items-center justify-between px-3 py-2 text-sm font-medium"><span>{t(mode.key)}</span>{config.audio_visualizer_mode === mode.id ? <AudioLines className="h-4 w-4 text-primary" /> : null}</div>
       </button>)}</div>
+
+      <div className="space-y-3 pt-3">
+        <div><p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"><Box className="h-3.5 w-3.5" />{t("audioSpatialModes")}</p><p className="mt-1 text-xs text-muted-foreground">{t("audioSpatialModesHint")}</p></div>
+        <div className="relative h-48 overflow-hidden border border-border bg-background sm:h-56" style={{ borderRadius: "var(--radius)" }}>
+          <AudioRenderer preview frame={frame} mode={threePreviewMode} primary={config.audio_color_primary} secondary={config.audio_color_secondary} gradient={config.audio_color_mode === "gradient"} amplitude={config.audio_amplitude} smoothing={config.audio_smoothing} className="h-full w-full" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/85 to-transparent px-4 pb-3 pt-10"><p className="text-sm font-semibold">{t(THREE_D_MODES.find((mode) => mode.id === threePreviewMode)?.key ?? "audioModeCity3d")}</p></div>
+        </div>
+        <div className="grid grid-cols-2 gap-2">{THREE_D_MODES.map((mode) => <button key={mode.id} type="button" disabled={!synced} onPointerEnter={() => setThreePreviewMode(mode.id)} onFocus={() => setThreePreviewMode(mode.id)} onClick={() => { setThreePreviewMode(mode.id); setAudioVisualizerMode(mode.id); }} className={cn("flex min-h-11 items-center justify-between gap-2 rounded-lg border px-3 text-left text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-ring", config.audio_visualizer_mode === mode.id ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/45 hover:text-foreground")}><span className="truncate">{t(mode.key)}</span>{config.audio_visualizer_mode === mode.id ? <Check className="h-4 w-4 shrink-0" /> : null}</button>)}</div>
+      </div>
     </section>
 
     <section className="space-y-4 border-t border-border pt-5"><div><h2 className="text-sm font-semibold">{t("audioFrequencyColor")}</h2><p className="text-xs text-muted-foreground">{t("audioFrequencyColorHint")}</p></div>

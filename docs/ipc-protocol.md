@@ -61,7 +61,7 @@
 | `mobile_card_mode` | `true` / `false`；手机启用 2x 分页卡片 |
 | `mobile_auto_carousel` | `true` / `false`；仅移动卡片模式生效 |
 | `mobile_carousel_interval_s` | `[5, 60]`，默认 `10` |
-| `audio_visualizer_mode` | `particles` / `grid` / `aurora` / `radial` |
+| `audio_visualizer_mode` | `particles` / `grid` / `aurora` / `radial` / `city3d` / `nebula3d` / `terrain3d` / `crystal3d` |
 | `audio_color_mode` | `single` / `gradient` |
 | `audio_amplitude` | `[0.5, 2.0]` |
 | `audio_smoothing` | `[0, 0.9]` |

@@ -187,7 +187,11 @@ impl AppConfig {
         if !["single", "time_machine", "cover_flow"].contains(&self.photo_album_effect.as_str()) {
             self.photo_album_effect = default_photo_album_effect();
         }
-        if !["particles", "grid", "aurora", "radial"].contains(&self.audio_visualizer_mode.as_str())
+        if ![
+            "particles", "grid", "aurora", "radial", "city3d", "nebula3d", "terrain3d",
+            "crystal3d",
+        ]
+        .contains(&self.audio_visualizer_mode.as_str())
         {
             self.audio_visualizer_mode = default_audio_visualizer_mode();
         }
@@ -349,5 +353,17 @@ mod tests {
         assert_eq!(cfg.audio_color_primary, "#22d3ee");
         assert_eq!(cfg.audio_amplitude, 2.0);
         assert_eq!(cfg.audio_smoothing, 0.0);
+    }
+
+    #[test]
+    fn three_dimensional_audio_modes_are_accepted() {
+        for mode in ["city3d", "nebula3d", "terrain3d", "crystal3d"] {
+            let cfg = AppConfig {
+                audio_visualizer_mode: mode.into(),
+                ..AppConfig::default()
+            }
+            .sanitize();
+            assert_eq!(cfg.audio_visualizer_mode, mode);
+        }
     }
 }

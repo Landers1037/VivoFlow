@@ -77,9 +77,9 @@ export function SettingsPage({
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 gap-3 landscape:gap-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 sm:flex-row landscape:gap-4">
         <nav
-          className="flex w-[5.5rem] shrink-0 flex-col gap-1 sm:w-36"
+          className="flex w-full shrink-0 gap-1 overflow-x-auto pb-1 sm:w-36 sm:flex-col sm:overflow-visible sm:pb-0"
           aria-label={t("settings")}
         >
           {tabs.map(({ id, label, icon: Icon }) => (
@@ -88,7 +88,7 @@ export function SettingsPage({
               type="button"
               onClick={() => setTab(id)}
               className={cn(
-                "flex min-h-11 items-center gap-2 px-2.5 py-2 text-left text-sm transition-colors sm:px-3",
+                "flex min-h-11 shrink-0 items-center gap-2 px-3 py-2 text-left text-sm transition-colors sm:w-full",
                 tab === id
                   ? "bg-primary text-primary-foreground"
                   : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground",

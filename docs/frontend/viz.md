@@ -31,6 +31,10 @@
 
 高度：组件接受可选 `tile?: 1 | 2`，对应 CSS `.vf-widget-1x` / `.vf-widget-2x`（见 [`index.css`](../../web/src/index.css)）。图表区用 `.vf-widget-body` 弹性填满，避免内容撑破网格。
 
-## 音频 Canvas
+## 音频渲染器
 
-[`web/src/components/audio/`](../../web/src/components/audio/) 使用同一套 64 段频谱数据绘制粒子、方阵、极光与环形模式。设置页使用合成频谱预览，首页只使用 Rust 实时帧。Canvas DPR 上限为 2，并在 `prefers-reduced-motion` 下减少非必要运动。
+[`web/src/components/audio/`](../../web/src/components/audio/) 的 `AudioRenderer` 统一接收 64 段频谱、RMS、峰值和节拍数据，并分派到 2D `AudioCanvas` 或延迟加载的 `ThreeAudioCanvas`。2D 提供粒子、方阵、极光与环形模式；Three.js 提供频谱都市、粒子星云、声波地形与晶体核心。
+
+3D 首页使用 WebGLRenderer、OrbitControls 与 EffectComposer（ACES tone mapping、Bloom、OutputPass），DPR 上限为 1.5。设置页仅创建一个共享预览 WebGL 上下文，DPR 为 1、最高 24 FPS并关闭后处理。页面隐藏、离开视口或卸载时会暂停或释放渲染资源；WebGL 2 不可用及上下文丢失会回退到 2D 环形模式。
+
+所有几何体、粒子与 Shader 均为程序化生成，不加载模型或贴图。`prefers-reduced-motion` 下停止自动运镜、持续旋转和粒子爆发，仅保留低幅度音频形变。
