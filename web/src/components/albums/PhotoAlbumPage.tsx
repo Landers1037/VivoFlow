@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Images, Settings2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { EffectCreative, Keyboard, Mousewheel } from "swiper/modules";
-import SwiperCore from "swiper";
-import type { CreativeEffectOptions } from "swiper/types";
-import "swiper/css";
-import "swiper/css/effect-creative";
 import { Button } from "@/components/ui/button";
 import { useAppearance } from "@/hooks/useAppearance";
 import { albumApi, shuffled } from "@/lib/albums";
@@ -17,13 +12,6 @@ interface PlaylistItem {
   image: AlbumImage;
   imageIndex: number;
 }
-
-const CREATIVE_PRESETS: CreativeEffectOptions[] = [
-  { prev: { opacity: 0, scale: 0.94 }, next: { opacity: 0, scale: 1.06 } },
-  { prev: { translate: ["-28%", 0, -1], opacity: 0 }, next: { translate: ["28%", 0, -1], opacity: 0 } },
-  { prev: { translate: [0, "-18%", -1], opacity: 0 }, next: { translate: [0, "18%", -1], opacity: 0 } },
-  { prev: { translate: ["-18%", 0, -80], rotate: [0, -5, 0], opacity: 0 }, next: { translate: ["18%", 0, -80], rotate: [0, 5, 0], opacity: 0 } },
-];
 
 export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { t, config } = useAppearance();
@@ -68,6 +56,8 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
   }, [index, playlist.length]);
 
   const current = playlist[index] ?? null;
+  const currentImageId = current?.image.id ?? null;
+  const currentIntervalSeconds = current?.album.interval_s ?? 5;
 
   const reveal = useCallback(() => {
     setChromeVisible(true);
@@ -80,15 +70,19 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
     return () => { if (idleTimer.current != null) window.clearTimeout(idleTimer.current); };
   }, [reveal]);
 
-  const next = useCallback(() => {
+  const advance = useCallback(() => {
     if (playlist.length === 0) return;
     setIndex((value) => {
       if (value < playlist.length - 1) return value + 1;
       setCycle((round) => round + 1);
       return 0;
     });
+  }, [playlist.length]);
+
+  const next = useCallback(() => {
+    advance();
     reveal();
-  }, [playlist.length, reveal]);
+  }, [advance, reveal]);
 
   const previous = useCallback(() => {
     if (playlist.length === 0) return;
@@ -97,10 +91,13 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
   }, [playlist.length, reveal]);
 
   useEffect(() => {
-    if (!current) return;
-    const timer = window.setTimeout(next, current.album.interval_s * 1000);
+    if (!currentImageId || playlist.length < 2) return;
+    const intervalSeconds = Number.isFinite(currentIntervalSeconds)
+      ? Math.min(60, Math.max(1, currentIntervalSeconds))
+      : 5;
+    const timer = window.setTimeout(advance, intervalSeconds * 1000);
     return () => window.clearTimeout(timer);
-  }, [current, next]);
+  }, [advance, currentImageId, currentIntervalSeconds, playlist.length]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -117,16 +114,23 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
     setLoadError(`${image.original_name}: ${t("albumActionFailed")}`);
   };
 
-  const customSwipe = config.photo_album_effect !== "single";
+  const customSwipe = playlist.length > 1;
 
   return (
     <main
       className="photo-frame"
       onMouseMove={reveal}
       onClick={reveal}
-      onPointerDown={(event) => { if (customSwipe) pointerStart.current = event.clientX; }}
+      onPointerDown={(event) => {
+        if (customSwipe && !(event.target as HTMLElement).closest("button, a, input, select, textarea")) {
+          pointerStart.current = event.clientX;
+        }
+      }}
       onPointerUp={(event) => {
-        if (!customSwipe || pointerStart.current == null) return;
+        if (!customSwipe || pointerStart.current == null || (event.target as HTMLElement).closest("button, a, input, select, textarea")) {
+          pointerStart.current = null;
+          return;
+        }
         const distance = event.clientX - pointerStart.current;
         pointerStart.current = null;
         if (distance > 45) previous();
@@ -163,12 +167,7 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
           <CoverFlow playlist={playlist} index={index} onSelect={setIndex} onImageError={imageFailed} />
         ) : (
           <SingleCarousel
-            playlist={playlist}
-            index={index}
-            onSelect={(nextIndex) => {
-              if (index === playlist.length - 1 && nextIndex === 0) setCycle((round) => round + 1);
-              setIndex(nextIndex);
-            }}
+            current={current}
             onImageError={imageFailed}
             reducedMotion={Boolean(reducedMotion)}
           />
@@ -177,20 +176,25 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
 
       <AnimatePresence>
         {chromeVisible ? (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="pointer-events-none absolute inset-0 z-30 flex flex-col justify-between p-[max(1rem,env(safe-area-inset-top))]"
-          >
-            <div className="flex justify-end">
-              <Button variant="outline" size="icon" className="pointer-events-auto border-white/20 bg-black/35 text-white backdrop-blur-xl hover:bg-black/55" aria-label={t("settings")} onClick={onOpenSettings}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-0 z-40">
+            <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-end p-[max(1rem,env(safe-area-inset-top))]">
+              <Button
+                variant="outline"
+                size="icon"
+                className="pointer-events-auto relative z-10 touch-manipulation border-white/20 bg-black/35 text-white backdrop-blur-xl hover:bg-black/55"
+                aria-label={t("settings")}
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onOpenSettings();
+                }}
+              >
                 <Settings2 className="h-5 w-5" />
               </Button>
             </div>
             {current ? (
-              <div className="flex items-end justify-between gap-4">
-                <div className="max-w-2xl rounded-2xl bg-black/28 px-4 py-3 text-white shadow-2xl backdrop-blur-xl sm:px-5 sm:py-4">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-[max(1rem,env(safe-area-inset-bottom))]">
+                <div className="max-w-2xl rounded-2xl bg-black/28 px-4 py-3 text-white shadow-2xl backdrop-blur-xl sm:px-5 sm:py-4" aria-live="polite">
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                     <h1 className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight sm:text-3xl">{current.album.title}</h1>
                     {current.album.date ? <time className="text-xs font-medium tracking-[0.12em] text-white/60">{current.album.date}</time> : null}
@@ -198,7 +202,7 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
                   {current.album.description ? <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-white/72">{current.album.description}</p> : null}
                   <p className="mt-2 text-[10px] font-semibold tracking-[0.18em] text-white/45">{String(index + 1).padStart(2, "0")} / {String(playlist.length).padStart(2, "0")}</p>
                 </div>
-                <div className="pointer-events-auto hidden items-center gap-2 sm:flex">
+                <div className="pointer-events-auto relative z-10 hidden items-center gap-2 sm:flex">
                   <FrameButton label={t("previousPhoto")} onClick={previous}><ChevronLeft /></FrameButton>
                   <FrameButton label={t("nextPhoto")} onClick={next}><ChevronRight /></FrameButton>
                 </div>
@@ -218,7 +222,20 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
 }
 
 function FrameButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
-  return <button type="button" aria-label={label} onClick={onClick} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/18 bg-black/30 text-white backdrop-blur-xl transition-colors hover:bg-white/15 [&_svg]:h-5 [&_svg]:w-5">{children}</button>;
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onPointerDown={(event) => event.stopPropagation()}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick();
+      }}
+      className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-white/18 bg-black/30 text-white backdrop-blur-xl transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 [&_svg]:h-5 [&_svg]:w-5"
+    >
+      {children}
+    </button>
+  );
 }
 
 function EmptyFrame({ onOpenSettings }: { onOpenSettings: () => void }) {
@@ -235,47 +252,23 @@ function EmptyFrame({ onOpenSettings }: { onOpenSettings: () => void }) {
   );
 }
 
-function SingleCarousel({ playlist, index, onSelect, onImageError, reducedMotion }: { playlist: PlaylistItem[]; index: number; onSelect: (index: number) => void; onImageError: (image: AlbumImage) => void; reducedMotion: boolean }) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const swiperRef = useRef<SwiperCore | null>(null);
-  const onSelectRef = useRef(onSelect);
-  onSelectRef.current = onSelect;
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const swiper = new SwiperCore(containerRef.current, {
-      modules: [EffectCreative, Keyboard, Mousewheel],
-      effect: "creative",
-      creativeEffect: CREATIVE_PRESETS[0],
-      speed: reducedMotion ? 0 : 760,
-      rewind: true,
-      keyboard: { enabled: true },
-      mousewheel: { forceToAxis: true },
-      on: { slideChange: (instance) => onSelectRef.current(instance.activeIndex) },
-    });
-    swiperRef.current = swiper;
-    return () => {
-      swiperRef.current = null;
-      swiper.destroy(true, true);
-    };
-  }, [playlist, reducedMotion]);
-
-  useEffect(() => {
-    const swiper = swiperRef.current;
-    if (!swiper || swiper.activeIndex === index) return;
-    const preset = reducedMotion ? CREATIVE_PRESETS[0] : CREATIVE_PRESETS[Math.floor(Math.random() * CREATIVE_PRESETS.length)];
-    swiper.params.creativeEffect = preset;
-    swiper.slideTo(index, reducedMotion ? 0 : 760);
-  }, [index, reducedMotion]);
+function SingleCarousel({ current, onImageError, reducedMotion }: { current: PlaylistItem; onImageError: (image: AlbumImage) => void; reducedMotion: boolean }) {
   return (
-    <div ref={containerRef} className="swiper h-full w-full">
-      <div className="swiper-wrapper">
-        {playlist.map(({ image, album }, itemIndex) => (
-          <div key={`${album.id}-${image.id}-${itemIndex}`} className="swiper-slide flex h-full items-center justify-center">
-            <img src={image.content_url} alt={image.original_name} onError={() => onImageError(image)} className="h-full w-full object-contain" draggable={false} />
-          </div>
-        ))}
-      </div>
+    <div className="relative h-full w-full overflow-hidden">
+      <AnimatePresence initial={false} mode="sync">
+        <motion.img
+          key={current.image.id}
+          src={current.image.content_url}
+          alt={current.image.original_name}
+          onError={() => onImageError(current.image)}
+          initial={{ opacity: 0, scale: reducedMotion ? 1 : 1.025 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: reducedMotion ? 1 : 0.985 }}
+          transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0 h-full w-full object-contain"
+          draggable={false}
+        />
+      </AnimatePresence>
     </div>
   );
 }
