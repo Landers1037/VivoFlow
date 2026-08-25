@@ -7,6 +7,10 @@ fn default_accent_custom() -> String {
     "#0d9488".into()
 }
 
+fn default_background_color() -> String {
+    "#0b1a20".into()
+}
+
 fn default_mobile_auto_carousel() -> bool {
     true
 }
@@ -49,6 +53,8 @@ pub struct AppConfig {
     pub accent: String,
     #[serde(default = "default_accent_custom")]
     pub accent_custom: String,
+    #[serde(default = "default_background_color")]
+    pub background_color: String,
     #[serde(default)]
     pub theme: String,
     #[serde(default)]
@@ -101,6 +107,7 @@ impl Default for AppConfig {
             ui_style: "amicro".into(),
             accent: "teal".into(),
             accent_custom: default_accent_custom(),
+            background_color: default_background_color(),
             theme: "system".into(),
             language: "zh".into(),
             hide_title_bar: false,
@@ -176,6 +183,11 @@ impl AppConfig {
             self.accent_custom = default_accent_custom();
         } else {
             self.accent_custom = self.accent_custom.to_ascii_lowercase();
+        }
+        if !is_hex_color(&self.background_color) {
+            self.background_color = default_background_color();
+        } else {
+            self.background_color = self.background_color.to_ascii_lowercase();
         }
         if !THEMES.contains(&self.theme.as_str()) {
             self.theme = "system".into();
@@ -306,6 +318,7 @@ mod tests {
         assert!(!cfg.mobile_card_mode);
         assert!(cfg.mobile_auto_carousel);
         assert_eq!(cfg.mobile_carousel_interval_s, 10);
+        assert_eq!(cfg.background_color, "#0b1a20");
         assert!(!cfg.photo_album_enabled);
         assert_eq!(cfg.photo_album_effect, "single");
         assert!(!cfg.audio_visualizer_enabled);
@@ -334,6 +347,15 @@ mod tests {
             ..AppConfig::default()
         };
         assert_eq!(cfg.sanitize().photo_album_effect, "single");
+    }
+
+    #[test]
+    fn invalid_background_color_uses_default() {
+        let cfg = AppConfig {
+            background_color: "not-a-color".into(),
+            ..AppConfig::default()
+        };
+        assert_eq!(cfg.sanitize().background_color, "#0b1a20");
     }
 
     #[test]

@@ -3,6 +3,7 @@ import type { Lang } from "@/i18n/types";
 export type MessageKey = keyof typeof ZH;
 
 const ZH = {
+  overview: "概览",
   settings: "设置",
   back: "返回",
   appearance: "外观",
@@ -117,6 +118,15 @@ const ZH = {
   accentCustom: "自定义",
   accentCustomHint: "任选颜色，与预设主题色同等生效",
   accentHex: "色值",
+  backgroundColor: "背景配色",
+  backgroundColorHint: "调整页面底色；明暗主题会自动保留足够的文字对比度",
+  backgroundSignal: "信号墨蓝",
+  backgroundOcean: "深海蓝",
+  backgroundSlate: "石墨灰",
+  backgroundPlum: "夜紫",
+  backgroundSand: "暖沙",
+  backgroundCustom: "自定义",
+  backgroundHex: "背景色值",
   themeMode: "明亮 / 暗黑",
   themeLight: "明亮",
   themeDark: "暗黑",
@@ -191,6 +201,7 @@ const ZH = {
 } as const;
 
 const EN: Record<MessageKey, string> = {
+  overview: "Overview",
   settings: "Settings",
   back: "Back",
   appearance: "Appearance",
@@ -305,6 +316,15 @@ const EN: Record<MessageKey, string> = {
   accentCustom: "Custom",
   accentCustomHint: "Pick any color; works like the presets",
   accentHex: "Hex",
+  backgroundColor: "Background color",
+  backgroundColorHint: "Tint the page canvas while keeping readable contrast in both themes",
+  backgroundSignal: "Signal ink",
+  backgroundOcean: "Deep ocean",
+  backgroundSlate: "Graphite",
+  backgroundPlum: "Night plum",
+  backgroundSand: "Warm sand",
+  backgroundCustom: "Custom",
+  backgroundHex: "Background hex",
   themeMode: "Light / Dark",
   themeLight: "Light",
   themeDark: "Dark",

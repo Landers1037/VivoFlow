@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Settings2, Wifi, WifiOff } from "lucide-react";
+import { Activity, LayoutDashboard, Settings2, Wifi, WifiOff } from "lucide-react";
 import { ThemeProvider } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Dashboard } from "@/components/Dashboard";
@@ -99,7 +99,7 @@ function AppShell({
             {!hideTitleBar || headerRevealed ? (
               <div
                 className={cn(
-                  "mb-4",
+                  "vf-header-wrap mb-4",
                   hideTitleBar && "vf-titlebar-reveal",
                   hideTitleBar &&
                     "safe-pad fixed inset-x-0 top-0 z-40 border-b border-border/70 bg-background/90 shadow-sm backdrop-blur-md",
@@ -107,16 +107,29 @@ function AppShell({
                 onPointerDown={hideTitleBar ? revealHeader : undefined}
                 onFocusCapture={hideTitleBar ? revealHeader : undefined}
               >
-                <header className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight">
-                      VivoFlow
-                    </h1>
-                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <header className="vf-app-header mx-auto flex max-w-5xl items-center justify-between gap-3">
+                  <div className="vf-brand-lockup min-w-0">
+                    <div className="vf-brand-mark" aria-hidden="true">
+                      <Activity className="h-5 w-5" strokeWidth={2.4} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="vf-brand-eyebrow">LOCAL TELEMETRY</p>
+                      <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight">
+                        VivoFlow
+                      </h1>
+                    </div>
+                  </div>
+                  <div className="vf-header-tools">
+                    <div
+                      className={cn(
+                        "vf-connection-pill",
+                        conn === "connected" ? "vf-connection-live" : "vf-connection-waiting",
+                      )}
+                    >
                       {conn === "connected" ? (
-                        <Wifi className="h-3.5 w-3.5 text-emerald-500" />
+                        <Wifi className="h-3.5 w-3.5" />
                       ) : (
-                        <WifiOff className="h-3.5 w-3.5 text-amber-500" />
+                        <WifiOff className="h-3.5 w-3.5" />
                       )}
                       <span>
                         {conn === "connected"
@@ -125,18 +138,23 @@ function AppShell({
                             ? t("connecting")
                             : t("disconnected")}
                       </span>
-                      {config ? <span>· {config.interval_ms}ms</span> : null}
-                    </p>
-                  </div>
+                      {config ? <span className="vf-interval-chip">{config.interval_ms}ms</span> : null}
+                    </div>
                   <Button
                     variant="outline"
                     size="icon"
+                    className="vf-header-action"
                     aria-label={t("settings")}
                     onClick={() => setPage("settings")}
                   >
                     <Settings2 className="h-5 w-5" />
                   </Button>
+                  </div>
                 </header>
+                <div className="vf-header-rule" aria-hidden="true">
+                  <span />
+                  <span className="vf-header-rule-label">01 / LIVE FEED</span>
+                </div>
               </div>
             ) : null}
 
@@ -183,13 +201,33 @@ function AppShell({
             )}
 
             {!mobileCardModeActive ? (
-              <footer className="mt-6 pb-2 text-center text-[11px] text-muted-foreground">
+              <footer className="vf-footer mt-6 pb-2 text-center text-[11px] text-muted-foreground">
                 {t("footer")}
               </footer>
             ) : null}
           </>
         )}
       </div>
+      <nav className="vf-mobile-nav" aria-label={t("dashboardPages")}>
+        <button
+          type="button"
+          className={cn("vf-mobile-nav-item", page === "dashboard" && "vf-mobile-nav-item-active")}
+          aria-current={page === "dashboard" ? "page" : undefined}
+          onClick={() => setPage("dashboard")}
+        >
+          <LayoutDashboard className="h-[18px] w-[18px]" />
+          <span>{t("overview")}</span>
+        </button>
+        <button
+          type="button"
+          className={cn("vf-mobile-nav-item", page === "settings" && "vf-mobile-nav-item-active")}
+          aria-current={page === "settings" ? "page" : undefined}
+          onClick={() => setPage("settings")}
+        >
+          <Settings2 className="h-[18px] w-[18px]" />
+          <span>{t("settings")}</span>
+        </button>
+      </nav>
     </div>
   );
 }

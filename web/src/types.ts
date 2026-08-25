@@ -76,6 +76,7 @@ export const ACCENT_PRESETS: Exclude<AccentId, "custom">[] = [
 ];
 
 export const DEFAULT_ACCENT_CUSTOM = "#0d9488";
+export const DEFAULT_BACKGROUND_COLOR = "#0b1a20";
 
 export interface AppConfig {
   interval_ms: number;
@@ -85,6 +86,8 @@ export interface AppConfig {
   accent: AccentId;
   /** `#RRGGBB`，当 `accent === "custom"` 时生效 */
   accent_custom: string;
+  /** `#RRGGBB`，作为应用背景基色，随明暗主题混合 */
+  background_color: string;
   theme: ThemeMode;
   language: Lang;
   hide_title_bar: boolean;
@@ -110,6 +113,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   ui_style: "amicro",
   accent: "teal",
   accent_custom: DEFAULT_ACCENT_CUSTOM,
+  background_color: DEFAULT_BACKGROUND_COLOR,
   theme: "system",
   language: "zh",
   hide_title_bar: false,

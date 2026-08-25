@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   ACCENT_OPTIONS,
+  BACKGROUND_OPTIONS,
   UI_STYLE_OPTIONS,
   useAppearance,
   type AccentId,
@@ -39,6 +40,7 @@ export function SettingsPage({
     config: synced,
     setAccent,
     setAccentCustom,
+    setBackgroundColor,
     setLanguage,
     setUiStyle,
     setThemeMode,
@@ -62,24 +64,35 @@ export function SettingsPage({
     { id: "audio", label: t("audioVisualizer"), icon: AudioLines },
     { id: "about", label: t("about"), icon: Info },
   ];
+  const activeTab = tabs.find((item) => item.id === tab) ?? tabs[0];
 
   return (
-    <div className="flex min-h-[70dvh] flex-col gap-4">
-      <header className="flex items-center gap-2">
-        <Button variant="outline" size="icon" aria-label={t("back")} onClick={onBack}>
+    <div className="settings-page flex min-h-[70dvh] flex-col gap-4">
+      <header className="settings-header flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            className="settings-back-button"
+            aria-label={t("back")}
+            onClick={onBack}
+          >
           <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight">{t("settings")}</h1>
-          {!config ? (
-            <p className="text-xs text-muted-foreground">{t("connecting")}</p>
-          ) : null}
+          </Button>
+          <div className="settings-heading-copy min-w-0">
+            <p className="settings-eyebrow">VivoFlow / CONTROL ROOM</p>
+            <h1 className="text-2xl font-semibold tracking-tight">{t("settings")}</h1>
+          </div>
+        </div>
+        <div className={cn("settings-sync-badge", config ? "settings-sync-live" : "settings-sync-waiting")}>
+          <span className="settings-sync-dot" />
+          <span>{config ? t("connected") : t("connecting")}</span>
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 sm:flex-row landscape:gap-4">
+      <div className="settings-layout flex min-h-0 flex-1 flex-col gap-3 sm:flex-row landscape:gap-4">
         <nav
-          className="flex w-full shrink-0 gap-1 overflow-x-auto pb-1 sm:w-36 sm:flex-col sm:overflow-visible sm:pb-0"
+          className="settings-nav flex w-full shrink-0 gap-1 overflow-x-auto pb-1 sm:w-36 sm:flex-col sm:overflow-visible sm:pb-0"
           aria-label={t("settings")}
         >
           {tabs.map(({ id, label, icon: Icon }) => (
@@ -88,38 +101,50 @@ export function SettingsPage({
               type="button"
               onClick={() => setTab(id)}
               className={cn(
-                "flex min-h-11 shrink-0 items-center gap-2 px-3 py-2 text-left text-sm transition-colors sm:w-full",
-                tab === id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+                "settings-nav-item flex min-h-11 shrink-0 items-center gap-2 px-3 py-2 text-left text-sm transition-colors sm:w-full",
+                tab === id && "settings-nav-item-active",
               )}
-              style={{ borderRadius: "var(--nav-radius)" }}
             >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{label}</span>
+              <span className="settings-nav-icon"><Icon className="h-4 w-4 shrink-0" /></span>
+              <span className="settings-nav-label truncate">{label}</span>
+              <span className="settings-nav-arrow" aria-hidden="true">›</span>
             </button>
           ))}
         </nav>
 
-        <section className="vf-panel min-w-0 flex-1">
+        <section className="vf-panel settings-content-panel min-w-0 flex-1">
+          <div className="settings-content-header">
+            <div className="settings-content-title">
+              <span className="settings-content-index">0{tabs.findIndex((item) => item.id === tab) + 1}</span>
+              <div>
+                <p className="settings-content-kicker">MODULE SETTINGS</p>
+                <h2 className="text-xl font-semibold tracking-tight">{activeTab.label}</h2>
+              </div>
+            </div>
+            <span className="settings-content-meta">{config ? t("connected") : t("connecting")}</span>
+          </div>
+          <div className="settings-content-body">
           {tab === "appearance" ? (
-            <AppearanceTab
-              t={t}
-              config={synced}
+            <div className="settings-tab-content">
+              <AppearanceTab
+                t={t}
+                config={synced}
               setAccent={setAccent}
               setAccentCustom={setAccentCustom}
-              setLanguage={setLanguage}
-              setUiStyle={setUiStyle}
-              setThemeMode={setThemeMode}
-              setHideTitleBar={setHideTitleBar}
-              setMobileCardMode={setMobileCardMode}
-              setMobileAutoCarousel={setMobileAutoCarousel}
-              setMobileCarouselInterval={setMobileCarouselInterval}
-            />
+              setBackgroundColor={setBackgroundColor}
+                setLanguage={setLanguage}
+                setUiStyle={setUiStyle}
+                setThemeMode={setThemeMode}
+                setHideTitleBar={setHideTitleBar}
+                setMobileCardMode={setMobileCardMode}
+                setMobileAutoCarousel={setMobileAutoCarousel}
+                setMobileCarouselInterval={setMobileCarouselInterval}
+              />
+            </div>
           ) : null}
 
           {tab === "collection" ? (
-            <div className="space-y-5">
+            <div className="settings-tab-content collection-tab space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="interval">
                   {t("interval")}: {local.interval_ms}
@@ -199,10 +224,11 @@ export function SettingsPage({
             </div>
           ) : null}
 
-          {tab === "albums" ? <AlbumSettings /> : null}
-          {tab === "audio" ? <AudioSettings frame={audioFrame} status={audioStatus} onSubscribe={onAudioSubscribe} /> : null}
+          {tab === "albums" ? <div className="settings-tab-content"><AlbumSettings /></div> : null}
+          {tab === "audio" ? <div className="settings-tab-content"><AudioSettings frame={audioFrame} status={audioStatus} onSubscribe={onAudioSubscribe} /></div> : null}
 
-          {tab === "about" ? <AboutTab t={t} /> : null}
+          {tab === "about" ? <div className="settings-tab-content"><AboutTab t={t} /></div> : null}
+          </div>
         </section>
       </div>
     </div>
@@ -380,6 +406,7 @@ function AppearanceTab({
   config,
   setAccent,
   setAccentCustom,
+  setBackgroundColor,
   setLanguage,
   setUiStyle,
   setThemeMode,
@@ -392,6 +419,7 @@ function AppearanceTab({
   config: AppConfig;
   setAccent: (v: AccentId) => void;
   setAccentCustom: (hex: string) => void;
+  setBackgroundColor: (hex: string) => void;
   setLanguage: (v: Lang) => void;
   setUiStyle: (v: UiStyle) => void;
   setThemeMode: (v: ThemeMode) => void;
@@ -401,14 +429,19 @@ function AppearanceTab({
   setMobileCarouselInterval: (v: number) => void;
 }) {
   const [hexDraft, setHexDraft] = useState(config.accent_custom);
+  const [backgroundHexDraft, setBackgroundHexDraft] = useState(config.background_color);
 
   useEffect(() => {
     setHexDraft(config.accent_custom);
   }, [config.accent_custom]);
 
+  useEffect(() => {
+    setBackgroundHexDraft(config.background_color);
+  }, [config.background_color]);
+
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
+    <div className="settings-appearance-tab space-y-6">
+      <div className="settings-form-section settings-style-section space-y-2">
         <Label>{t("uiStyle")}</Label>
         <p className="text-xs text-muted-foreground">{t("uiStyleHint")}</p>
         <div className="grid max-h-[min(52dvh,28rem)] grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
@@ -422,6 +455,7 @@ function AppearanceTab({
                 className={cn(
                   "vf-style-option flex flex-col gap-2 border px-3 py-3 text-left text-sm transition-colors",
                   selected ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40",
+                  selected && "settings-style-selected",
                 )}
                 style={{ borderRadius: "var(--nav-radius)" }}
               >
@@ -443,7 +477,7 @@ function AppearanceTab({
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="settings-form-section settings-accent-section space-y-2">
         <Label>{t("accent")}</Label>
         <p className="text-xs text-muted-foreground">{t("accentCustomHint")}</p>
         <div className="flex flex-wrap gap-2">
@@ -511,7 +545,74 @@ function AppearanceTab({
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="settings-form-section settings-background-section space-y-3">
+        <div>
+          <Label>{t("backgroundColor")}</Label>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            {t("backgroundColorHint")}
+          </p>
+        </div>
+        <div className="settings-background-options">
+          {BACKGROUND_OPTIONS.map((option) => {
+            const selected = config.background_color === option.swatch;
+            return (
+              <button
+                key={option.id}
+                type="button"
+                aria-label={t(option.labelKey)}
+                className={cn("settings-background-option", selected && "settings-background-option-active")}
+                onClick={() => {
+                  setBackgroundHexDraft(option.swatch);
+                  setBackgroundColor(option.swatch);
+                }}
+              >
+                <span className="settings-background-swatch" style={{ backgroundColor: option.swatch }} />
+                <span>{t(option.labelKey)}</span>
+              </button>
+            );
+          })}
+          <label className={cn("settings-background-option settings-background-custom", !BACKGROUND_OPTIONS.some((option) => option.swatch === config.background_color) && "settings-background-option-active")}>
+            <span className="settings-background-swatch" style={{ backgroundColor: config.background_color }} />
+            <span>{t("backgroundCustom")}</span>
+            <input
+              type="color"
+              aria-label={t("backgroundCustom")}
+              value={config.background_color}
+              onChange={(event) => {
+                setBackgroundHexDraft(event.target.value);
+                setBackgroundColor(event.target.value);
+              }}
+              className="absolute inset-0 cursor-pointer opacity-0"
+            />
+          </label>
+        </div>
+        <div className="settings-background-input-row">
+          <span className="settings-background-preview" style={{ backgroundColor: config.background_color }} aria-hidden="true">
+            <span />
+          </span>
+          <div className="min-w-0 flex-1">
+            <Label htmlFor="background-hex" className="text-xs text-muted-foreground">
+              {t("backgroundHex")}
+            </Label>
+            <input
+              id="background-hex"
+              type="text"
+              spellCheck={false}
+              value={backgroundHexDraft}
+              onChange={(event) => setBackgroundHexDraft(event.target.value)}
+              onBlur={() => setBackgroundColor(backgroundHexDraft)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.currentTarget.blur();
+              }}
+              className="mt-1 min-h-10 w-full border border-border bg-background px-3 font-mono text-sm"
+              style={{ borderRadius: "var(--nav-radius)" }}
+              placeholder="#0b1a20"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-form-section settings-theme-section space-y-2">
         <Label>{t("themeMode")}</Label>
         <div className="grid grid-cols-3 gap-2">
           {(
@@ -537,7 +638,7 @@ function AppearanceTab({
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="settings-form-section settings-language-section space-y-2">
         <Label>{t("language")}</Label>
         <div className="grid grid-cols-2 gap-2">
           {(
@@ -564,7 +665,7 @@ function AppearanceTab({
         </div>
       </div>
 
-      <div className="space-y-4 border-t border-border pt-5">
+      <div className="settings-form-section settings-preferences-section space-y-4 border-t border-border pt-5">
         <div className="flex min-h-11 items-center justify-between gap-3">
           <div className="min-w-0">
             <Label htmlFor="hide-title-bar">{t("hideTitleBar")}</Label>
@@ -631,7 +732,7 @@ function AboutTab({ t }: { t: TFunction }) {
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="about-tab space-y-5">
       <div>
         <h2 className="text-lg font-semibold tracking-tight">{t("aboutTitle")}</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t("aboutDesc")}</p>

@@ -11,6 +11,7 @@ import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages"
 import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, Lang, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
+  DEFAULT_BACKGROUND_COLOR,
   DEFAULT_ACCENT_CUSTOM,
   DEFAULT_CONFIG,
   UI_STYLES,
@@ -75,6 +76,7 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
       : "amicro",
     accent: accents.includes(base.accent as AccentId) ? (base.accent as AccentId) : "teal",
     accent_custom: normalizeHexColor(base.accent_custom),
+    background_color: normalizeHexColor(base.background_color || DEFAULT_BACKGROUND_COLOR),
     theme: themes.includes(base.theme as ThemeMode) ? (base.theme as ThemeMode) : "system",
     language: langs.includes(base.language as Lang) ? (base.language as Lang) : "zh",
     hide_title_bar: Boolean(base.hide_title_bar),
@@ -128,12 +130,20 @@ function applyAccent(accent: AccentId, customHex: string) {
   root.dataset.accent = accent;
 }
 
+function applyBackgroundColor(backgroundColor: string) {
+  document.documentElement.style.setProperty(
+    "--vf-background-custom",
+    normalizeHexColor(backgroundColor),
+  );
+}
+
 interface AppearanceContextValue {
   config: AppConfig;
   synced: boolean;
   setUiStyle: (v: UiStyle) => void;
   setAccent: (v: AccentId) => void;
   setAccentCustom: (hex: string) => void;
+  setBackgroundColor: (hex: string) => void;
   setLanguage: (v: Lang) => void;
   setThemeMode: (v: ThemeMode) => void;
   setHideTitleBar: (v: boolean) => void;
@@ -170,12 +180,14 @@ export function AppearanceProvider({
 
   useEffect(() => {
     applyAccent(resolved.accent, resolved.accent_custom);
+    applyBackgroundColor(resolved.background_color);
     document.documentElement.dataset.uiStyle = resolved.ui_style;
     document.documentElement.lang = resolved.language === "en" ? "en" : "zh-CN";
     setTheme(resolved.theme);
   }, [
     resolved.accent,
     resolved.accent_custom,
+    resolved.background_color,
     resolved.language,
     resolved.theme,
     resolved.ui_style,
@@ -204,6 +216,8 @@ export function AppearanceProvider({
       setAccent: (accent) => patch({ accent }),
       setAccentCustom: (hex) =>
         patch({ accent: "custom", accent_custom: normalizeHexColor(hex) }),
+      setBackgroundColor: (background_color) =>
+        patch({ background_color: normalizeHexColor(background_color) }),
       setLanguage: (language) => patch({ language }),
       setThemeMode: (theme) => patch({ theme }),
       setHideTitleBar: (hide_title_bar) => patch({ hide_title_bar }),
@@ -243,6 +257,14 @@ export const ACCENT_OPTIONS: { id: Exclude<AccentId, "custom">; label: string; s
     { id: "violet", label: "Violet", swatch: "#c084fc" },
     { id: "amber", label: "Amber", swatch: "#fbbf24" },
   ];
+
+export const BACKGROUND_OPTIONS: { id: string; labelKey: "backgroundSignal" | "backgroundOcean" | "backgroundSlate" | "backgroundPlum" | "backgroundSand"; swatch: string }[] = [
+  { id: "signal", labelKey: "backgroundSignal", swatch: "#0b1a20" },
+  { id: "ocean", labelKey: "backgroundOcean", swatch: "#082f49" },
+  { id: "slate", labelKey: "backgroundSlate", swatch: "#17202a" },
+  { id: "plum", labelKey: "backgroundPlum", swatch: "#211a2d" },
+  { id: "sand", labelKey: "backgroundSand", swatch: "#f4efe7" },
+];
 
 export const UI_STYLE_OPTIONS: {
   id: UiStyle;

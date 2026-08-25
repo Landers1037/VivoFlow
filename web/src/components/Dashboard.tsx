@@ -627,6 +627,7 @@ export function Dashboard({
               title={t("cpuLoad")}
               theme={theme}
               domainMax={100}
+              className="vf-mobile-load-card"
               items={[
                 { label: t("load5s"), value: load5s, target: 70 },
                 { label: t("load5m"), value: load5m, target: 70 },

@@ -1316,6 +1316,18 @@ textarea,
   }
 }
 
+/* The CPU load card is a wide 1x placement with three stacked readouts.
+   Give that final landscape row the spare gutter below the grid instead of
+   clipping its last track inside the fixed tile floor. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .vf-mobile-dashboard .vf-mobile-load-card {
+    height: calc(var(--vf-widget-1x) + 1.5rem);
+    min-height: calc(var(--vf-widget-1x) + 1.5rem);
+    max-height: none;
+    padding-block: 0.7rem;
+  }
+}
+
 /* Fixed-height dashboard widgets (1x / 2x), content fills via flex */
 .vf-widget-1x,
 .vf-widget-2x {
@@ -1858,6 +1870,865 @@ html[data-ui-style]:not([data-ui-style="amicro"]) .vf-mobile-pager {
   html[data-ui-style]:not([data-ui-style="amicro"]) .vf-kpi,
   html[data-ui-style]:not([data-ui-style="amicro"]) button,
   html[data-ui-style]:not([data-ui-style="amicro"]) input[type="range"] {
+    transition: none;
+  }
+}
+
+/* ——— Signal Lab product redesign ———
+   The monitoring surface is intentionally quiet: a cool graphite canvas,
+   one live signal color, and small status marks that make the system feel
+   present without turning every card into a control. */
+:root {
+  --vf-background-custom: #0b1a20;
+  --vf-canvas-light: color-mix(in oklch, var(--vf-background-custom) 12%, #eef4f5);
+  --vf-canvas-dark: color-mix(in oklch, var(--vf-background-custom) 82%, #0b1a20);
+  --vf-ink: color-mix(in oklch, var(--vf-background-custom) 14%, #10242d 86%);
+  --vf-ink-soft: color-mix(in oklch, var(--vf-background-custom) 12%, #61757d 88%);
+  --vf-canvas: #eef4f5;
+  --vf-card: color-mix(in oklch, var(--vf-background-custom) 8%, #fbfdfd 92%);
+  --vf-line: color-mix(in oklch, var(--vf-background-custom) 18%, #d9e6e8 82%);
+  --vf-line-strong: color-mix(in oklch, var(--vf-background-custom) 26%, #b2c5c9 74%);
+  --vf-muted: color-mix(in oklch, var(--vf-background-custom) 12%, #e5eef0 88%);
+  --vf-input: color-mix(in oklch, var(--vf-background-custom) 16%, #d1e0e2 84%);
+  --vf-signal: #0f9f92;
+  --vf-signal-soft: #d8f3ed;
+  --vf-amber: #c98028;
+  --vf-amber-soft: #fff0d8;
+}
+
+html[data-ui-style="amicro"] {
+  --vf-canvas: var(--vf-canvas-light);
+  --background: var(--vf-canvas);
+  --foreground: var(--vf-ink);
+  --card: var(--vf-card);
+  --card-foreground: var(--vf-ink);
+  --muted: var(--vf-muted);
+  --muted-foreground: var(--vf-ink-soft);
+  --border: var(--vf-line);
+  --input: var(--vf-input);
+  --surface-bg: color-mix(in oklch, var(--vf-card) 92%, transparent);
+  --surface-border-width: 1px;
+  --surface-border-color: color-mix(in oklch, var(--vf-line) 82%, var(--vf-line-strong) 18%);
+  --surface-shadow: 0 18px 44px oklch(0.34 0.04 205 / 8%), 0 2px 8px oklch(0.32 0.03 205 / 5%);
+  --surface-padding: 1rem;
+  --shell-gap: 0.9rem;
+  --shell-bg:
+    radial-gradient(circle at 92% -4%, color-mix(in oklch, var(--vf-background-custom) 28%, transparent), transparent 29%),
+    radial-gradient(circle at -8% 30%, color-mix(in oklch, var(--vf-background-custom) 24%, transparent), transparent 34%),
+    var(--vf-canvas);
+  --radius: 1.15rem;
+  --nav-radius: 0.95rem;
+}
+
+html.dark[data-ui-style="amicro"] {
+  --vf-ink: color-mix(in oklch, var(--vf-background-custom) 10%, #e4f1f1 90%);
+  --vf-ink-soft: color-mix(in oklch, var(--vf-background-custom) 11%, #94aeb1 89%);
+  --vf-canvas: var(--vf-canvas-dark);
+  --vf-card: color-mix(in oklch, var(--vf-background-custom) 72%, #22303b 28%);
+  --vf-line: color-mix(in oklch, var(--vf-background-custom) 52%, #697b84 48%);
+  --vf-line-strong: color-mix(in oklch, var(--vf-background-custom) 38%, #82949b 62%);
+  --vf-muted: color-mix(in oklch, var(--vf-background-custom) 62%, #263943 38%);
+  --vf-input: color-mix(in oklch, var(--vf-background-custom) 42%, #55717a 58%);
+  --vf-signal: #54d9c4;
+  --vf-signal-soft: #173b3b;
+  --vf-amber: #f2b45d;
+  --vf-amber-soft: #3d2f1e;
+  --background: var(--vf-canvas);
+  --foreground: var(--vf-ink);
+  --card: var(--vf-card);
+  --card-foreground: var(--vf-ink);
+  --muted: var(--vf-muted);
+  --muted-foreground: var(--vf-ink-soft);
+  --border: var(--vf-line);
+  --input: var(--vf-input);
+  --surface-bg: color-mix(in oklch, var(--vf-card) 94%, transparent);
+  --surface-border-color: color-mix(in oklch, var(--vf-line) 82%, var(--vf-line-strong) 18%);
+  --surface-shadow: 0 20px 48px oklch(0.04 0.03 210 / 42%), 0 2px 8px oklch(0.02 0.02 210 / 25%);
+  --shell-bg:
+    radial-gradient(circle at 92% -4%, color-mix(in oklch, var(--vf-background-custom) 30%, transparent), transparent 29%),
+    radial-gradient(circle at -8% 30%, color-mix(in oklch, var(--vf-background-custom) 34%, transparent), transparent 34%),
+    var(--vf-canvas);
+}
+
+.vf-shell {
+  background-attachment: fixed;
+}
+
+.vf-header-wrap {
+  padding-top: 0.15rem;
+}
+
+.vf-app-header {
+  min-height: 4.35rem;
+}
+
+.vf-brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 0.72rem;
+}
+
+.vf-brand-mark {
+  display: flex;
+  width: 2.45rem;
+  height: 2.45rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in oklch, var(--primary) 28%, transparent);
+  border-radius: 0.82rem;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  box-shadow: 0 10px 22px color-mix(in oklch, var(--primary) 22%, transparent), inset 0 1px 0 oklch(1 0 0 / 28%);
+}
+
+.vf-brand-eyebrow,
+.settings-eyebrow,
+.settings-content-kicker {
+  color: var(--muted-foreground);
+  font-family: var(--font-data);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.vf-brand-eyebrow {
+  margin-bottom: 0.18rem;
+  color: color-mix(in oklch, var(--primary) 70%, var(--muted-foreground));
+}
+
+.vf-header-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.vf-connection-pill,
+.settings-sync-badge {
+  display: inline-flex;
+  min-height: 2.05rem;
+  align-items: center;
+  gap: 0.42rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  color: var(--muted-foreground);
+  background: color-mix(in oklch, var(--card) 75%, transparent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.vf-connection-live,
+.settings-sync-live {
+  border-color: color-mix(in oklch, var(--primary) 24%, var(--border));
+  color: color-mix(in oklch, var(--primary) 76%, var(--foreground));
+  background: color-mix(in oklch, var(--primary) 8%, var(--card));
+}
+
+.vf-connection-waiting,
+.settings-sync-waiting {
+  border-color: color-mix(in oklch, var(--vf-amber) 28%, var(--border));
+  color: var(--vf-amber);
+  background: color-mix(in oklch, var(--vf-amber) 8%, var(--card));
+}
+
+.vf-connection-pill svg {
+  color: currentColor;
+}
+
+.vf-connection-pill::before,
+.settings-sync-dot {
+  width: 0.42rem;
+  height: 0.42rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: currentColor;
+  content: "";
+}
+
+.vf-connection-live::before,
+.settings-sync-live .settings-sync-dot {
+  box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 38%, transparent);
+  animation: vf-signal-pulse 2.2s ease-out infinite;
+}
+
+.vf-interval-chip {
+  border-left: 1px solid currentColor;
+  padding-left: 0.48rem;
+  opacity: 0.72;
+  font-family: var(--font-data);
+  font-size: 0.65rem;
+}
+
+.vf-header-action {
+  border-color: color-mix(in oklch, var(--primary) 18%, var(--border));
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--card) 80%, transparent);
+  box-shadow: 0 8px 20px oklch(0.24 0.04 210 / 8%);
+}
+
+.vf-header-action:hover {
+  border-color: color-mix(in oklch, var(--primary) 38%, var(--border));
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary) 8%, var(--card));
+}
+
+.vf-header-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.15rem;
+}
+
+.vf-header-rule > span:first-child {
+  height: 1px;
+  flex: 1;
+  background: color-mix(in oklch, var(--border) 80%, var(--primary) 20%);
+}
+
+.vf-header-rule-label {
+  color: var(--muted-foreground);
+  font-family: var(--font-data);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.78;
+}
+
+.vf-footer {
+  letter-spacing: 0.03em;
+  opacity: 0.7;
+}
+
+/* Settings is a control room, not a stack of anonymous form fields. */
+.settings-page {
+  padding-block: 0.25rem 1.25rem;
+}
+
+.settings-header {
+  min-height: 4.25rem;
+  padding-block: 0.15rem 0.9rem;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 78%, var(--primary) 22%);
+}
+
+.settings-back-button {
+  border-color: color-mix(in oklch, var(--primary) 18%, var(--border));
+  color: var(--muted-foreground);
+  background: color-mix(in oklch, var(--card) 80%, transparent);
+}
+
+.settings-back-button:hover {
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary) 8%, var(--card));
+}
+
+.settings-heading-copy h1 {
+  margin-top: 0.18rem;
+}
+
+.settings-sync-badge {
+  padding-inline: 0.75rem;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.75rem;
+}
+
+.settings-nav {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.42rem;
+  border: 1px solid color-mix(in oklch, var(--border) 74%, var(--primary) 26%);
+  border-radius: 1.18rem;
+  background: color-mix(in oklch, var(--card) 66%, transparent);
+  box-shadow: 0 12px 30px oklch(0.28 0.04 210 / 6%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.settings-nav-item {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 0.92rem;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.settings-nav-item:hover {
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--primary) 6%, transparent);
+}
+
+.settings-nav-item-active {
+  border-color: color-mix(in oklch, var(--primary) 30%, transparent);
+  color: var(--primary-foreground);
+  background: var(--primary);
+  box-shadow: 0 10px 18px color-mix(in oklch, var(--primary) 18%, transparent), inset 0 1px 0 oklch(1 0 0 / 16%);
+}
+
+.settings-nav-icon {
+  display: flex;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid currentColor;
+  border-radius: 0.62rem;
+  opacity: 0.82;
+}
+
+.settings-nav-item-active .settings-nav-icon {
+  border-color: oklch(1 0 0 / 24%);
+  background: oklch(1 0 0 / 10%);
+  opacity: 1;
+}
+
+.settings-nav-arrow {
+  margin-left: auto;
+  font-size: 1.15rem;
+  line-height: 1;
+  opacity: 0.35;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.settings-nav-item:hover .settings-nav-arrow,
+.settings-nav-item-active .settings-nav-arrow {
+  opacity: 0.9;
+  transform: translateX(0.1rem);
+}
+
+.settings-content-panel {
+  min-height: 33rem;
+  padding: 0;
+  overflow: hidden;
+}
+
+.settings-content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.35rem 1.08rem;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 80%, var(--primary) 20%);
+  background: color-mix(in oklch, var(--primary) 4%, var(--card));
+}
+
+.settings-content-title {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.settings-content-index {
+  display: inline-flex;
+  min-width: 2rem;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-family: var(--font-data);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.settings-content-kicker {
+  margin-bottom: 0.18rem;
+  font-size: 0.56rem;
+  opacity: 0.78;
+}
+
+.settings-content-meta {
+  color: var(--muted-foreground);
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.settings-content-body {
+  padding: 1.35rem;
+}
+
+.settings-tab-content {
+  min-width: 0;
+}
+
+.settings-form-section {
+  position: relative;
+}
+
+.settings-form-section + .settings-form-section {
+  padding-top: 1.35rem;
+  border-top: 1px solid color-mix(in oklch, var(--border) 72%, var(--primary) 28%);
+}
+
+.settings-form-section > label,
+.settings-form-section > div > label,
+.settings-form-section h2 {
+  letter-spacing: -0.01em;
+}
+
+.settings-style-section .vf-style-option {
+  border-color: color-mix(in oklch, var(--border) 80%, var(--primary) 20%);
+  border-radius: 1rem !important;
+  background: color-mix(in oklch, var(--card) 72%, var(--muted) 28%);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 34%);
+}
+
+.settings-style-section .vf-style-option:hover {
+  border-color: color-mix(in oklch, var(--primary) 46%, var(--border));
+  background: color-mix(in oklch, var(--primary) 6%, var(--card));
+  transform: translateY(-2px);
+}
+
+.settings-style-section .settings-style-selected {
+  border-color: color-mix(in oklch, var(--primary) 58%, var(--border));
+  background: color-mix(in oklch, var(--primary) 10%, var(--card));
+  box-shadow: 0 10px 24px color-mix(in oklch, var(--primary) 10%, transparent), inset 0 1px 0 oklch(1 0 0 / 46%);
+}
+
+.settings-style-section .vf-style-option > div:first-child {
+  border-radius: 0.72rem !important;
+}
+
+.settings-accent-section button,
+.settings-theme-section button,
+.settings-language-section button {
+  border-color: color-mix(in oklch, var(--border) 80%, var(--primary) 20%);
+  border-radius: 0.85rem !important;
+  background: color-mix(in oklch, var(--card) 78%, var(--muted) 22%);
+}
+
+.settings-accent-section button:hover,
+.settings-theme-section button:hover,
+.settings-language-section button:hover {
+  border-color: color-mix(in oklch, var(--primary) 42%, var(--border));
+  background: color-mix(in oklch, var(--primary) 7%, var(--card));
+}
+
+.settings-accent-section button.border-primary,
+.settings-theme-section button.border-primary,
+.settings-language-section button.border-primary {
+  background: color-mix(in oklch, var(--primary) 12%, var(--card));
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 15%, transparent);
+}
+
+.settings-background-options {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.settings-background-option {
+  position: relative;
+  display: flex;
+  min-height: 4.6rem;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.4rem;
+  border: 1px solid color-mix(in oklch, var(--border) 80%, var(--primary) 20%);
+  border-radius: 0.9rem;
+  padding: 0.58rem;
+  color: var(--muted-foreground);
+  background: color-mix(in oklch, var(--card) 78%, var(--muted) 22%);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: left;
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.settings-background-option:hover,
+.settings-background-option-active {
+  border-color: color-mix(in oklch, var(--primary) 48%, var(--border));
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--primary) 8%, var(--card));
+  transform: translateY(-1px);
+}
+
+.settings-background-option-active {
+  box-shadow: 0 8px 20px color-mix(in oklch, var(--primary) 9%, transparent), inset 0 0 0 1px color-mix(in oklch, var(--primary) 12%, transparent);
+}
+
+.settings-background-swatch {
+  display: block;
+  width: 100%;
+  height: 2rem;
+  border: 1px solid oklch(1 0 0 / 18%);
+  border-radius: 0.56rem;
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 14%);
+}
+
+.settings-background-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.15rem;
+}
+
+.settings-background-preview {
+  position: relative;
+  display: flex;
+  width: 3.45rem;
+  height: 3.45rem;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  justify-content: flex-end;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklch, var(--border) 65%, white 35%);
+  border-radius: 0.9rem;
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 18%), 0 8px 18px color-mix(in oklch, var(--vf-background-custom) 18%, transparent);
+}
+
+.settings-background-preview::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: radial-gradient(circle at 78% 22%, color-mix(in oklch, var(--primary) 72%, transparent), transparent 28%);
+  opacity: 0.8;
+}
+
+.settings-background-preview span {
+  position: relative;
+  z-index: 1;
+  width: 1.4rem;
+  height: 0.2rem;
+  margin: 0 0.45rem 0.5rem 0;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 12px color-mix(in oklch, var(--primary) 70%, transparent);
+}
+
+.settings-appearance-tab input[type="text"],
+.settings-appearance-tab input[type="range"] {
+  accent-color: var(--primary);
+}
+
+.settings-appearance-tab input[type="text"] {
+  border-color: color-mix(in oklch, var(--border) 78%, var(--primary) 22%);
+  border-radius: 0.85rem !important;
+  background: color-mix(in oklch, var(--card) 76%, var(--muted) 24%);
+}
+
+.settings-form-section input[type="range"] {
+  height: 0.34rem;
+  border-radius: 999px;
+}
+
+.settings-preferences-section > div,
+.collection-tab > div:nth-child(3) > div {
+  border-radius: 0.88rem;
+  padding-inline: 0.2rem;
+}
+
+.settings-preferences-section > div + div {
+  border-top: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
+  padding-top: 0.75rem;
+}
+
+.about-tab .vf-row,
+.about-tab .vf-surface {
+  border-color: color-mix(in oklch, var(--border) 78%, var(--primary) 22%);
+  background: color-mix(in oklch, var(--primary) 4%, var(--card));
+}
+
+/* Refine the dashboard cards while respecting the existing chart system. */
+html[data-ui-style="amicro"] .vf-surface,
+html[data-ui-style="amicro"] .vf-panel,
+html[data-ui-style="amicro"] .vf-kpi {
+  border-color: var(--surface-border-color);
+  box-shadow: var(--surface-shadow);
+}
+
+html.dark[data-ui-style="amicro"] .vf-surface,
+html.dark[data-ui-style="amicro"] .vf-panel,
+html.dark[data-ui-style="amicro"] .vf-kpi {
+  box-shadow: var(--surface-shadow);
+}
+
+html[data-ui-style="amicro"] .vf-surface,
+html[data-ui-style="amicro"] .vf-kpi {
+  position: relative;
+  overflow: hidden;
+}
+
+html[data-ui-style="amicro"] .vf-row {
+  border: 1px solid color-mix(in oklch, var(--vf-line) 72%, var(--vf-line-strong) 28%);
+  background: color-mix(in oklch, var(--vf-card) 82%, var(--vf-background-custom) 18%);
+}
+
+html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
+  padding-inline: 0.2rem;
+}
+
+.vf-mobile-nav {
+  display: none;
+}
+
+@keyframes vf-signal-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 38%, transparent); }
+  70% { box-shadow: 0 0 0 0.36rem color-mix(in oklch, var(--primary) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 0%, transparent); }
+}
+
+@media (max-width: 720px) {
+  .safe-pad {
+    padding-top: max(0.8rem, env(safe-area-inset-top));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(5.45rem, calc(env(safe-area-inset-bottom) + 4.6rem));
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+
+  .vf-app-header {
+    min-height: 3.95rem;
+  }
+
+  .vf-brand-mark {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 0.72rem;
+  }
+
+  .vf-brand-eyebrow {
+    font-size: 0.55rem;
+  }
+
+  .vf-app-header h1 {
+    font-size: 1.42rem;
+  }
+
+  .vf-header-tools {
+    gap: 0.4rem;
+  }
+
+  .vf-connection-pill {
+    min-height: 1.85rem;
+    padding-inline: 0.55rem;
+    font-size: 0.65rem;
+  }
+
+  .vf-connection-pill > svg,
+  .vf-connection-pill::before {
+    display: none;
+  }
+
+  .vf-interval-chip {
+    display: none;
+  }
+
+  .vf-header-action {
+    min-height: 2.35rem;
+    width: 2.35rem;
+  }
+
+  .vf-header-rule-label {
+    font-size: 0.5rem;
+  }
+
+  .settings-page {
+    padding-top: 0.1rem;
+  }
+
+  .settings-header {
+    min-height: 3.8rem;
+    padding-bottom: 0.72rem;
+  }
+
+  .settings-heading-copy h1 {
+    font-size: 1.35rem;
+  }
+
+  .settings-eyebrow {
+    font-size: 0.52rem;
+  }
+
+  .settings-sync-badge {
+    min-height: 1.8rem;
+    padding-inline: 0.55rem;
+    font-size: 0.62rem;
+  }
+
+  .settings-layout {
+    display: flex;
+    gap: 0.8rem;
+  }
+
+  .settings-nav {
+    position: static;
+    flex-direction: row;
+    gap: 0.42rem;
+    margin-inline: -0.1rem;
+    padding: 0.15rem 0.1rem 0.28rem;
+    overflow-x: auto;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    scrollbar-width: none;
+  }
+
+  .settings-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .settings-nav-item {
+    min-width: max-content;
+    min-height: 2.55rem;
+    gap: 0.42rem;
+    padding: 0.42rem 0.62rem;
+    border-color: color-mix(in oklch, var(--border) 76%, var(--primary) 24%);
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--card) 78%, transparent);
+  }
+
+  .settings-nav-icon {
+    width: 1.45rem;
+    height: 1.45rem;
+    border: 0;
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--muted) 70%, transparent);
+  }
+
+  .settings-nav-item-active .settings-nav-icon {
+    background: oklch(1 0 0 / 12%);
+  }
+
+  .settings-nav-item-active {
+    border-color: color-mix(in oklch, var(--primary) 30%, var(--border));
+    color: var(--primary);
+    background: color-mix(in oklch, var(--primary) 10%, var(--card));
+    box-shadow: none;
+  }
+
+  .settings-nav-arrow {
+    display: none;
+  }
+
+  .settings-nav-label {
+    font-size: 0.72rem;
+  }
+
+  .settings-content-panel {
+    min-height: 0;
+    border-radius: 1.25rem;
+  }
+
+  .settings-content-header {
+    align-items: flex-start;
+    padding: 1rem 1rem 0.92rem;
+  }
+
+  .settings-content-body {
+    padding: 1rem;
+  }
+
+  .settings-content-meta {
+    font-size: 0.56rem;
+    text-align: right;
+  }
+
+  .settings-style-section .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .settings-background-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .settings-background-option {
+    min-height: 4.25rem;
+    padding: 0.5rem;
+  }
+
+  .settings-style-section .vf-style-option {
+    padding: 0.62rem;
+  }
+
+  .settings-style-section .vf-style-option p {
+    display: none;
+  }
+
+  .settings-style-section .vf-style-option > div:nth-last-child(2) {
+    margin-top: 0.05rem;
+  }
+
+  .settings-preferences-section > div {
+    min-height: 3.4rem;
+  }
+
+  .vf-mobile-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 70;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+    padding: 0.52rem max(0.7rem, env(safe-area-inset-right)) max(0.58rem) max(0.7rem, env(safe-area-inset-left));
+    border-top: 1px solid color-mix(in oklch, var(--border) 78%, var(--primary) 22%);
+    background: color-mix(in oklch, var(--card) 80%, transparent);
+    box-shadow: 0 -12px 32px oklch(0.24 0.04 210 / 12%);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+  }
+
+  .vf-mobile-nav-item {
+    position: relative;
+    display: flex;
+    min-height: 2.85rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.46rem;
+    border: 1px solid transparent;
+    border-radius: 0.95rem;
+    color: var(--muted-foreground);
+    background: transparent;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .vf-mobile-nav-item-active {
+    border-color: color-mix(in oklch, var(--primary) 18%, transparent);
+    color: var(--primary);
+    background: color-mix(in oklch, var(--primary) 9%, transparent);
+  }
+
+  .vf-mobile-nav-item-active::before {
+    position: absolute;
+    top: -0.52rem;
+    left: 50%;
+    width: 1.8rem;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--primary);
+    content: "";
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vf-connection-live::before,
+  .settings-sync-live .settings-sync-dot,
+  .settings-nav-arrow,
+  .settings-style-section .vf-style-option,
+  .vf-mobile-nav-item {
+    animation: none;
     transition: none;
   }
 }
