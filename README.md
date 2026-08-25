@@ -15,21 +15,27 @@ Windows 系统指标采集器 + 移动优先仪表盘。单进程：Rust 采集�
 
 ### 开发
 
-终端 1 — 后端：
+一键（推荐）：新窗口跑 Rust 后端，当前窗口跑 Vite 热更新。
+
+```powershell
+./scripts/dev.ps1
+```
+
+本机打开 `http://127.0.0.1:5173`。手机同 Wi‑Fi 访问 `http://<电脑局域网IP>:5173`（Vite 会把 `/api`、`/ws` 代理到 `8787`）。改前端会即时刷新，不必重新 `build.ps1`。
+
+若 8787 已被生产进程占用，先关掉 `vivoflow.exe` 再跑开发脚本。
+
+也可以手动开两个终端：
 
 ```bash
 cargo run -p vivoflow
 ```
-
-终端 2 — 前端（代理 `/ws` 与 `/api` 到 `8787`）：
 
 ```bash
 cd web
 npm install
 npm run dev
 ```
-
-本机打开 `http://127.0.0.1:5173`。
 
 ### 生产（单二进制）
 

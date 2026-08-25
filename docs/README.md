@@ -15,6 +15,6 @@
 VivoFlow/
   crates/vivoflow/     # Rust 后端（采集 + HTTP/WS + 内嵌静态资源）
   web/                 # Vite + React 前端源码
-  scripts/             # 生产构建（前端 → static → release）
+  scripts/             # 开发（Vite + cargo run）与生产构建
   docs/                # 本目录
 ```

@@ -27,7 +27,7 @@ flowchart LR
 2. 采集循环按 `interval_ms` 调用 `Collector::collect`，写入 `latest` / `history`，并通过 `broadcast` 推送。
 3. 客户端连接 `/ws` 后立刻收到 `config` + 最新 `snapshot`，之后持续接收推送。
 4. 客户端可通过 `set_config` 调整间隔、模块开关、历史点数；服务端 `sanitize` 后生效。
-5. 生产环境下 UI 来自 `crates/vivoflow/static`（由 `scripts/build.*` 从 `web/dist` 同步）。
+5. 生产环境下 UI 来自 `crates/vivoflow/static`（由 `scripts/build.*` 从 `web/dist` 同步）。开发时打开 `scripts/dev.ps1`（或 Vite `5173` + `cargo run`），前端不走内嵌 static。
 
 ## 技术栈摘要
 
