@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Images, Info, Palette, Radio } from "lucide-react";
+import { ArrowLeft, AudioLines, Images, Info, Palette, Radio } from "lucide-react";
 import { AlbumSettings } from "@/components/albums/AlbumSettings";
+import { AudioSettings } from "@/components/audio/AudioSettings";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -11,21 +12,27 @@ import {
   type AccentId,
   type TFunction,
 } from "@/hooks/useAppearance";
-import type { AppConfig, Lang, ThemeMode, UiStyle } from "@/types";
+import type { AppConfig, AudioFrame, AudioStatus, Lang, ThemeMode, UiStyle } from "@/types";
 import { DEFAULT_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
 
-type TabId = "appearance" | "collection" | "albums" | "about";
+type TabId = "appearance" | "collection" | "albums" | "audio" | "about";
 
 export function SettingsPage({
   config,
   onSave,
   onBack,
+  audioFrame,
+  audioStatus,
+  onAudioSubscribe,
 }: {
   config: AppConfig | null;
   onSave: (cfg: AppConfig) => void;
   onBack: () => void;
+  audioFrame: AudioFrame | null;
+  audioStatus: AudioStatus | null;
+  onAudioSubscribe: (enabled: boolean) => void;
 }) {
   const {
     t,
@@ -52,6 +59,7 @@ export function SettingsPage({
     { id: "appearance", label: t("appearance"), icon: Palette },
     { id: "collection", label: t("collection"), icon: Radio },
     { id: "albums", label: t("albums"), icon: Images },
+    { id: "audio", label: t("audioVisualizer"), icon: AudioLines },
     { id: "about", label: t("about"), icon: Info },
   ];
 
@@ -192,6 +200,7 @@ export function SettingsPage({
           ) : null}
 
           {tab === "albums" ? <AlbumSettings /> : null}
+          {tab === "audio" ? <AudioSettings frame={audioFrame} status={audioStatus} onSubscribe={onAudioSubscribe} /> : null}
 
           {tab === "about" ? <AboutTab t={t} /> : null}
         </section>

@@ -19,6 +19,25 @@ fn default_photo_album_effect() -> String {
     "single".into()
 }
 
+fn default_audio_visualizer_mode() -> String {
+    "particles".into()
+}
+fn default_audio_color_mode() -> String {
+    "gradient".into()
+}
+fn default_audio_color_primary() -> String {
+    "#22d3ee".into()
+}
+fn default_audio_color_secondary() -> String {
+    "#a855f7".into()
+}
+fn default_audio_amplitude() -> f32 {
+    1.0
+}
+fn default_audio_smoothing() -> f32 {
+    0.65
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub interval_ms: u64,
@@ -46,6 +65,22 @@ pub struct AppConfig {
     pub photo_album_enabled: bool,
     #[serde(default = "default_photo_album_effect")]
     pub photo_album_effect: String,
+    #[serde(default)]
+    pub audio_visualizer_enabled: bool,
+    #[serde(default)]
+    pub audio_device_id: Option<String>,
+    #[serde(default = "default_audio_visualizer_mode")]
+    pub audio_visualizer_mode: String,
+    #[serde(default = "default_audio_color_mode")]
+    pub audio_color_mode: String,
+    #[serde(default = "default_audio_color_primary")]
+    pub audio_color_primary: String,
+    #[serde(default = "default_audio_color_secondary")]
+    pub audio_color_secondary: String,
+    #[serde(default = "default_audio_amplitude")]
+    pub audio_amplitude: f32,
+    #[serde(default = "default_audio_smoothing")]
+    pub audio_smoothing: f32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -74,6 +109,14 @@ impl Default for AppConfig {
             mobile_carousel_interval_s: default_mobile_carousel_interval_s(),
             photo_album_enabled: false,
             photo_album_effect: default_photo_album_effect(),
+            audio_visualizer_enabled: false,
+            audio_device_id: None,
+            audio_visualizer_mode: default_audio_visualizer_mode(),
+            audio_color_mode: default_audio_color_mode(),
+            audio_color_primary: default_audio_color_primary(),
+            audio_color_secondary: default_audio_color_secondary(),
+            audio_amplitude: default_audio_amplitude(),
+            audio_smoothing: default_audio_smoothing(),
         }
     }
 }
@@ -143,6 +186,40 @@ impl AppConfig {
         self.mobile_carousel_interval_s = self.mobile_carousel_interval_s.clamp(5, 60);
         if !["single", "time_machine", "cover_flow"].contains(&self.photo_album_effect.as_str()) {
             self.photo_album_effect = default_photo_album_effect();
+        }
+        if !["particles", "grid", "aurora", "radial"].contains(&self.audio_visualizer_mode.as_str())
+        {
+            self.audio_visualizer_mode = default_audio_visualizer_mode();
+        }
+        if !["single", "gradient"].contains(&self.audio_color_mode.as_str()) {
+            self.audio_color_mode = default_audio_color_mode();
+        }
+        if !is_hex_color(&self.audio_color_primary) {
+            self.audio_color_primary = default_audio_color_primary();
+        } else {
+            self.audio_color_primary = self.audio_color_primary.to_ascii_lowercase();
+        }
+        if !is_hex_color(&self.audio_color_secondary) {
+            self.audio_color_secondary = default_audio_color_secondary();
+        } else {
+            self.audio_color_secondary = self.audio_color_secondary.to_ascii_lowercase();
+        }
+        self.audio_amplitude = if self.audio_amplitude.is_finite() {
+            self.audio_amplitude.clamp(0.5, 2.0)
+        } else {
+            default_audio_amplitude()
+        };
+        self.audio_smoothing = if self.audio_smoothing.is_finite() {
+            self.audio_smoothing.clamp(0.0, 0.9)
+        } else {
+            default_audio_smoothing()
+        };
+        self.audio_device_id = self.audio_device_id.and_then(|id| {
+            let id = id.trim();
+            (!id.is_empty() && id.len() <= 1024).then(|| id.to_owned())
+        });
+        if self.audio_visualizer_enabled {
+            self.photo_album_enabled = false;
         }
         self
     }
@@ -227,6 +304,8 @@ mod tests {
         assert_eq!(cfg.mobile_carousel_interval_s, 10);
         assert!(!cfg.photo_album_enabled);
         assert_eq!(cfg.photo_album_effect, "single");
+        assert!(!cfg.audio_visualizer_enabled);
+        assert_eq!(cfg.audio_visualizer_mode, "particles");
     }
 
     #[test]
@@ -251,5 +330,24 @@ mod tests {
             ..AppConfig::default()
         };
         assert_eq!(cfg.sanitize().photo_album_effect, "single");
+    }
+
+    #[test]
+    fn audio_config_is_sanitized_and_exclusive() {
+        let cfg = AppConfig {
+            photo_album_enabled: true,
+            audio_visualizer_enabled: true,
+            audio_visualizer_mode: "unknown".into(),
+            audio_color_primary: "bad".into(),
+            audio_amplitude: 9.0,
+            audio_smoothing: -1.0,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(!cfg.photo_album_enabled);
+        assert_eq!(cfg.audio_visualizer_mode, "particles");
+        assert_eq!(cfg.audio_color_primary, "#22d3ee");
+        assert_eq!(cfg.audio_amplitude, 2.0);
+        assert_eq!(cfg.audio_smoothing, 0.0);
     }
 }

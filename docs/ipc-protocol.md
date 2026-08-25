@@ -11,6 +11,7 @@
 | `get_snapshot` | 无 | 立即回一条当前 `snapshot`（若已有） |
 | `get_config` | 无 | 回 `config` |
 | `set_config` | `config: AppConfig` | 校验、持久化、广播，并回 `config` |
+| `set_audio_subscription` | `enabled: boolean` | 为当前连接订阅或取消高频音频帧 |
 
 ### AppConfig
 
@@ -35,7 +36,15 @@
   "hide_title_bar": false,
   "mobile_card_mode": false,
   "mobile_auto_carousel": true,
-  "mobile_carousel_interval_s": 10
+  "mobile_carousel_interval_s": 10,
+  "audio_visualizer_enabled": false,
+  "audio_device_id": null,
+  "audio_visualizer_mode": "particles",
+  "audio_color_mode": "gradient",
+  "audio_color_primary": "#22d3ee",
+  "audio_color_secondary": "#a855f7",
+  "audio_amplitude": 1.0,
+  "audio_smoothing": 0.65
 }
 ```
 
@@ -52,6 +61,10 @@
 | `mobile_card_mode` | `true` / `false`；手机启用 2x 分页卡片 |
 | `mobile_auto_carousel` | `true` / `false`；仅移动卡片模式生效 |
 | `mobile_carousel_interval_s` | `[5, 60]`，默认 `10` |
+| `audio_visualizer_mode` | `particles` / `grid` / `aurora` / `radial` |
+| `audio_color_mode` | `single` / `gradient` |
+| `audio_amplitude` | `[0.5, 2.0]` |
+| `audio_smoothing` | `[0, 0.9]` |
 
 配置变更会广播给所有已连接的 WebSocket 客户端，前端以服务端回传为准同步 UI。
 
@@ -62,6 +75,8 @@
 | `snapshot` | 完整指标快照 |
 | `config` | `{ "type":"config", "config": AppConfig }` |
 | `error` | `{ "type":"error", "message": "..." }` |
+| `audio_frame` | 64 个归一化频段及 `rms`、`peak`、`beat`；仅向已订阅连接推送 |
+| `audio_status` | 捕获状态、所选与实际设备 ID、回退或错误原因 |
 
 ### 连接建立时
 
@@ -76,6 +91,7 @@
 | GET | `/api/snapshot` | 最新快照 |
 | GET | `/api/history` | 历史快照 |
 | GET | `/api/config` | 当前完整配置 |
+| GET | `/api/audio/devices` | Windows 输出设备列表 |
 | GET | `/*` | 内嵌前端 |
 
 环境变量：`VIVOFLOW_ADDR`（默认 `0.0.0.0:8787`）、`VIVOFLOW_CONFIG`（配置文件路径）。

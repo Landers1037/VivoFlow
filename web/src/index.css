@@ -1080,6 +1080,33 @@ textarea,
   touch-action: pan-y;
 }
 
+.audio-stage {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 50% 110%, color-mix(in oklch, var(--primary) 10%, transparent), transparent 52%),
+    var(--background);
+}
+
+.audio-stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background-image: linear-gradient(color-mix(in oklch, var(--foreground) 2.5%, transparent) 1px, transparent 1px);
+  background-size: 100% 4px;
+  mask-image: linear-gradient(to bottom, transparent, black 35%, black 70%, transparent);
+  opacity: 0.35;
+}
+
+.audio-stage canvas { z-index: 1; }
+.audio-stage-badge,
+.audio-stage-control {
+  border-color: color-mix(in oklch, var(--foreground) 12%, transparent);
+  background: color-mix(in oklch, var(--card) 76%, transparent);
+  box-shadow: 0 8px 30px oklch(0 0 0 / 10%);
+}
+
 .photo-frame .swiper-slide {
   display: flex;
   align-items: center;

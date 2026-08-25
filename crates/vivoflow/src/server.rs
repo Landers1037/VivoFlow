@@ -10,6 +10,7 @@ use rust_embed::Embed;
 use tower_http::cors::{Any, CorsLayer};
 
 use crate::album::AlbumStore;
+use crate::audio::AudioHub;
 use crate::hub::MetricsHub;
 use crate::ipc::handle_socket;
 
@@ -21,16 +22,23 @@ struct Assets;
 #[derive(Clone)]
 struct AppState {
     hub: MetricsHub,
+    audio: AudioHub,
 }
 
-pub async fn serve(addr: SocketAddr, hub: MetricsHub, albums: AlbumStore) -> anyhow::Result<()> {
-    let state = AppState { hub };
+pub async fn serve(
+    addr: SocketAddr,
+    hub: MetricsHub,
+    albums: AlbumStore,
+    audio: AudioHub,
+) -> anyhow::Result<()> {
+    let state = AppState { hub, audio };
 
     let app = Router::new()
         .route("/api/health", get(health))
         .route("/api/snapshot", get(snapshot))
         .route("/api/history", get(history))
         .route("/api/config", get(get_config))
+        .route("/api/audio/devices", get(audio_devices))
         .route("/ws", get(ws_handler))
         .fallback(static_handler)
         .layer(
@@ -76,8 +84,24 @@ async fn get_config(State(state): State<AppState>) -> impl IntoResponse {
     }))
 }
 
+async fn audio_devices() -> impl IntoResponse {
+    match tokio::task::spawn_blocking(crate::audio::enumerate_devices).await {
+        Ok(Ok(devices)) => Json(serde_json::json!({ "devices": devices })).into_response(),
+        Ok(Err(error)) => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(serde_json::json!({ "message": error.to_string() })),
+        )
+            .into_response(),
+        Err(error) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "message": error.to_string() })),
+        )
+            .into_response(),
+    }
+}
+
 async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> impl IntoResponse {
-    ws.on_upgrade(move |socket| handle_socket(socket, state.hub))
+    ws.on_upgrade(move |socket| handle_socket(socket, state.hub, state.audio))
 }
 
 async fn static_handler(uri: Uri) -> Response {

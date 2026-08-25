@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MessageKey } from "@/i18n/messages";
-import type { AppConfig, ConnState, Snapshot } from "@/types";
+import type { AppConfig, AudioFrame, AudioStatus, ConnState, Snapshot } from "@/types";
 import { DEFAULT_CONFIG } from "@/types";
 
 function wsUrl(): string {
@@ -26,10 +26,13 @@ export function useVivoflowWs() {
   const [history, setHistory] = useState<Snapshot[]>([]);
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [error, setError] = useState<WsError | null>(null);
+  const [audioFrame, setAudioFrame] = useState<AudioFrame | null>(null);
+  const [audioStatus, setAudioStatus] = useState<AudioStatus | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const historyLimit = useRef(60);
   const retryRef = useRef(0);
   const timerRef = useRef<number | null>(null);
+  const audioSubscribedRef = useRef(false);
 
   const applySnapshot = useCallback((snap: Snapshot) => {
     setSnapshot(snap);
@@ -59,6 +62,7 @@ export function useVivoflowWs() {
       ws.send(JSON.stringify({ type: "hello", client: "web" }));
       ws.send(JSON.stringify({ type: "get_config" }));
       ws.send(JSON.stringify({ type: "get_snapshot" }));
+      if (audioSubscribedRef.current) ws.send(JSON.stringify({ type: "set_audio_subscription", enabled: true }));
     };
 
     ws.onmessage = (ev) => {
@@ -76,6 +80,10 @@ export function useVivoflowWs() {
               ? { kind: "raw", message: String(msg.message) }
               : { kind: "key", key: "unknownError" },
           );
+        } else if (msg.type === "audio_frame") {
+          setAudioFrame(msg as AudioFrame);
+        } else if (msg.type === "audio_status") {
+          setAudioStatus(msg as AudioStatus);
         }
       } catch {
         setError({ kind: "key", key: "parseError" });
@@ -109,5 +117,12 @@ export function useVivoflowWs() {
     ws.send(JSON.stringify({ type: "set_config", config: next }));
   }, []);
 
-  return { conn, snapshot, history, config, error, setRemoteConfig, reconnect: connect };
+  const setAudioSubscription = useCallback((enabled: boolean) => {
+    audioSubscribedRef.current = enabled;
+    if (!enabled) setAudioFrame(null);
+    const ws = wsRef.current;
+    if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "set_audio_subscription", enabled }));
+  }, []);
+
+  return { conn, snapshot, history, config, error, audioFrame, audioStatus, setAudioSubscription, setRemoteConfig, reconnect: connect };
 }

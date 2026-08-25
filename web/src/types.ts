@@ -26,6 +26,8 @@ export type AccentId = "teal" | "zinc" | "blue" | "violet" | "amber" | "custom";
 export type ThemeMode = "light" | "dark" | "system";
 export type Lang = "zh" | "en";
 export type PhotoAlbumEffect = "single" | "time_machine" | "cover_flow";
+export type AudioVisualizerMode = "particles" | "grid" | "aurora" | "radial";
+export type AudioColorMode = "single" | "gradient";
 
 export const UI_STYLES: UiStyle[] = [
   "amicro",
@@ -70,6 +72,14 @@ export interface AppConfig {
   mobile_carousel_interval_s: number;
   photo_album_enabled: boolean;
   photo_album_effect: PhotoAlbumEffect;
+  audio_visualizer_enabled: boolean;
+  audio_device_id: string | null;
+  audio_visualizer_mode: AudioVisualizerMode;
+  audio_color_mode: AudioColorMode;
+  audio_color_primary: string;
+  audio_color_secondary: string;
+  audio_amplitude: number;
+  audio_smoothing: number;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -87,7 +97,27 @@ export const DEFAULT_CONFIG: AppConfig = {
   mobile_carousel_interval_s: 10,
   photo_album_enabled: false,
   photo_album_effect: "single",
+  audio_visualizer_enabled: false,
+  audio_device_id: null,
+  audio_visualizer_mode: "particles",
+  audio_color_mode: "gradient",
+  audio_color_primary: "#22d3ee",
+  audio_color_secondary: "#a855f7",
+  audio_amplitude: 1,
+  audio_smoothing: 0.65,
 };
+
+export interface AudioDevice { id: string; name: string; is_default: boolean; }
+export interface AudioFrame {
+  type: "audio_frame"; seq: number; ts: number; bins: number[]; rms: number; peak: number; beat: boolean;
+}
+export interface AudioStatus {
+  type: "audio_status";
+  state: "disabled" | "capturing" | "fallback" | "error";
+  selected_device_id: string | null;
+  active_device_id: string | null;
+  reason: string | null;
+}
 
 export interface AlbumImage {
   id: string;

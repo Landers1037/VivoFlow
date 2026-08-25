@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, Lang, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, Lang, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   DEFAULT_ACCENT_CUSTOM,
@@ -89,6 +89,14 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     )
       ? (base.photo_album_effect as PhotoAlbumEffect)
       : "single",
+    audio_visualizer_enabled: Boolean(base.audio_visualizer_enabled),
+    audio_device_id: typeof base.audio_device_id === "string" && base.audio_device_id.trim() ? base.audio_device_id : null,
+    audio_visualizer_mode: (["particles", "grid", "aurora", "radial"] as const).includes(base.audio_visualizer_mode as AudioVisualizerMode) ? base.audio_visualizer_mode as AudioVisualizerMode : "particles",
+    audio_color_mode: (["single", "gradient"] as const).includes(base.audio_color_mode as AudioColorMode) ? base.audio_color_mode as AudioColorMode : "gradient",
+    audio_color_primary: normalizeHexColor(base.audio_color_primary || "#22d3ee"),
+    audio_color_secondary: normalizeHexColor(base.audio_color_secondary || "#a855f7"),
+    audio_amplitude: Number.isFinite(Number(base.audio_amplitude)) ? Math.min(2, Math.max(0.5, Number(base.audio_amplitude))) : 1,
+    audio_smoothing: Number.isFinite(Number(base.audio_smoothing)) ? Math.min(0.9, Math.max(0, Number(base.audio_smoothing))) : 0.65,
   };
 }
 
@@ -134,6 +142,13 @@ interface AppearanceContextValue {
   setMobileCarouselInterval: (v: number) => void;
   setPhotoAlbumEnabled: (v: boolean) => void;
   setPhotoAlbumEffect: (v: PhotoAlbumEffect) => void;
+  setAudioVisualizerEnabled: (v: boolean) => void;
+  setAudioDeviceId: (v: string | null) => void;
+  setAudioVisualizerMode: (v: AudioVisualizerMode) => void;
+  setAudioColorMode: (v: AudioColorMode) => void;
+  setAudioColors: (primary: string, secondary: string) => void;
+  setAudioAmplitude: (v: number) => void;
+  setAudioSmoothing: (v: number) => void;
   t: TFunction;
   lang: Lang;
 }
@@ -196,8 +211,15 @@ export function AppearanceProvider({
       setMobileAutoCarousel: (mobile_auto_carousel) => patch({ mobile_auto_carousel }),
       setMobileCarouselInterval: (mobile_carousel_interval_s) =>
         patch({ mobile_carousel_interval_s }),
-      setPhotoAlbumEnabled: (photo_album_enabled) => patch({ photo_album_enabled }),
+      setPhotoAlbumEnabled: (photo_album_enabled) => patch({ photo_album_enabled, ...(photo_album_enabled ? { audio_visualizer_enabled: false } : {}) }),
       setPhotoAlbumEffect: (photo_album_effect) => patch({ photo_album_effect }),
+      setAudioVisualizerEnabled: (audio_visualizer_enabled) => patch({ audio_visualizer_enabled, ...(audio_visualizer_enabled ? { photo_album_enabled: false } : {}) }),
+      setAudioDeviceId: (audio_device_id) => patch({ audio_device_id }),
+      setAudioVisualizerMode: (audio_visualizer_mode) => patch({ audio_visualizer_mode }),
+      setAudioColorMode: (audio_color_mode) => patch({ audio_color_mode }),
+      setAudioColors: (audio_color_primary, audio_color_secondary) => patch({ audio_color_primary: normalizeHexColor(audio_color_primary), audio_color_secondary: normalizeHexColor(audio_color_secondary) }),
+      setAudioAmplitude: (audio_amplitude) => patch({ audio_amplitude }),
+      setAudioSmoothing: (audio_smoothing) => patch({ audio_smoothing }),
       t,
       lang: resolved.language,
     }),

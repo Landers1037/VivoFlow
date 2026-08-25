@@ -10,6 +10,7 @@
 | `GET /api/snapshot` | 最新快照 |
 | `GET /api/history` | Hub 历史数组 |
 | `GET /api/config` | 当前配置 |
+| `GET /api/audio/devices` | 活动输出设备、稳定 ID 与默认设备标记 |
 | `GET/POST /api/albums` | 列出或创建相册 |
 | `PATCH/DELETE /api/albums/{id}` | 更新或删除相册及其图片 |
 | `PUT /api/albums/order` | 保存完整相册顺序 |
@@ -39,4 +40,5 @@ struct Assets;
 - `CorsLayer`：允许任意源，方便 Vite 开发代理联调。
 - `AppState` 仅持有可克隆的 `MetricsHub`。
 - 相册元数据保存在配置目录的 `albums.json`，媒体文件位于同目录的 `albums/{album_id}/`。
+- 音频捕获仅在 Windows 可用；指定设备失效时保留配置并临时回退到系统默认设备。
 - 上传按文件签名接受 JPEG、PNG、WebP、GIF、AVIF；单图最大 25 MB，单批最多 50 张。

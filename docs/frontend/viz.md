@@ -30,3 +30,7 @@
 按 `ui_style` 微调：曲线类型（monotone / linear / step）、描边色（主题色或 mono）、填充透明度、圆角。`theme: "dark" | "light"` 仍用于 mono 对比色。动画默认关闭（`isAnimationActive={false}`）。
 
 高度：组件接受可选 `tile?: 1 | 2`，对应 CSS `.vf-widget-1x` / `.vf-widget-2x`（见 [`index.css`](../../web/src/index.css)）。图表区用 `.vf-widget-body` 弹性填满，避免内容撑破网格。
+
+## 音频 Canvas
+
+[`web/src/components/audio/`](../../web/src/components/audio/) 使用同一套 64 段频谱数据绘制粒子、方阵、极光与环形模式。设置页使用合成频谱预览，首页只使用 Rust 实时帧。Canvas DPR 上限为 2，并在 `prefers-reduced-motion` 下减少非必要运动。

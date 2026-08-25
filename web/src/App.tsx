@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Dashboard } from "@/components/Dashboard";
 import { PhotoAlbumPage } from "@/components/albums/PhotoAlbumPage";
+import { AudioVisualizerPage } from "@/components/audio/AudioVisualizerPage";
 import { SettingsPage } from "@/components/SettingsPage";
 import { FullPageLoader } from "@/components/viz";
 import { AppearanceProvider, useAppearance } from "@/hooks/useAppearance";
@@ -29,6 +30,9 @@ function AppShell({
   history,
   config,
   error,
+  audioFrame,
+  audioStatus,
+  setAudioSubscription,
   setRemoteConfig,
 }: ReturnType<typeof useVivoflowWs>) {
   const { t, config: appearanceConfig } = useAppearance();
@@ -66,6 +70,10 @@ function AppShell({
     [],
   );
 
+  if (page === "dashboard" && appearanceConfig.audio_visualizer_enabled) {
+    return <div className="vf-shell overflow-hidden"><AudioVisualizerPage frame={audioFrame} status={audioStatus} onSubscribe={setAudioSubscription} onOpenSettings={() => setPage("settings")} /></div>;
+  }
+
   if (page === "dashboard" && appearanceConfig.photo_album_enabled) {
     return (
       <div className="vf-shell overflow-hidden">
@@ -82,6 +90,9 @@ function AppShell({
             config={config}
             onSave={setRemoteConfig}
             onBack={() => setPage("dashboard")}
+            audioFrame={audioFrame}
+            audioStatus={audioStatus}
+            onAudioSubscribe={setAudioSubscription}
           />
         ) : (
           <>

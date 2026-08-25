@@ -3,6 +3,7 @@ use futures_util::{SinkExt, StreamExt};
 use serde::Deserialize;
 use serde_json::json;
 
+use crate::audio::AudioHub;
 use crate::config::AppConfig;
 use crate::hub::MetricsHub;
 
@@ -12,12 +13,17 @@ struct ClientMessage {
     msg_type: String,
     #[serde(default)]
     config: Option<AppConfig>,
+    #[serde(default)]
+    enabled: Option<bool>,
 }
 
-pub async fn handle_socket(socket: WebSocket, hub: MetricsHub) {
+pub async fn handle_socket(socket: WebSocket, hub: MetricsHub, audio: AudioHub) {
     let (mut sender, mut receiver) = socket.split();
     let mut rx = hub.subscribe();
     let mut cfg_rx = hub.subscribe_config();
+    let mut audio_rx = audio.subscribe_frames();
+    let mut audio_status_rx = audio.subscribe_status();
+    let mut audio_subscribed = false;
 
     if let Ok(text) = serde_json::to_string(&json!({
         "type": "config",
@@ -36,7 +42,7 @@ pub async fn handle_socket(socket: WebSocket, hub: MetricsHub) {
             msg = receiver.next() => {
                 match msg {
                     Some(Ok(Message::Text(text))) => {
-                        if let Err(err) = handle_text(&text, &hub, &mut sender).await {
+                        if let Err(err) = handle_text(&text, &hub, &audio, &mut audio_subscribed, &mut sender).await {
                             let _ = sender.send(Message::Text(
                                 json!({"type":"error","message": err.to_string()}).to_string().into()
                             )).await;
@@ -79,6 +85,24 @@ pub async fn handle_socket(socket: WebSocket, hub: MetricsHub) {
                     Err(_) => break,
                 }
             }
+            result = audio_rx.recv(), if audio_subscribed => {
+                match result {
+                    Ok(frame) => if let Ok(text) = serde_json::to_string(&frame) {
+                        if sender.send(Message::Text(text.into())).await.is_err() { break; }
+                    },
+                    Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
+                    Err(_) => break,
+                }
+            }
+            result = audio_status_rx.recv(), if audio_subscribed => {
+                match result {
+                    Ok(status) => if let Ok(text) = serde_json::to_string(&status) {
+                        if sender.send(Message::Text(text.into())).await.is_err() { break; }
+                    },
+                    Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
+                    Err(_) => break,
+                }
+            }
         }
     }
 }
@@ -86,6 +110,8 @@ pub async fn handle_socket(socket: WebSocket, hub: MetricsHub) {
 async fn handle_text<S>(
     text: &str,
     hub: &MetricsHub,
+    audio: &AudioHub,
+    audio_subscribed: &mut bool,
     sender: &mut S,
 ) -> anyhow::Result<()>
 where
@@ -130,6 +156,17 @@ where
                 .send(Message::Text(text.into()))
                 .await
                 .map_err(|e| anyhow::anyhow!(e))?;
+            Ok(())
+        }
+        "set_audio_subscription" => {
+            *audio_subscribed = msg.enabled.unwrap_or(false);
+            if *audio_subscribed {
+                let text = serde_json::to_string(&audio.current_status())?;
+                sender
+                    .send(Message::Text(text.into()))
+                    .await
+                    .map_err(|e| anyhow::anyhow!(e))?;
+            }
             Ok(())
         }
         other => anyhow::bail!("unknown message type: {other}"),

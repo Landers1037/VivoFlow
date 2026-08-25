@@ -9,6 +9,7 @@ Windows 系统指标采集器 + 移动优先仪表盘。单进程：Rust 采集�
 - **显卡**：型号、显存、占用/温度/显存频率（NVIDIA NVML；否则可能为 `null`）
 - **磁盘**：数量、型号、容量、读写 IO
 - **网络**：网卡名称/型号、上下行速率
+- **音频可视化**：WASAPI 输出捕获、四种实时频谱、输出设备与配色控制
 
 ## 快速开始
 
@@ -66,11 +67,13 @@ http://<电脑局域网IP>:8787
 | C→S | `hello` | 可选握手 |
 | C→S | `get_snapshot` | 立即拉取快照 |
 | C→S | `get_config` / `set_config` | 读写采集参数 |
+| C→S | `set_audio_subscription` | 订阅或取消实时频谱 |
 | S→C | `snapshot` | 指标推送 |
 | S→C | `config` | 配置回传 |
 | S→C | `error` | 错误信息 |
+| S→C | `audio_frame` / `audio_status` | 64 段频谱与捕获状态 |
 
-HTTP 调试：`GET /api/health`、`GET /api/snapshot`、`GET /api/config`。
+HTTP 调试：`GET /api/health`、`GET /api/snapshot`、`GET /api/config`、`GET /api/audio/devices`。
 
 ### 配置示例
 
