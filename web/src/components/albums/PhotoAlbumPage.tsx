@@ -13,6 +13,23 @@ interface PlaylistItem {
   imageIndex: number;
 }
 
+type SingleTransitionEffect = "fly" | "rise" | "zoom" | "flip" | "wipe" | "dissolve" | "mosaic";
+
+const SINGLE_TRANSITION_EFFECTS: SingleTransitionEffect[] = ["fly", "rise", "zoom", "flip", "wipe", "dissolve", "mosaic"];
+const MOSAIC_COLUMNS = 8;
+const MOSAIC_ROWS = 6;
+const MOSAIC_TILES = Array.from({ length: MOSAIC_COLUMNS * MOSAIC_ROWS }, (_, index) => ({
+  index,
+  column: index % MOSAIC_COLUMNS,
+  row: Math.floor(index / MOSAIC_COLUMNS),
+  delay: (((index * 17) + (index * index * 7)) % (MOSAIC_COLUMNS * MOSAIC_ROWS)) / (MOSAIC_COLUMNS * MOSAIC_ROWS) * 0.48,
+}));
+
+function randomTransition(previous?: SingleTransitionEffect): SingleTransitionEffect {
+  const choices = previous ? SINGLE_TRANSITION_EFFECTS.filter((effect) => effect !== previous) : SINGLE_TRANSITION_EFFECTS;
+  return choices[Math.floor(Math.random() * choices.length)] ?? "dissolve";
+}
+
 export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { t, config } = useAppearance();
   const reducedMotion = useReducedMotion();
@@ -22,6 +39,7 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
   const [cycle, setCycle] = useState(0);
   const [index, setIndex] = useState(0);
+  const [singleTransition, setSingleTransition] = useState<SingleTransitionEffect>(() => randomTransition());
   const [chromeVisible, setChromeVisible] = useState(true);
   const idleTimer = useRef<number | null>(null);
   const pointerStart = useRef<number | null>(null);
@@ -72,6 +90,7 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
 
   const advance = useCallback(() => {
     if (playlist.length === 0) return;
+    setSingleTransition((previousEffect) => randomTransition(previousEffect));
     setIndex((value) => {
       if (value < playlist.length - 1) return value + 1;
       setCycle((round) => round + 1);
@@ -86,6 +105,7 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
 
   const previous = useCallback(() => {
     if (playlist.length === 0) return;
+    setSingleTransition((previousEffect) => randomTransition(previousEffect));
     setIndex((value) => (value > 0 ? value - 1 : playlist.length - 1));
     reveal();
   }, [playlist.length, reveal]);
@@ -168,6 +188,7 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
         ) : (
           <SingleCarousel
             current={current}
+            effect={singleTransition}
             onImageError={imageFailed}
             reducedMotion={Boolean(reducedMotion)}
           />
@@ -252,22 +273,99 @@ function EmptyFrame({ onOpenSettings }: { onOpenSettings: () => void }) {
   );
 }
 
-function SingleCarousel({ current, onImageError, reducedMotion }: { current: PlaylistItem; onImageError: (image: AlbumImage) => void; reducedMotion: boolean }) {
+function SingleCarousel({ current, effect, onImageError, reducedMotion }: { current: PlaylistItem; effect: SingleTransitionEffect; onImageError: (image: AlbumImage) => void; reducedMotion: boolean }) {
+  const transition = reducedMotion ? { duration: 0 } : { duration: 0.78, ease: [0.22, 1, 0.36, 1] as const };
+  const variants = {
+    fly: {
+      initial: { opacity: 0, x: "24%", rotateZ: 1.5, scale: 0.96 },
+      animate: { opacity: 1, x: 0, rotateZ: 0, scale: 1 },
+      exit: { opacity: 0, x: "-10%", scale: 0.985 },
+    },
+    rise: {
+      initial: { opacity: 0, y: "22%", scale: 0.97 },
+      animate: { opacity: 1, y: 0, scale: 1 },
+      exit: { opacity: 0, y: "-9%", scale: 0.99 },
+    },
+    zoom: {
+      initial: { opacity: 0, scale: 1.16, filter: "blur(8px)" },
+      animate: { opacity: 1, scale: 1, filter: "blur(0px)" },
+      exit: { opacity: 0, scale: 0.94, filter: "blur(4px)" },
+    },
+    flip: {
+      initial: { opacity: 0, rotateY: 68, scale: 0.92 },
+      animate: { opacity: 1, rotateY: 0, scale: 1 },
+      exit: { opacity: 0, rotateY: -36, scale: 0.96 },
+    },
+    wipe: {
+      initial: { opacity: 1, clipPath: "inset(0 100% 0 0)" },
+      animate: { opacity: 1, clipPath: "inset(0 0% 0 0)" },
+      exit: { opacity: 0, clipPath: "inset(0 0 0 0)" },
+    },
+    dissolve: {
+      initial: { opacity: 0, filter: "blur(18px) saturate(0.65)", scale: 1.035 },
+      animate: { opacity: 1, filter: "blur(0px) saturate(1)", scale: 1 },
+      exit: { opacity: 0, filter: "blur(10px) saturate(0.8)", scale: 0.985 },
+    },
+  } as const;
+
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div className="relative h-full w-full overflow-hidden" style={{ perspective: "1400px" }}>
       <AnimatePresence initial={false} mode="sync">
-        <motion.img
-          key={current.image.id}
-          src={current.image.content_url}
-          alt={current.image.original_name}
-          onError={() => onImageError(current.image)}
-          initial={{ opacity: 0, scale: reducedMotion ? 1 : 1.025 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: reducedMotion ? 1 : 0.985 }}
-          transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-0 h-full w-full object-contain"
-          draggable={false}
-        />
+        {effect === "mosaic" && !reducedMotion ? (
+          <motion.div key={current.image.id} className="absolute inset-0" exit={{ opacity: 0 }} transition={{ duration: 0.28 }}>
+            <motion.img
+              src={current.image.content_url}
+              alt={current.image.original_name}
+              onError={() => onImageError(current.image)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.18 }}
+              className="absolute inset-0 h-full w-full object-contain"
+              draggable={false}
+            />
+            <div
+              className="absolute inset-0 grid"
+              aria-hidden="true"
+              style={{ gridTemplateColumns: `repeat(${MOSAIC_COLUMNS}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${MOSAIC_ROWS}, minmax(0, 1fr))` }}
+            >
+              {MOSAIC_TILES.map((tile) => (
+                <motion.span
+                  key={tile.index}
+                  className="relative overflow-hidden"
+                  initial={{ opacity: 0, scale: 0.45, rotateZ: tile.index % 2 === 0 ? -7 : 7 }}
+                  animate={{ opacity: 1, scale: 1, rotateZ: 0 }}
+                  transition={{ delay: tile.delay, duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <img
+                    src={current.image.content_url}
+                    alt=""
+                    className="pointer-events-none absolute max-w-none object-contain"
+                    style={{
+                      width: `${MOSAIC_COLUMNS * 100}%`,
+                      height: `${MOSAIC_ROWS * 100}%`,
+                      left: `-${tile.column * 100}%`,
+                      top: `-${tile.row * 100}%`,
+                    }}
+                    draggable={false}
+                  />
+                </motion.span>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.img
+            key={current.image.id}
+            src={current.image.content_url}
+            alt={current.image.original_name}
+            onError={() => onImageError(current.image)}
+            initial={reducedMotion ? { opacity: 1 } : variants[effect === "mosaic" ? "dissolve" : effect].initial}
+            animate={reducedMotion ? { opacity: 1 } : variants[effect === "mosaic" ? "dissolve" : effect].animate}
+            exit={reducedMotion ? { opacity: 0 } : variants[effect === "mosaic" ? "dissolve" : effect].exit}
+            transition={transition}
+            className="absolute inset-0 h-full w-full object-contain [backface-visibility:hidden]"
+            draggable={false}
+          />
+        )}
       </AnimatePresence>
     </div>
   );
