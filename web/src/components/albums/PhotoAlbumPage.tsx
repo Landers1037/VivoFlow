@@ -377,8 +377,8 @@ function TimeMachine({ playlist, index, onSelect, onImageError }: { playlist: Pl
   const albumItems = playlist.map((item, itemIndex) => ({ ...item, itemIndex })).filter((item) => item.album.id === currentAlbumId);
   const localIndex = Math.max(0, albumItems.findIndex((item) => item.itemIndex === index));
   return (
-    <div className="flex h-full w-full items-center justify-center gap-4 overflow-hidden px-4 sm:gap-10 sm:px-12" style={{ perspective: "1100px" }}>
-      <div className="relative h-[62vh] w-[min(72vw,860px)]">
+    <div className="flex h-full w-full items-center justify-center gap-2 overflow-hidden px-2 sm:gap-10 sm:px-12" style={{ perspective: "1100px" }}>
+      <div className="relative h-[76dvh] w-[min(calc(100%-3rem),960px)] sm:h-[70vh] sm:w-[min(76vw,920px)]">
         {albumItems.map((item, position) => {
           const offset = position - localIndex;
           const past = offset < 0;
@@ -404,7 +404,7 @@ function TimeMachine({ playlist, index, onSelect, onImageError }: { playlist: Pl
           );
         })}
       </div>
-      <div className="relative z-20 flex max-h-[56vh] w-14 flex-col items-end justify-center gap-1 overflow-hidden">
+      <div className="relative z-20 flex max-h-[72dvh] w-11 flex-col items-end justify-center gap-1 overflow-hidden sm:max-h-[62vh] sm:w-14">
         {albumItems.map((item, position) => (
           <button key={item.image.id} type="button" aria-label={`${position + 1}`} onClick={() => onSelect(item.itemIndex)} className="group flex min-h-4 w-full items-center justify-end">
             <span className={cn("h-[3px] rounded-full transition-all", position === localIndex ? "w-10 bg-white" : "w-5 bg-white/28 group-hover:w-7 group-hover:bg-white/60")} />
@@ -419,18 +419,21 @@ function CoverFlow({ playlist, index, onSelect, onImageError }: { playlist: Play
   const reducedMotion = useReducedMotion();
   return (
     <div className="flex h-full w-full items-center justify-center overflow-hidden" style={{ perspective: "1200px" }}>
-      <div className="relative h-[62vh] w-full [transform-style:preserve-3d]">
+      <div className="relative h-[76dvh] w-full sm:h-[70vh] [transform-style:preserve-3d]">
         {playlist.map((item, itemIndex) => {
           const offset = itemIndex - index;
           const absolute = Math.abs(offset);
           if (absolute > 4) return null;
+          const spread = reducedMotion
+            ? offset * 26
+            : offset * Math.min(210, window.innerWidth * (window.innerWidth < 640 ? 0.2 : 0.16));
           return (
             <motion.button
               type="button"
               key={`${item.album.id}-${item.image.id}`}
               onClick={() => onSelect(itemIndex)}
               animate={{
-                x: reducedMotion ? offset * 26 : offset * Math.min(180, window.innerWidth * 0.16),
+                x: spread,
                 rotateY: reducedMotion || offset === 0 ? 0 : offset < 0 ? 42 : -42,
                 z: offset === 0 ? 100 : -absolute * 90,
                 scale: offset === 0 ? 1 : Math.max(0.72, 1 - absolute * 0.08),
@@ -438,7 +441,7 @@ function CoverFlow({ playlist, index, onSelect, onImageError }: { playlist: Play
               }}
               transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 190, damping: 26 }}
               style={{ zIndex: 100 - absolute }}
-              className="vf-surface photo-frame-card absolute left-1/2 top-1/2 h-[min(62vh,680px)] w-[min(68vw,840px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden"
+              className="vf-surface photo-frame-card absolute left-1/2 top-1/2 h-[min(76dvh,820px)] w-[min(86vw,960px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden sm:h-[min(70vh,720px)] sm:w-[min(76vw,880px)]"
             >
               <img src={item.image.content_url} alt={item.image.original_name} onError={() => onImageError(item.image)} className="h-full w-full object-contain" draggable={false} />
             </motion.button>
