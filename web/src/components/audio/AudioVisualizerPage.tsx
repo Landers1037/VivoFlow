@@ -3,12 +3,13 @@ import { AudioLines, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AudioRenderer } from "@/components/audio/AudioRenderer";
 import { useAppearance } from "@/hooks/useAppearance";
+import { useAudioSignal } from "@/hooks/useAudioSignal";
 import type { AudioFrame, AudioStatus } from "@/types";
 
 export function AudioVisualizerPage({ frame, status, onSubscribe, onOpenSettings }: { frame: AudioFrame | null; status: AudioStatus | null; onSubscribe: (enabled: boolean) => void; onOpenSettings: () => void }) {
   const { config, t } = useAppearance();
   useEffect(() => { onSubscribe(true); return () => onSubscribe(false); }, [onSubscribe]);
-  const hasSignal = (frame?.rms ?? 0) > 0.002;
+  const hasSignal = useAudioSignal(frame);
   return (
     <main className="audio-stage relative h-[100dvh] w-full overflow-hidden bg-background text-foreground">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,color-mix(in_oklch,var(--primary)_9%,transparent),transparent_58%)]" />

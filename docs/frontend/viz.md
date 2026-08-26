@@ -35,6 +35,10 @@
 
 [`web/src/components/audio/`](../../web/src/components/audio/) 的 `AudioRenderer` 统一接收 64 段频谱、RMS、峰值和节拍数据，并分派到 2D `AudioCanvas` 或延迟加载的 `ThreeAudioCanvas`。2D 提供粒子、方阵、极光与环形模式；Three.js 提供频谱都市、粒子星云、声波地形与晶体核心。
 
+为兼容蓝牙播放端点等低电平回环信号，`AudioRenderer` 在分派前统一应用自动增益：以峰值 0.35 为视觉目标，增益限制在 1–48 倍，并采用约 120 ms 的快速攻击和 900 ms 的缓慢释放。归一化后的 bins、RMS 和 peak 同时供 2D 与 3D 使用；设置项 `audio_amplitude` 位于自动增益之后，仍只负责用户偏好的视觉强度。
+
+信号状态使用 peak 0.0002 / RMS 0.00005 的噪声门，门限以下的帧清零且不触发节拍；进入有效信号后保持 1.5 秒监听状态，避免音乐短暂停顿时反复显示“等待音频”。后端下发值仍保留原始归一化量，自动增益只影响前端视觉。
+
 3D 首页使用 WebGLRenderer、OrbitControls 与 EffectComposer（ACES tone mapping、Bloom、OutputPass），DPR 上限为 1.5。Bloom 只点亮高能峰值（暗色阈值约 0.76、强度 0.28），避免中心过曝。设置页仅创建一个共享预览 WebGL 上下文，DPR 为 1、最高 24 FPS并关闭后处理。页面隐藏、离开视口或卸载时会暂停或释放渲染资源；WebGL 2 不可用及上下文丢失会回退到 2D 环形模式。
 
 所有几何体、粒子与 Shader 均为程序化生成，不加载模型或贴图。`prefers-reduced-motion` 下停止自动运镜、持续旋转和粒子爆发，仅保留低幅度音频形变。

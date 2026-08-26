@@ -11,6 +11,133 @@ use crate::config::AppConfig;
 const FFT_SIZE: usize = 2048;
 const BAND_COUNT: usize = 64;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SampleEncoding {
+    Float32,
+    PcmInteger,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct AudioSampleFormat {
+    encoding: SampleEncoding,
+    channels: usize,
+    container_bits: u16,
+    valid_bits: u16,
+    block_align: usize,
+}
+
+#[derive(Debug)]
+struct DecodedAudio {
+    samples: Vec<f32>,
+    raw_peak: f32,
+    downmix_peak: f32,
+    cancellation_protected: bool,
+}
+
+impl AudioSampleFormat {
+    fn bytes_per_sample(self) -> usize {
+        usize::from(self.container_bits / 8)
+    }
+
+    fn decode_frames(self, data: &[u8], frames: usize) -> anyhow::Result<DecodedAudio> {
+        let expected = frames
+            .checked_mul(self.block_align)
+            .ok_or_else(|| anyhow::anyhow!("audio packet size overflow"))?;
+        if data.len() < expected {
+            anyhow::bail!(
+                "audio packet is too short: expected {expected} bytes, got {}",
+                data.len()
+            );
+        }
+
+        let bytes_per_sample = self.bytes_per_sample();
+        let mut interleaved = Vec::with_capacity(frames * self.channels);
+        let mut channel_energy = vec![0.0f64; self.channels];
+        let mut averaged = Vec::with_capacity(frames);
+        let mut average_energy = 0.0f64;
+        let mut raw_peak = 0.0f32;
+
+        for frame in data[..expected].chunks_exact(self.block_align) {
+            let mut sum = 0.0f32;
+            for (channel, energy) in channel_energy.iter_mut().enumerate() {
+                let start = channel * bytes_per_sample;
+                let sample = &frame[start..start + bytes_per_sample];
+                let value = match self.encoding {
+                    SampleEncoding::Float32 => {
+                        let value = f32::from_le_bytes(sample.try_into().expect("validated f32"));
+                        if value.is_finite() {
+                            value.clamp(-1.0, 1.0)
+                        } else {
+                            0.0
+                        }
+                    }
+                    SampleEncoding::PcmInteger => {
+                        decode_pcm_integer(sample, self.container_bits, self.valid_bits)
+                    }
+                };
+                raw_peak = raw_peak.max(value.abs());
+                *energy += f64::from(value) * f64::from(value);
+                interleaved.push(value);
+                sum += value;
+            }
+            let average = (sum / self.channels as f32).clamp(-1.0, 1.0);
+            average_energy += f64::from(average) * f64::from(average);
+            averaged.push(average);
+        }
+
+        let (strongest_channel, strongest_energy) = channel_energy
+            .iter()
+            .copied()
+            .enumerate()
+            .fold((0, 0.0f64), |strongest, candidate| {
+                if candidate.1 > strongest.1 {
+                    candidate
+                } else {
+                    strongest
+                }
+            });
+        // Preserve the normal stereo average unless it has lost over 99% of the
+        // strongest channel's energy. This catches inverted/special channel layouts
+        // without changing ordinary stereo balance or hard-panned material.
+        let cancellation_protected = self.channels > 1
+            && strongest_energy > f64::EPSILON
+            && average_energy < strongest_energy * 0.01;
+        let samples = if cancellation_protected {
+            interleaved
+                .chunks_exact(self.channels)
+                .map(|frame| frame[strongest_channel])
+                .collect()
+        } else {
+            averaged
+        };
+        let downmix_peak = samples
+            .iter()
+            .fold(0.0f32, |peak, value| peak.max(value.abs()));
+        Ok(DecodedAudio {
+            samples,
+            raw_peak,
+            downmix_peak,
+            cancellation_protected,
+        })
+    }
+}
+
+fn decode_pcm_integer(sample: &[u8], container_bits: u16, valid_bits: u16) -> f32 {
+    let raw = match container_bits {
+        16 => i16::from_le_bytes(sample.try_into().expect("validated i16")) as i32,
+        24 => {
+            let unsigned = sample[0] as i32 | (sample[1] as i32) << 8 | (sample[2] as i32) << 16;
+            (unsigned << 8) >> 8
+        }
+        32 => i32::from_le_bytes(sample.try_into().expect("validated i32")),
+        _ => unreachable!("container width is validated when capture opens"),
+    };
+    // Reduced-valid-bit WAVEFORMATEXTENSIBLE PCM is left-aligned in its container.
+    let aligned = raw >> (container_bits - valid_bits);
+    let scale = (1u64 << (valid_bits - 1)) as f32;
+    (aligned as f32 / scale).clamp(-1.0, 1.0)
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct AudioDevice {
     pub id: String,
@@ -139,6 +266,10 @@ impl AudioHub {
                         capture = Some(opened);
                     }
                     Err(error) => {
+                        tracing::warn!(
+                            selected_device_id = ?cfg.audio_device_id,
+                            "failed to open audio loopback capture: {error:#}"
+                        );
                         self.publish_status(AudioStatus {
                             status_type: "audio_status",
                             state: "error",
@@ -331,16 +462,111 @@ fn fft_in_place(re: &mut [f32], im: &mut [f32]) {
 
 #[cfg(windows)]
 mod platform {
-    use super::AudioDevice;
-    use anyhow::{Context, Result};
-    use windows::core::{HSTRING, PCWSTR};
+    use super::{AudioDevice, AudioSampleFormat, DecodedAudio, SampleEncoding};
+    use anyhow::{bail, Context, Result};
+    use std::time::{Duration, Instant};
+    use windows::core::{GUID, HSTRING, PCWSTR};
     use windows::Win32::Devices::FunctionDiscovery::PKEY_Device_FriendlyName;
     use windows::Win32::Media::Audio::*;
-    use windows::Win32::Media::Multimedia::WAVE_FORMAT_IEEE_FLOAT;
+    use windows::Win32::Media::Multimedia::{
+        KSDATAFORMAT_SUBTYPE_IEEE_FLOAT, WAVE_FORMAT_IEEE_FLOAT,
+    };
     use windows::Win32::System::Com::{
         CoCreateInstance, CoInitializeEx, CoTaskMemFree, CLSCTX_ALL, COINIT_MULTITHREADED,
         STGM_READ,
     };
+
+    const WAVE_FORMAT_EXTENSIBLE_TAG: u16 = 0xfffe;
+    const PCM_SUBFORMAT: GUID = GUID::from_u128(0x00000001_0000_0010_8000_00aa00389b71);
+
+    unsafe fn parse_mix_format(wf: &WAVEFORMATEX) -> Result<AudioSampleFormat> {
+        let tag = wf.wFormatTag;
+        let sample_rate = wf.nSamplesPerSec;
+        let channels_u16 = wf.nChannels;
+        let channels = usize::from(channels_u16);
+        let container_bits = wf.wBitsPerSample;
+        let block_align_u16 = wf.nBlockAlign;
+        let block_align = usize::from(block_align_u16);
+        let extra_size = wf.cbSize;
+        let (encoding, valid_bits, subformat) = match tag {
+            value if value == WAVE_FORMAT_PCM as u16 => {
+                (SampleEncoding::PcmInteger, container_bits, None)
+            }
+            value if value == WAVE_FORMAT_IEEE_FLOAT as u16 => {
+                (SampleEncoding::Float32, container_bits, None)
+            }
+            WAVE_FORMAT_EXTENSIBLE_TAG => {
+                if usize::from(extra_size)
+                    < std::mem::size_of::<WAVEFORMATEXTENSIBLE>()
+                        - std::mem::size_of::<WAVEFORMATEX>()
+                {
+                    bail!("WAVEFORMATEXTENSIBLE data is truncated (cbSize={extra_size})");
+                }
+                let extensible = std::ptr::read_unaligned(
+                    (wf as *const WAVEFORMATEX).cast::<WAVEFORMATEXTENSIBLE>(),
+                );
+                let valid_bits = extensible.Samples.wValidBitsPerSample;
+                let subformat = extensible.SubFormat;
+                let encoding = if subformat == PCM_SUBFORMAT {
+                    SampleEncoding::PcmInteger
+                } else if subformat == KSDATAFORMAT_SUBTYPE_IEEE_FLOAT {
+                    SampleEncoding::Float32
+                } else {
+                    bail!("unsupported WAVEFORMATEXTENSIBLE subformat {subformat:?}");
+                };
+                (encoding, valid_bits, Some(subformat))
+            }
+            _ => bail!("unsupported wave format tag 0x{tag:04x}"),
+        };
+
+        if channels == 0 {
+            bail!("audio format has zero channels");
+        }
+        if sample_rate == 0 {
+            bail!("audio format has zero sample rate");
+        }
+        match encoding {
+            SampleEncoding::Float32 if container_bits != 32 || valid_bits != 32 => bail!(
+                "unsupported float format: container_bits={container_bits}, valid_bits={valid_bits}"
+            ),
+            SampleEncoding::PcmInteger
+                if !matches!(container_bits, 16 | 24 | 32)
+                    || valid_bits == 0
+                    || valid_bits > container_bits =>
+            {
+                bail!(
+                    "unsupported PCM format: container_bits={container_bits}, valid_bits={valid_bits}"
+                )
+            }
+            _ => {}
+        }
+        let bytes_per_sample = usize::from(container_bits / 8);
+        let minimum_align = channels
+            .checked_mul(bytes_per_sample)
+            .context("audio block alignment overflow")?;
+        if container_bits % 8 != 0 || block_align < minimum_align {
+            bail!(
+                "invalid audio block alignment: channels={channels}, container_bits={container_bits}, block_align={block_align}"
+            );
+        }
+        tracing::debug!(
+            tag = format_args!("0x{tag:04x}"),
+            ?subformat,
+            sample_rate,
+            channels,
+            container_bits,
+            valid_bits,
+            block_align,
+            "parsed WASAPI mix format"
+        );
+        Ok(AudioSampleFormat {
+            encoding,
+            channels,
+            container_bits,
+            valid_bits,
+            block_align,
+        })
+    }
 
     fn init_com() -> Result<()> {
         unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) }
@@ -406,9 +632,70 @@ mod platform {
         capture: IAudioCaptureClient,
         device_id: String,
         sample_rate: u32,
-        channels: usize,
-        bits: u16,
-        float: bool,
+        format: AudioSampleFormat,
+        diagnostics: CaptureDiagnostics,
+    }
+
+    struct CaptureDiagnostics {
+        started: Instant,
+        polls: u64,
+        packets: u64,
+        silent_packets: u64,
+        non_silent_packets: u64,
+        frames: u64,
+        cancellation_protections: u64,
+        raw_peak: f32,
+        downmix_peak: f32,
+    }
+
+    impl CaptureDiagnostics {
+        fn new() -> Self {
+            Self {
+                started: Instant::now(),
+                polls: 0,
+                packets: 0,
+                silent_packets: 0,
+                non_silent_packets: 0,
+                frames: 0,
+                cancellation_protections: 0,
+                raw_peak: 0.0,
+                downmix_peak: 0.0,
+            }
+        }
+
+        fn record(&mut self, frames: usize, silent: bool, decoded: &DecodedAudio) {
+            self.packets += 1;
+            self.frames += frames as u64;
+            if silent {
+                self.silent_packets += 1;
+            } else {
+                self.non_silent_packets += 1;
+            }
+            if decoded.cancellation_protected {
+                self.cancellation_protections += 1;
+            }
+            self.raw_peak = self.raw_peak.max(decoded.raw_peak);
+            self.downmix_peak = self.downmix_peak.max(decoded.downmix_peak);
+        }
+
+        fn log_if_due(&mut self, device_id: &str) {
+            if self.started.elapsed() < Duration::from_secs(5) {
+                return;
+            }
+            tracing::info!(
+                device_id,
+                polls = self.polls,
+                packets = self.packets,
+                silent_packets = self.silent_packets,
+                non_silent_packets = self.non_silent_packets,
+                frames = self.frames,
+                raw_peak = self.raw_peak,
+                downmix_peak = self.downmix_peak,
+                cancellation_protections = self.cancellation_protections,
+                "audio loopback capture diagnostics"
+            );
+            *self = Self::new();
+        }
     }
 
     impl LoopbackCapture {
@@ -427,35 +714,70 @@ mod platform {
                     (e.GetDefaultAudioEndpoint(eRender, eMultimedia)?, false)
                 };
                 let device_id = device_id(&device)?;
-                let client: IAudioClient = device.Activate(CLSCTX_ALL, None)?;
-                let format = client.GetMixFormat()?;
+                let device_name = device_name(&device);
+                let client: IAudioClient =
+                    device.Activate(CLSCTX_ALL, None).with_context(|| {
+                        format!("activate audio device '{device_name}' ({device_id})")
+                    })?;
+                let format = client
+                    .GetMixFormat()
+                    .with_context(|| format!("get mix format for '{device_name}' ({device_id})"))?;
                 let wf: &WAVEFORMATEX = &*format;
                 let tag = wf.wFormatTag;
-                let bits = wf.wBitsPerSample;
                 let sample_rate = wf.nSamplesPerSec;
-                let channels = wf.nChannels as usize;
-                let float = tag == WAVE_FORMAT_IEEE_FLOAT as u16
-                    || (tag != WAVE_FORMAT_PCM as u16 && bits == 32);
-                client.Initialize(
-                    AUDCLNT_SHAREMODE_SHARED,
-                    AUDCLNT_STREAMFLAGS_LOOPBACK,
-                    0,
-                    0,
-                    format,
-                    None,
-                )?;
-                let capture = client.GetService::<IAudioCaptureClient>()?;
-                client.Start()?;
+                let channels = wf.nChannels;
+                let bits = wf.wBitsPerSample;
+                let align = wf.nBlockAlign;
+                let extra_size = wf.cbSize;
+                let setup_result = (|| -> Result<(AudioSampleFormat, IAudioCaptureClient)> {
+                    let sample_format = parse_mix_format(wf).with_context(|| {
+                        format!(
+                            "unsupported audio mix format for '{device_name}' ({device_id}): tag=0x{tag:04x}, rate={sample_rate}, channels={channels}, bits={bits}, align={align}, cbSize={extra_size}"
+                        )
+                    })?;
+                    client
+                        .Initialize(
+                            AUDCLNT_SHAREMODE_SHARED,
+                            AUDCLNT_STREAMFLAGS_LOOPBACK,
+                            0,
+                            0,
+                            format,
+                            None,
+                        )
+                        .with_context(|| {
+                            format!("initialize shared loopback for '{device_name}' ({device_id})")
+                        })?;
+                    let capture =
+                        client
+                            .GetService::<IAudioCaptureClient>()
+                            .with_context(|| {
+                                format!("get capture service for '{device_name}' ({device_id})")
+                            })?;
+                    client.Start().with_context(|| {
+                        format!("start loopback for '{device_name}' ({device_id})")
+                    })?;
+                    Ok((sample_format, capture))
+                })();
                 CoTaskMemFree(Some(format.cast()));
-                let _ = fallback;
+                let (sample_format, capture) = setup_result?;
+                tracing::info!(
+                    device_name,
+                    device_id,
+                    fallback,
+                    sample_rate,
+                    channels = sample_format.channels,
+                    container_bits = sample_format.container_bits,
+                    valid_bits = sample_format.valid_bits,
+                    encoding = ?sample_format.encoding,
+                    "audio loopback capture started"
+                );
                 Ok(Self {
                     client,
                     capture,
                     device_id,
                     sample_rate,
-                    channels,
-                    bits,
-                    float,
+                    format: sample_format,
+                    diagnostics: CaptureDiagnostics::new(),
                 })
             }
         }
@@ -467,6 +789,7 @@ mod platform {
         }
         pub fn read_samples(&mut self) -> Result<Vec<f32>> {
             let mut mono = Vec::new();
+            self.diagnostics.polls += 1;
             unsafe {
                 loop {
                     if self.capture.GetNextPacketSize()? == 0 {
@@ -477,34 +800,33 @@ mod platform {
                     let mut flags = 0u32;
                     self.capture
                         .GetBuffer(&mut data, &mut frames, &mut flags, None, None)?;
-                    if flags & AUDCLNT_BUFFERFLAGS_SILENT.0 as u32 != 0 {
-                        mono.resize(mono.len() + frames as usize, 0.0);
-                    } else if self.float && self.bits == 32 {
-                        let values = std::slice::from_raw_parts(
-                            data.cast::<f32>(),
-                            frames as usize * self.channels,
-                        );
-                        for frame in values.chunks_exact(self.channels) {
-                            mono.push(frame.iter().sum::<f32>() / self.channels as f32);
-                        }
-                    } else if self.bits == 16 {
-                        let values = std::slice::from_raw_parts(
-                            data.cast::<i16>(),
-                            frames as usize * self.channels,
-                        );
-                        for frame in values.chunks_exact(self.channels) {
-                            mono.push(
-                                frame
-                                    .iter()
-                                    .map(|v| *v as f32 / i16::MAX as f32)
-                                    .sum::<f32>()
-                                    / self.channels as f32,
-                            );
-                        }
-                    }
-                    self.capture.ReleaseBuffer(frames)?;
+                    let silent = flags & AUDCLNT_BUFFERFLAGS_SILENT.0 as u32 != 0;
+                    let decoded = if silent {
+                        Ok(DecodedAudio {
+                            samples: vec![0.0; frames as usize],
+                            raw_peak: 0.0,
+                            downmix_peak: 0.0,
+                            cancellation_protected: false,
+                        })
+                    } else {
+                        let Some(byte_len) = (frames as usize).checked_mul(self.format.block_align)
+                        else {
+                            self.capture.ReleaseBuffer(frames)?;
+                            bail!("audio packet size overflow");
+                        };
+                        let bytes = std::slice::from_raw_parts(data.cast::<u8>(), byte_len);
+                        self.format.decode_frames(bytes, frames as usize)
+                    };
+                    // Every successful GetBuffer must be paired with ReleaseBuffer, including
+                    // packets whose contents fail validation.
+                    let release_result = self.capture.ReleaseBuffer(frames);
+                    let decoded = decoded?;
+                    release_result?;
+                    self.diagnostics.record(frames as usize, silent, &decoded);
+                    mono.extend(decoded.samples);
                 }
             }
+            self.diagnostics.log_if_due(&self.device_id);
             Ok(mono)
         }
     }
@@ -543,6 +865,127 @@ mod platform {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn pcm_format(container_bits: u16, valid_bits: u16, channels: usize) -> AudioSampleFormat {
+        AudioSampleFormat {
+            encoding: SampleEncoding::PcmInteger,
+            channels,
+            container_bits,
+            valid_bits,
+            block_align: channels * usize::from(container_bits / 8),
+        }
+    }
+
+    fn float_format(channels: usize) -> AudioSampleFormat {
+        AudioSampleFormat {
+            encoding: SampleEncoding::Float32,
+            channels,
+            container_bits: 32,
+            valid_bits: 32,
+            block_align: channels * 4,
+        }
+    }
+
+    fn float_bytes(samples: &[f32]) -> Vec<u8> {
+        samples
+            .iter()
+            .flat_map(|sample| sample.to_le_bytes())
+            .collect()
+    }
+
+    fn assert_near(actual: f32, expected: f32) {
+        assert!(
+            (actual - expected).abs() < 0.0001,
+            "actual={actual}, expected={expected}"
+        );
+    }
+
+    #[test]
+    fn decodes_float_and_sanitizes_non_finite_values() {
+        let format = float_format(1);
+        let data = float_bytes(&[0.5, -2.0, f32::NAN]);
+        let decoded = format.decode_frames(&data, 3).unwrap();
+        assert_eq!(decoded.samples, vec![0.5, -1.0, 0.0]);
+        assert_near(decoded.raw_peak, 1.0);
+        assert_near(decoded.downmix_peak, 1.0);
+        assert!(!decoded.cancellation_protected);
+    }
+
+    #[test]
+    fn decodes_signed_pcm_container_widths() {
+        assert_near(
+            pcm_format(16, 16, 1)
+                .decode_frames(&16384i16.to_le_bytes(), 1)
+                .unwrap()
+                .samples[0],
+            0.5,
+        );
+        assert_near(
+            pcm_format(24, 24, 1)
+                .decode_frames(&[0x00, 0x00, 0xc0], 1)
+                .unwrap()
+                .samples[0],
+            -0.5,
+        );
+        assert_near(
+            pcm_format(32, 32, 1)
+                .decode_frames(&1073741824i32.to_le_bytes(), 1)
+                .unwrap()
+                .samples[0],
+            0.5,
+        );
+    }
+
+    #[test]
+    fn decodes_left_aligned_valid_bits_and_mixes_channels() {
+        let left = (4194304i32 << 8).to_le_bytes();
+        let right = (-4194304i32 << 8).to_le_bytes();
+        let data = [left, right].concat();
+        let decoded = pcm_format(32, 24, 2).decode_frames(&data, 1).unwrap();
+        assert_near(decoded.samples[0], 0.5);
+        assert!(decoded.cancellation_protected);
+    }
+
+    #[test]
+    fn averages_in_phase_and_normal_stereo_channels() {
+        let in_phase = float_format(2)
+            .decode_frames(&float_bytes(&[0.4, 0.4, -0.2, -0.2]), 2)
+            .unwrap();
+        assert_eq!(in_phase.samples, vec![0.4, -0.2]);
+        assert!(!in_phase.cancellation_protected);
+
+        let stereo = float_format(2)
+            .decode_frames(&float_bytes(&[0.8, 0.2, 0.4, -0.2]), 2)
+            .unwrap();
+        assert_near(stereo.samples[0], 0.5);
+        assert_near(stereo.samples[1], 0.1);
+        assert!(!stereo.cancellation_protected);
+    }
+
+    #[test]
+    fn protects_against_inverted_float_channels() {
+        let decoded = float_format(2)
+            .decode_frames(&float_bytes(&[0.75, -0.75, -0.5, 0.5]), 2)
+            .unwrap();
+        assert_eq!(decoded.samples, vec![0.75, -0.5]);
+        assert!(decoded.cancellation_protected);
+        assert_near(decoded.raw_peak, 0.75);
+        assert_near(decoded.downmix_peak, 0.75);
+    }
+
+    #[test]
+    fn clamps_pcm_boundaries_and_rejects_short_packets() {
+        let format = pcm_format(16, 16, 1);
+        assert_eq!(
+            format
+                .decode_frames(&i16::MIN.to_le_bytes(), 1)
+                .unwrap()
+                .samples[0],
+            -1.0
+        );
+        assert!(format.decode_frames(&[0], 1).is_err());
+    }
+
     #[test]
     fn silence_stays_silent() {
         let mut processor = SpectrumProcessor::new(48_000);

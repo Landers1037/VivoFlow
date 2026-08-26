@@ -6,6 +6,7 @@
 |----------|------|------|
 | [main.md](./main.md) | `main.rs` | 入口、日志、监听地址、启动 Hub |
 | [config.md](./config.md) | `config.rs` | 采集参数与校验 |
+| [audio.md](./audio.md) | `audio.rs` | Windows WASAPI 回环、频谱与音频状态 |
 | [models.md](./models.md) | `models.rs` | 快照与指标数据结构 |
 | [hub.md](./hub.md) | `hub.rs` | 采集循环、缓存、广播 |
 | [collectors.md](./collectors.md) | `collectors/*` | CPU/内存/GPU/磁盘/网络采集 |
