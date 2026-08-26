@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, AudioLines, Images, Info, Palette, Radio } from "lucide-react";
+import { ArrowLeft, AudioLines, Images, Info, Music2, Palette, Radio } from "lucide-react";
 import { AlbumSettings } from "@/components/albums/AlbumSettings";
+import { MusicAlbumSettings } from "@/components/music/MusicAlbumSettings";
 import { AudioSettings } from "@/components/audio/AudioSettings";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -19,7 +20,7 @@ import { DEFAULT_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
 
-type TabId = "appearance" | "collection" | "albums" | "audio" | "about";
+type TabId = "appearance" | "collection" | "albums" | "music" | "audio" | "about";
 
 export function SettingsPage({
   config,
@@ -63,6 +64,7 @@ export function SettingsPage({
     { id: "appearance", label: t("appearance"), icon: Palette },
     { id: "collection", label: t("collection"), icon: Radio },
     { id: "albums", label: t("albums"), icon: Images },
+    { id: "music", label: "音乐专辑", icon: Music2 },
     { id: "audio", label: t("audioVisualizer"), icon: AudioLines },
     { id: "about", label: t("about"), icon: Info },
   ];
@@ -228,6 +230,7 @@ export function SettingsPage({
           ) : null}
 
           {tab === "albums" ? <div className="settings-tab-content"><AlbumSettings /></div> : null}
+          {tab === "music" ? <div className="settings-tab-content"><MusicAlbumSettings /></div> : null}
           {tab === "audio" ? <div className="settings-tab-content"><AudioSettings frame={audioFrame} status={audioStatus} onSubscribe={onAudioSubscribe} /></div> : null}
 
           {tab === "about" ? <div className="settings-tab-content"><AboutTab t={t} /></div> : null}

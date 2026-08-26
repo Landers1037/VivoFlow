@@ -29,6 +29,7 @@ pub async fn serve(
     addr: SocketAddr,
     hub: MetricsHub,
     albums: AlbumStore,
+    music: crate::music::MusicStore,
     audio: AudioHub,
 ) -> anyhow::Result<()> {
     let state = AppState { hub, audio };
@@ -48,7 +49,8 @@ pub async fn serve(
                 .allow_headers(Any),
         )
         .with_state(state)
-        .merge(crate::album::router(albums));
+        .merge(crate::album::router(albums))
+        .merge(crate::music::router(music));
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;

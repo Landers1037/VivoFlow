@@ -5,6 +5,7 @@ mod config;
 mod hub;
 mod ipc;
 mod models;
+mod music;
 mod server;
 
 use std::net::SocketAddr;
@@ -40,8 +41,9 @@ async fn main() -> anyhow::Result<()> {
     let audio = crate::audio::AudioHub::new(hub.config.clone());
     audio.clone().spawn();
     let albums = crate::album::AlbumStore::load()?;
+    let music = crate::music::MusicStore::load(hub.config.clone())?;
 
     tracing::info!("VivoFlow listening on http://{addr}");
     tracing::info!("WebSocket JSON IPC at ws://{addr}/ws");
-    serve(addr, hub, albums, audio).await
+    serve(addr, hub, albums, music, audio).await
 }

@@ -19,6 +19,16 @@
 | `PUT /api/albums/{id}/images/order` | 保存完整图片顺序 |
 | `DELETE /api/albums/{id}/images/{image_id}` | 删除单张图片 |
 | `GET /api/albums/{id}/images/{image_id}/content` | 返回图片内容 |
+| `GET/POST /api/music-albums` | 列出或创建音乐专辑 |
+| `PATCH/DELETE /api/music-albums/{id}` | 更新或删除音乐专辑 |
+| `POST /api/music-albums/{id}/enable` | 启用指定专辑并关闭其它首页媒体模块 |
+| `PUT /api/music-albums/order` | 保存专辑顺序 |
+| `POST /api/music-albums/{id}/cover` | 上传专辑封面 |
+| `POST /api/music-albums/{id}/tracks` | multipart 批量上传音频 |
+| `PATCH/DELETE /api/music-albums/{id}/tracks/{track_id}` | 更新歌词/标题或删除曲目 |
+| `PUT /api/music-albums/{id}/tracks/order` | 保存曲目顺序 |
+| `GET /api/music-albums/{id}/cover/content` | 返回封面内容 |
+| `GET /api/music-albums/{id}/tracks/{track_id}/content` | 返回音频内容 |
 | `GET /ws` | 升级为 WebSocket → `ipc::handle_socket` |
 | fallback `/*` | `rust-embed` 静态文件 |
 
@@ -41,6 +51,7 @@ struct Assets;
 - `CorsLayer`：允许任意源，方便 Vite 开发代理联调。
 - `AppState` 仅持有可克隆的 `MetricsHub`。
 - 相册元数据保存在配置目录的 `albums.json`，上传的媒体文件位于同目录的 `albums/{album_id}/`。
+- 音乐专辑元数据保存在配置目录的 `music_albums.json`，封面和音频位于同目录的 `music_albums/{album_id}/`。
 - 也可为相册配置本机目录：`POST /api/albums/{id}/images/from-path` 会扫描该目录下的图片并按原路径引用，删除相册或图片时不会删除原文件。
 - 音频捕获仅在 Windows 可用；指定设备失效时保留配置并临时回退到系统默认设备。
 - 上传与本地扫描均按文件签名接受 JPEG、PNG、WebP、GIF、AVIF；单图最大 25 MB。上传单批最多 50 张，目录扫描每次最多加载 500 张新图。

@@ -6,6 +6,8 @@ import { Dashboard } from "@/components/Dashboard";
 import { PhotoAlbumPage } from "@/components/albums/PhotoAlbumPage";
 import { AudioVisualizerPage } from "@/components/audio/AudioVisualizerPage";
 import { SettingsPage } from "@/components/SettingsPage";
+import { MusicAlbumPage } from "@/components/music/MusicAlbumPage";
+import { musicApi } from "@/lib/music";
 import { FullPageLoader } from "@/components/viz";
 import { AppearanceProvider, useAppearance } from "@/hooks/useAppearance";
 import { useHandheldViewport } from "@/hooks/useMobileViewport";
@@ -43,6 +45,8 @@ function AppShell({
   const handheldViewport = useHandheldViewport();
   const hideTitleBar = appearanceConfig.hide_title_bar && page === "dashboard";
   const mobileCardModeActive = appearanceConfig.mobile_card_mode && handheldViewport;
+  const [musicAlbum, setMusicAlbum] = useState<import("@/types").MusicAlbum | null>(null);
+  useEffect(() => { if (appearanceConfig.music_album_enabled && appearanceConfig.active_music_album_id) musicApi.list().then(xs => setMusicAlbum(xs.find(x => x.id === appearanceConfig.active_music_album_id) ?? null)).catch(() => setMusicAlbum(null)); }, [appearanceConfig.music_album_enabled, appearanceConfig.active_music_album_id]);
 
   const revealHeader = useCallback(() => {
     setHeaderRevealed(true);
@@ -69,6 +73,10 @@ function AppShell({
     },
     [],
   );
+
+  if (page === "dashboard" && appearanceConfig.music_album_enabled && musicAlbum) {
+    return <div className="vf-shell overflow-hidden"><MusicAlbumPage album={musicAlbum} onOpenSettings={() => setPage("settings")} /></div>;
+  }
 
   if (page === "dashboard" && appearanceConfig.audio_visualizer_enabled) {
     return <div className="vf-shell overflow-hidden"><AudioVisualizerPage frame={audioFrame} status={audioStatus} onSubscribe={setAudioSubscription} onOpenSettings={() => setPage("settings")} /></div>;

@@ -31,6 +31,10 @@ fn default_photo_album_effect() -> String {
     "single".into()
 }
 
+fn default_music_album_enabled() -> bool {
+    false
+}
+
 fn default_audio_visualizer_mode() -> String {
     "particles".into()
 }
@@ -83,6 +87,10 @@ pub struct AppConfig {
     pub photo_album_enabled: bool,
     #[serde(default = "default_photo_album_effect")]
     pub photo_album_effect: String,
+    #[serde(default = "default_music_album_enabled")]
+    pub music_album_enabled: bool,
+    #[serde(default)]
+    pub active_music_album_id: Option<String>,
     #[serde(default)]
     pub audio_visualizer_enabled: bool,
     #[serde(default)]
@@ -130,6 +138,8 @@ impl Default for AppConfig {
             mobile_carousel_interval_s: default_mobile_carousel_interval_s(),
             photo_album_enabled: false,
             photo_album_effect: default_photo_album_effect(),
+            music_album_enabled: default_music_album_enabled(),
+            active_music_album_id: None,
             audio_visualizer_enabled: false,
             audio_device_id: None,
             audio_visualizer_mode: default_audio_visualizer_mode(),
@@ -224,7 +234,13 @@ impl AppConfig {
             self.photo_album_effect = default_photo_album_effect();
         }
         if ![
-            "particles", "grid", "aurora", "radial", "city3d", "nebula3d", "terrain3d",
+            "particles",
+            "grid",
+            "aurora",
+            "radial",
+            "city3d",
+            "nebula3d",
+            "terrain3d",
             "crystal3d",
         ]
         .contains(&self.audio_visualizer_mode.as_str())
@@ -258,7 +274,14 @@ impl AppConfig {
             let id = id.trim();
             (!id.is_empty() && id.len() <= 1024).then(|| id.to_owned())
         });
-        if self.audio_visualizer_enabled {
+        self.active_music_album_id = self.active_music_album_id.and_then(|id| {
+            let id = id.trim();
+            (!id.is_empty() && id.len() <= 128).then(|| id.to_owned())
+        });
+        if self.music_album_enabled {
+            self.photo_album_enabled = false;
+            self.audio_visualizer_enabled = false;
+        } else if self.audio_visualizer_enabled {
             self.photo_album_enabled = false;
         }
         self
@@ -325,7 +348,44 @@ mod tests {
     use super::*;
 
     #[test]
-    fn legacy_config_gets_mobile_defaults() {
+    fn music_album_config_is_exclusive_and_preserves_active_id() {
+        let cfg = AppConfig {
+            photo_album_enabled: true,
+            audio_visualizer_enabled: true,
+            music_album_enabled: true,
+            active_music_album_id: Some("  album-1  ".into()),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(cfg.music_album_enabled);
+        assert!(!cfg.photo_album_enabled);
+        assert!(!cfg.audio_visualizer_enabled);
+        assert_eq!(cfg.active_music_album_id.as_deref(), Some("album-1"));
+
+        let disabled = AppConfig {
+            music_album_enabled: false,
+            active_music_album_id: Some("album-1".into()),
+            ..cfg
+        }
+        .sanitize();
+        assert!(!disabled.music_album_enabled);
+        assert_eq!(disabled.active_music_album_id.as_deref(), Some("album-1"));
+    }
+
+    #[test]
+    fn audio_and_photo_modules_remain_exclusive() {
+        let cfg = AppConfig {
+            photo_album_enabled: true,
+            audio_visualizer_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(!cfg.photo_album_enabled);
+        assert!(cfg.audio_visualizer_enabled);
+    }
+
+    #[test]
+    fn legacy_config_gets_music_defaults() {
         let raw = r###"{
             "interval_ms": 1000,
             "enabled": {"cpu": true, "memory": true, "gpu": true, "disk": true, "network": true},
@@ -348,6 +408,8 @@ mod tests {
         assert!(!cfg.photo_album_enabled);
         assert_eq!(cfg.photo_album_effect, "single");
         assert!(!cfg.audio_visualizer_enabled);
+        assert!(!cfg.music_album_enabled);
+        assert_eq!(cfg.active_music_album_id, None);
         assert_eq!(cfg.audio_visualizer_mode, "particles");
     }
 

@@ -178,6 +178,9 @@ interface AppearanceContextValue {
   setMobileCarouselInterval: (v: number) => void;
   setPhotoAlbumEnabled: (v: boolean) => void;
   setPhotoAlbumEffect: (v: PhotoAlbumEffect) => void;
+  setMusicAlbumEnabled: (v: boolean) => void;
+  activateMusicAlbum: (id: string) => void;
+  setActiveMusicAlbumId: (v: string | null) => void;
   setAudioVisualizerEnabled: (v: boolean) => void;
   setAudioDeviceId: (v: string | null) => void;
   setAudioVisualizerMode: (v: AudioVisualizerMode) => void;
@@ -265,9 +268,17 @@ export function AppearanceProvider({
       setMobileAutoCarousel: (mobile_auto_carousel) => patch({ mobile_auto_carousel }),
       setMobileCarouselInterval: (mobile_carousel_interval_s) =>
         patch({ mobile_carousel_interval_s }),
-      setPhotoAlbumEnabled: (photo_album_enabled) => patch({ photo_album_enabled, ...(photo_album_enabled ? { audio_visualizer_enabled: false } : {}) }),
+      setPhotoAlbumEnabled: (photo_album_enabled) => patch({ photo_album_enabled, ...(photo_album_enabled ? { audio_visualizer_enabled: false, music_album_enabled: false } : {}) }),
       setPhotoAlbumEffect: (photo_album_effect) => patch({ photo_album_effect }),
-      setAudioVisualizerEnabled: (audio_visualizer_enabled) => patch({ audio_visualizer_enabled, ...(audio_visualizer_enabled ? { photo_album_enabled: false } : {}) }),
+      setMusicAlbumEnabled: (music_album_enabled) => patch({ music_album_enabled, ...(music_album_enabled ? { photo_album_enabled: false, audio_visualizer_enabled: false } : {}) }),
+      activateMusicAlbum: (active_music_album_id) => patch({
+        active_music_album_id,
+        music_album_enabled: true,
+        photo_album_enabled: false,
+        audio_visualizer_enabled: false,
+      }),
+      setActiveMusicAlbumId: (active_music_album_id) => patch({ active_music_album_id }),
+      setAudioVisualizerEnabled: (audio_visualizer_enabled) => patch({ audio_visualizer_enabled, ...(audio_visualizer_enabled ? { photo_album_enabled: false, music_album_enabled: false } : {}) }),
       setAudioDeviceId: (audio_device_id) => patch({ audio_device_id }),
       setAudioVisualizerMode: (audio_visualizer_mode) => patch({ audio_visualizer_mode }),
       setAudioColorMode: (audio_color_mode) => patch({ audio_color_mode }),
