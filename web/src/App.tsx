@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Activity, LayoutDashboard, Settings2, Wifi, WifiOff } from "lucide-react";
+import { LayoutDashboard, Settings2 } from "lucide-react";
 import { ThemeProvider } from "next-themes";
-import { Button } from "@/components/ui/button";
+import { TitleBarOverlay } from "@/components/TitleBarOverlay";
 import { Dashboard } from "@/components/Dashboard";
 import { PhotoAlbumPage } from "@/components/albums/PhotoAlbumPage";
 import { AudioVisualizerPage } from "@/components/audio/AudioVisualizerPage";
@@ -41,7 +41,6 @@ function AppShell({
   const [page, setPage] = useState<"dashboard" | "settings">("dashboard");
   const [headerRevealed, setHeaderRevealed] = useState(false);
   const headerTimer = useRef<number | null>(null);
-  const edgeStartX = useRef<number | null>(null);
   const handheldViewport = useHandheldViewport();
   const hideTitleBar = appearanceConfig.hide_title_bar && page === "dashboard";
   const mobileCardModeActive = appearanceConfig.mobile_card_mode && handheldViewport;
@@ -74,18 +73,42 @@ function AppShell({
     [],
   );
 
+  const titleBar = (inFlow = false) => (
+    <TitleBarOverlay
+      hidden={hideTitleBar}
+      revealed={headerRevealed}
+      conn={conn}
+      config={config}
+      t={t}
+      onReveal={revealHeader}
+      onOpenSettings={() => setPage("settings")}
+      inFlow={inFlow}
+    />
+  );
+
   if (page === "dashboard" && appearanceConfig.music_album_enabled && musicAlbum) {
-    return <div className="vf-shell overflow-hidden"><MusicAlbumPage album={musicAlbum} onOpenSettings={() => setPage("settings")} /></div>;
+    return (
+      <div className="vf-shell overflow-hidden">
+        <MusicAlbumPage album={musicAlbum} onOpenSettings={() => setPage("settings")} />
+        {titleBar()}
+      </div>
+    );
   }
 
   if (page === "dashboard" && appearanceConfig.audio_visualizer_enabled) {
-    return <div className="vf-shell overflow-hidden"><AudioVisualizerPage frame={audioFrame} status={audioStatus} onSubscribe={setAudioSubscription} onOpenSettings={() => setPage("settings")} /></div>;
+    return (
+      <div className="vf-shell overflow-hidden">
+        <AudioVisualizerPage frame={audioFrame} status={audioStatus} onSubscribe={setAudioSubscription} onOpenSettings={() => setPage("settings")} />
+        {titleBar()}
+      </div>
+    );
   }
 
   if (page === "dashboard" && appearanceConfig.photo_album_enabled) {
     return (
       <div className="vf-shell overflow-hidden">
         <PhotoAlbumPage onOpenSettings={() => setPage("settings")} />
+        {titleBar()}
       </div>
     );
   }
@@ -104,92 +127,7 @@ function AppShell({
           />
         ) : (
           <>
-            {!hideTitleBar || headerRevealed ? (
-              <div
-                className={cn(
-                  "vf-header-wrap mb-4",
-                  hideTitleBar && "vf-titlebar-reveal",
-                  hideTitleBar &&
-                    "safe-pad fixed inset-x-0 top-0 z-40 border-b border-border/70 bg-background/90 shadow-sm backdrop-blur-md",
-                )}
-                onPointerDown={hideTitleBar ? revealHeader : undefined}
-                onFocusCapture={hideTitleBar ? revealHeader : undefined}
-              >
-                <header className="vf-app-header mx-auto flex max-w-5xl items-center justify-between gap-3">
-                  <div className="vf-brand-lockup min-w-0">
-                    <div className="vf-brand-mark" aria-hidden="true">
-                      <Activity className="h-5 w-5" strokeWidth={2.4} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="vf-brand-eyebrow">LOCAL TELEMETRY</p>
-                      <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight">
-                        VivoFlow
-                      </h1>
-                    </div>
-                  </div>
-                  <div className="vf-header-tools">
-                    <div
-                      className={cn(
-                        "vf-connection-pill",
-                        conn === "connected" ? "vf-connection-live" : "vf-connection-waiting",
-                      )}
-                    >
-                      {conn === "connected" ? (
-                        <Wifi className="h-3.5 w-3.5" />
-                      ) : (
-                        <WifiOff className="h-3.5 w-3.5" />
-                      )}
-                      <span>
-                        {conn === "connected"
-                          ? t("connected")
-                          : conn === "connecting"
-                            ? t("connecting")
-                            : t("disconnected")}
-                      </span>
-                      {config ? <span className="vf-interval-chip">{config.interval_ms}ms</span> : null}
-                    </div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="vf-header-action"
-                    aria-label={t("settings")}
-                    onClick={() => setPage("settings")}
-                  >
-                    <Settings2 className="h-5 w-5" />
-                  </Button>
-                  </div>
-                </header>
-                <div className="vf-header-rule" aria-hidden="true">
-                  <span />
-                  <span className="vf-header-rule-label">01 / LIVE FEED</span>
-                </div>
-              </div>
-            ) : null}
-
-            {hideTitleBar && !headerRevealed ? (
-              <button
-                type="button"
-                aria-label={t("showHeader")}
-                className="fixed inset-y-0 right-0 z-50 w-6 cursor-ew-resize bg-transparent outline-none focus-visible:bg-primary/10"
-                onPointerDown={(event) => {
-                  edgeStartX.current = event.clientX;
-                  event.currentTarget.setPointerCapture?.(event.pointerId);
-                }}
-                onPointerUp={(event) => {
-                  const start = edgeStartX.current;
-                  edgeStartX.current = null;
-                  if (start != null && start - event.clientX > 16) revealHeader();
-                }}
-                onPointerCancel={() => {
-                  edgeStartX.current = null;
-                }}
-                onClick={revealHeader}
-                onFocus={revealHeader}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") revealHeader();
-                }}
-              />
-            ) : null}
+            {titleBar(true)}
 
             {error ? (
               <div
