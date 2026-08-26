@@ -57,14 +57,8 @@ impl NetworkCollector {
                 (0, 0)
             };
 
-            self.prev.insert(
-                name.clone(),
-                NetSample {
-                    rx,
-                    tx,
-                    at: now,
-                },
-            );
+            self.prev
+                .insert(name.clone(), NetSample { rx, tx, at: now });
 
             let mac = {
                 let m = data.mac_address().to_string();

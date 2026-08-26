@@ -75,10 +75,7 @@ impl CpuCollector {
 
     fn push_usage(&mut self, usage: f32) {
         let now = Instant::now();
-        self.samples.push_back(UsageSample {
-            at: now,
-            usage,
-        });
+        self.samples.push_back(UsageSample { at: now, usage });
         let cutoff = now
             .checked_sub(Duration::from_secs(15 * 60 + 30))
             .unwrap_or(now);
@@ -110,7 +107,7 @@ impl CpuCollector {
 #[cfg(windows)]
 fn current_cpu_mhz() -> Option<u32> {
     use windows::Win32::System::Power::{
-        CallNtPowerInformation, PROCESSOR_POWER_INFORMATION, ProcessorInformation,
+        CallNtPowerInformation, ProcessorInformation, PROCESSOR_POWER_INFORMATION,
     };
 
     let cores = std::thread::available_parallelism()

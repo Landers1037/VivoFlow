@@ -87,7 +87,10 @@ fn query_wmi_gpus() -> Vec<GpuMetrics> {
         .map(|g| {
             let vram = g.adapter_ram.map(|v| v as u64).filter(|&v| v > 0);
             GpuMetrics {
-                name: g.name.map(|s| s.trim().to_string()).filter(|s| !s.is_empty()),
+                name: g
+                    .name
+                    .map(|s| s.trim().to_string())
+                    .filter(|s| !s.is_empty()),
                 vram_bytes: vram,
                 vram_used_bytes: None,
                 usage_percent: None,
@@ -117,8 +120,10 @@ fn enrich_with_nvml(gpus: &mut Vec<GpuMetrics>) -> Result<(), String> {
         let core_clock = device.clock_info(Clock::Graphics).ok();
 
         let target = gpus.iter_mut().find(|g| match (&g.name, &name) {
-            (Some(a), Some(b)) => a.to_lowercase().contains(&b.to_lowercase())
-                || b.to_lowercase().contains(&a.to_lowercase()),
+            (Some(a), Some(b)) => {
+                a.to_lowercase().contains(&b.to_lowercase())
+                    || b.to_lowercase().contains(&a.to_lowercase())
+            }
             _ => false,
         });
 

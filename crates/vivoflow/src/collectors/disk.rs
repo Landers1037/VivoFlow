@@ -61,9 +61,7 @@ impl DiskCollector {
                 .models
                 .get(&key)
                 .cloned()
-                .or_else(|| {
-                    self.models.values().next().cloned()
-                })
+                .or_else(|| self.models.values().next().cloned())
                 .or_else(|| {
                     let fs = disk.file_system().to_string_lossy().to_string();
                     if fs.is_empty() {
