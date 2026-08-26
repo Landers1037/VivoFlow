@@ -1298,7 +1298,7 @@ textarea,
    * pager lives in the dedicated gutter beside the card grid. */
 .vf-mobile-dashboard {
   --vf-mobile-page-height: calc(
-    100dvh - max(1.5rem, env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 7rem
+    100dvh - max(1.5rem, env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 4.5rem
   );
   --vf-mobile-title-height: 1.5rem;
   --vf-mobile-row-gap: max(1.25rem, calc(var(--shell-gap) * 1.5));
@@ -1439,7 +1439,7 @@ textarea,
     );
     --vf-mobile-row-gap: 1rem;
     --vf-widget-1x: max(
-      5rem,
+      6rem,
       calc(
         (var(--vf-mobile-page-height) - var(--vf-mobile-title-height) - var(--shell-gap) - var(--vf-mobile-row-gap)) /
           2
@@ -1453,8 +1453,8 @@ textarea,
    clipping its last track inside the fixed tile floor. */
 @media (orientation: landscape) and (max-height: 500px) {
   .vf-mobile-dashboard .vf-mobile-load-card {
-    height: calc(var(--vf-widget-1x) + 1.5rem);
-    min-height: calc(var(--vf-widget-1x) + 1.5rem);
+    height: calc(var(--vf-widget-1x) + 3.5rem);
+    min-height: calc(var(--vf-widget-1x) + 2.5rem);
     max-height: none;
     padding-block: 0.7rem;
   }

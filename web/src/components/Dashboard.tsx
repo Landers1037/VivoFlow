@@ -38,7 +38,6 @@ import {
   SparklineRow,
 } from "@/components/viz";
 import { useAppearance, type TFunction } from "@/hooks/useAppearance";
-import { useHandheldViewport } from "@/hooks/useMobileViewport";
 import {
   type DashboardSectionId,
   useDashboardOrder,
@@ -522,7 +521,6 @@ export function Dashboard({
   const { resolvedTheme } = useTheme();
   const { t, config: appearanceConfig } = useAppearance();
   const { sections, widgets, setSections, setWidgets } = useDashboardOrder();
-  const handheldViewport = useHandheldViewport();
   const theme = resolvedTheme === "light" ? "light" : "dark";
   const naLabel = t("unavailable");
   const sectionSensors = useLongPressSensors();
@@ -859,7 +857,7 @@ export function Dashboard({
   };
 
   const mobilePages = packMobilePages(sections, widgets, sectionModels);
-  const isMobileCardMode = handheldViewport && appearanceConfig.mobile_card_mode;
+  const isMobileCardMode = appearanceConfig.mobile_card_mode;
 
   if (isMobileCardMode) {
     return (

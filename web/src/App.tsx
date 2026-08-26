@@ -10,7 +10,6 @@ import { MusicAlbumPage } from "@/components/music/MusicAlbumPage";
 import { musicApi } from "@/lib/music";
 import { FullPageLoader } from "@/components/viz";
 import { AppearanceProvider, useAppearance } from "@/hooks/useAppearance";
-import { useHandheldViewport } from "@/hooks/useMobileViewport";
 import { useVivoflowWs } from "@/hooks/useVivoflowWs";
 import { cn } from "@/lib/utils";
 
@@ -41,9 +40,8 @@ function AppShell({
   const [page, setPage] = useState<"dashboard" | "settings">("dashboard");
   const [headerRevealed, setHeaderRevealed] = useState(false);
   const headerTimer = useRef<number | null>(null);
-  const handheldViewport = useHandheldViewport();
   const hideTitleBar = appearanceConfig.hide_title_bar && page === "dashboard";
-  const mobileCardModeActive = appearanceConfig.mobile_card_mode && handheldViewport;
+  const mobileCardModeActive = appearanceConfig.mobile_card_mode;
   const [musicAlbum, setMusicAlbum] = useState<import("@/types").MusicAlbum | null>(null);
   useEffect(() => { if (appearanceConfig.music_album_enabled && appearanceConfig.active_music_album_id) musicApi.list().then(xs => setMusicAlbum(xs.find(x => x.id === appearanceConfig.active_music_album_id) ?? null)).catch(() => setMusicAlbum(null)); }, [appearanceConfig.music_album_enabled, appearanceConfig.active_music_album_id]);
 
