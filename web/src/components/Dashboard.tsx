@@ -86,7 +86,7 @@ const LONG_PRESS_TOLERANCE_PX = 8;
 
 type DashboardWidget = {
   span?: 1 | 2;
-  height?: 1 | 2;
+  height?: 1 | 1.5 | 2;
   node: ReactNode;
 };
 
@@ -176,7 +176,7 @@ function packMobilePages(
       const item = model.items[id];
       if (!item || item.node == null) continue;
       const colSpan = item.span ?? 1;
-      const rowSpan = item.height ?? 1;
+      const rowSpan = item.height === 2 ? 2 : 1;
       let position = findMobilePlacement(occupied, colSpan, rowSpan);
       if (!position) {
         flush();
@@ -830,7 +830,7 @@ export function Dashboard({
         nics: {
           span: 2,
           node: (
-            <div className="vf-surface vf-widget-1x gap-1.5 overflow-y-auto">
+            <div className="vf-surface vf-widget-1x vf-widget-1-5x gap-1.5 overflow-y-auto">
               {nets.length === 0 ? (
                 <p className="m-auto text-sm text-muted-foreground">{t("noNetworkData")}</p>
               ) : (

@@ -1309,7 +1309,8 @@ textarea,
         2
     )
   );
-  --vf-widget-2x: calc(var(--vf-widget-1x) * 2 + var(--vf-mobile-row-gap));
+  --vf-widget-1-5x: calc(var(--vf-widget-1x) * 1.5 + var(--vf-mobile-row-gap) / 2 + 1.5rem);
+  --vf-widget-2x: calc(var(--vf-widget-1x) * 2 + var(--vf-mobile-row-gap) + 2.5rem);
   position: relative;
   height: var(--vf-mobile-page-height);
   min-height: 0;
@@ -1445,6 +1446,7 @@ textarea,
           2
       )
     );
+    --vf-widget-1-5x: calc(var(--vf-widget-1x) * 1.5 + var(--vf-mobile-row-gap) / 2);
   }
 }
 
@@ -1473,6 +1475,12 @@ textarea,
   height: var(--vf-widget-1x);
   min-height: var(--vf-widget-1x);
   max-height: var(--vf-widget-1x);
+}
+
+.vf-mobile-dashboard .vf-widget-1-5x {
+  height: var(--vf-widget-1-5x);
+  min-height: var(--vf-widget-1-5x);
+  max-height: var(--vf-widget-1-5x);
 }
 
 .vf-widget-2x {
