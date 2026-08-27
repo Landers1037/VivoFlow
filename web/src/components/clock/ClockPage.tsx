@@ -319,7 +319,7 @@ function ObjectFace({
               <span className="clock-lcd clock-lcd-14">
                 <span className="clock-lcd-ghost">88-88</span>
                 <span>
-                  {day}-{month}
+                  {month}-{day}
                 </span>
               </span>
             ) : null}
