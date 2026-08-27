@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { useAppearance } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
-import type { ClockStyle, Lang } from "@/types";
+import type { ClockDotShape, ClockStyle, Lang } from "@/types";
 
 const WEEKDAYS_LCD = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
 const DIAL_MARKS = [12, 3, 6, 9] as const;
@@ -67,6 +67,7 @@ export function ClockPage() {
       {style === "pixel" ? <PixelFace now={now} lang={lang} {...meta} /> : null}
       {style === "flip" ? <FlipFace now={now} lang={lang} {...meta} /> : null}
       {style === "object" ? <ObjectFace now={now} {...meta} /> : null}
+      {style === "dots" ? <DotsFace now={now} lang={lang} shape={config.clock_dot_shape} {...meta} /> : null}
     </div>
   );
 }
@@ -339,10 +340,85 @@ function ObjectFace({
   );
 }
 
-export const CLOCK_STYLE_OPTIONS: { id: ClockStyle; nameKey: "clockStyleLines" | "clockStyleDial" | "clockStylePixel" | "clockStyleFlip" | "clockStyleObject" }[] = [
+function DotsFace({
+  now,
+  lang,
+  week,
+  date,
+  seconds,
+  shape,
+}: {
+  now: Date;
+  lang: Lang;
+  week: boolean;
+  date: boolean;
+  seconds: boolean;
+  shape: ClockDotShape;
+}) {
+  const { t } = useAppearance();
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  const secs = now.getSeconds();
+  const { h, m, s } = parts(now);
+
+  return (
+    <div className="clock-dots" data-dot-shape={shape}>
+      <MetaLine now={now} lang={lang} week={week} date={date} />
+      <span className="sr-only">
+        {h}:{m}
+        {seconds ? `:${s}` : ""}
+      </span>
+      <div className="clock-dots-bands">
+        <DotBand kind="hour" label={t("clockHour")} total={24} filled={hours + 1} />
+        <DotBand kind="minute" label={t("clockMinute")} total={60} filled={minutes + 1} />
+        {seconds ? <DotBand kind="second" label={t("clockSecond")} total={60} filled={secs + 1} /> : null}
+      </div>
+    </div>
+  );
+}
+
+function DotBand({
+  kind,
+  label,
+  total,
+  filled,
+}: {
+  kind: "hour" | "minute" | "second";
+  label: string;
+  total: number;
+  filled: number;
+}) {
+  const on = Math.min(filled, total);
+  return (
+    <div className={cn("clock-dots-band", `is-${kind}`)}>
+      <p className="clock-dots-label">{label}</p>
+      <div className="clock-dots-grid" role="img" aria-label={`${label} ${on} / ${total}`}>
+        {Array.from({ length: total }, (_, index) => (
+          <span key={index} className={cn("clock-dot", index < on && "is-on")} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export const CLOCK_STYLE_OPTIONS: {
+  id: ClockStyle;
+  nameKey: "clockStyleLines" | "clockStyleDial" | "clockStylePixel" | "clockStyleFlip" | "clockStyleObject" | "clockStyleDots";
+}[] = [
   { id: "lines", nameKey: "clockStyleLines" },
   { id: "dial", nameKey: "clockStyleDial" },
   { id: "pixel", nameKey: "clockStylePixel" },
   { id: "flip", nameKey: "clockStyleFlip" },
   { id: "object", nameKey: "clockStyleObject" },
+  { id: "dots", nameKey: "clockStyleDots" },
+];
+
+export const CLOCK_DOT_SHAPE_OPTIONS: {
+  id: ClockDotShape;
+  nameKey: "clockDotCircle" | "clockDotSquare" | "clockDotRounded" | "clockDotStar";
+}[] = [
+  { id: "circle", nameKey: "clockDotCircle" },
+  { id: "square", nameKey: "clockDotSquare" },
+  { id: "rounded", nameKey: "clockDotRounded" },
+  { id: "star", nameKey: "clockDotStar" },
 ];

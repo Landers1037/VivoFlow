@@ -33,8 +33,9 @@
 
 - 独立子页，入口在「显示」分组、外观下面。
 - `clock_enabled` 开启后首页进入全屏钟面，并关闭相册、音乐、音频（四选一）。
-- `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object`，与 14 种 `ui_style` 无关。
-- `clock_show_week` / `clock_show_date` / `clock_show_seconds` 默认开启。
+- `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object` / `dots`，与 14 种 `ui_style` 无关。
+- `clock_dot_shape`：点阵点形状 `circle` / `square` / `rounded` / `star`，仅选中点阵时出现。
+- `clock_show_week` / `clock_show_date` / `clock_show_seconds` 默认开启。点阵关秒时不渲染秒带。点阵横屏时/分/秒并排：时 4 列 6 行，分秒 10 列 6 行；竖屏上下叠放且同为 12 列：时 2 行，分秒 5 行。
 - 钟面明暗跟随外观里的明亮 / 暗黑 / 跟随系统。字体本地 `@font-face`：Outfit、Noto Sans SC、Fusion Pixel、Barlow Condensed、DSEG7/14。
 
 ## 关于

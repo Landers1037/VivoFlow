@@ -39,6 +39,10 @@ fn default_clock_style() -> String {
     "lines".into()
 }
 
+fn default_clock_dot_shape() -> String {
+    "circle".into()
+}
+
 fn default_clock_show() -> bool {
     true
 }
@@ -109,6 +113,8 @@ pub struct AppConfig {
     pub clock_show_date: bool,
     #[serde(default = "default_clock_show")]
     pub clock_show_seconds: bool,
+    #[serde(default = "default_clock_dot_shape")]
+    pub clock_dot_shape: String,
     #[serde(default)]
     pub audio_visualizer_enabled: bool,
     #[serde(default)]
@@ -163,6 +169,7 @@ impl Default for AppConfig {
             clock_show_week: true,
             clock_show_date: true,
             clock_show_seconds: true,
+            clock_dot_shape: default_clock_dot_shape(),
             audio_visualizer_enabled: false,
             audio_device_id: None,
             audio_visualizer_mode: default_audio_visualizer_mode(),
@@ -301,8 +308,11 @@ impl AppConfig {
             let id = id.trim();
             (!id.is_empty() && id.len() <= 128).then(|| id.to_owned())
         });
-        if !["lines", "dial", "pixel", "flip", "object"].contains(&self.clock_style.as_str()) {
+        if !["lines", "dial", "pixel", "flip", "object", "dots"].contains(&self.clock_style.as_str()) {
             self.clock_style = default_clock_style();
+        }
+        if !["circle", "square", "rounded", "star"].contains(&self.clock_dot_shape.as_str()) {
+            self.clock_dot_shape = default_clock_dot_shape();
         }
         if self.clock_enabled {
             self.photo_album_enabled = false;
@@ -444,6 +454,7 @@ mod tests {
         assert!(cfg.clock_show_week);
         assert!(cfg.clock_show_date);
         assert!(cfg.clock_show_seconds);
+        assert_eq!(cfg.clock_dot_shape, "circle");
         assert_eq!(cfg.active_music_album_id, None);
         assert_eq!(cfg.audio_visualizer_mode, "particles");
     }
@@ -528,6 +539,26 @@ mod tests {
         assert!(!cfg.audio_visualizer_enabled);
         assert!(!cfg.music_album_enabled);
         assert_eq!(cfg.clock_style, "lines");
+    }
+
+    #[test]
+    fn clock_dots_style_and_dot_shape_are_sanitized() {
+        let ok = AppConfig {
+            clock_style: "dots".into(),
+            clock_dot_shape: "star".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(ok.clock_style, "dots");
+        assert_eq!(ok.clock_dot_shape, "star");
+
+        let bad = AppConfig {
+            clock_style: "dots".into(),
+            clock_dot_shape: "hex".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(bad.clock_dot_shape, "circle");
     }
 
     #[test]

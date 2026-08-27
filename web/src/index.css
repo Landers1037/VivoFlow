@@ -3614,6 +3614,143 @@ html:not(.dark) .clock-flip-digit {
   opacity: 0.55;
 }
 
+.clock-page[data-clock-style="dots"] {
+  --clock-bg: oklch(0.97 0.004 95);
+  --clock-fg: oklch(0.22 0.02 250);
+}
+
+.dark .clock-page[data-clock-style="dots"] {
+  --clock-bg: oklch(0.13 0.012 250);
+  --clock-fg: oklch(0.94 0.01 95);
+}
+
+.clock-dots {
+  display: flex;
+  width: min(94vw, 58rem);
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.clock-dots .clock-meta {
+  margin-bottom: 0;
+}
+
+.clock-dots-bands {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: clamp(0.85rem, 2.2vw, 1.75rem);
+}
+
+.clock-dots-band {
+  min-width: 0;
+}
+
+.clock-dots-band.is-hour {
+  flex: 4 1 0;
+}
+
+.clock-dots-band.is-minute,
+.clock-dots-band.is-second {
+  flex: 10 1 0;
+}
+
+.clock-dots-label {
+  margin: 0 0 0.38rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+  color: color-mix(in oklch, var(--clock-fg) 56%, transparent);
+}
+
+.clock-dots-grid {
+  display: grid;
+  gap: 0.16rem;
+}
+
+.clock-dots-band.is-hour .clock-dots-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.clock-dots-band.is-minute .clock-dots-grid,
+.clock-dots-band.is-second .clock-dots-grid {
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+}
+
+@media (orientation: portrait) {
+  .clock-dots {
+    width: min(92vw, 22rem);
+  }
+
+  .clock-dots-bands {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.05rem;
+  }
+
+  .clock-dots-band.is-hour,
+  .clock-dots-band.is-minute,
+  .clock-dots-band.is-second {
+    flex: none;
+    width: 100%;
+  }
+
+  .clock-dots-band.is-hour .clock-dots-grid,
+  .clock-dots-band.is-minute .clock-dots-grid,
+  .clock-dots-band.is-second .clock-dots-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .clock-dots-grid {
+    gap: 0.22rem;
+  }
+}
+
+.clock-dot {
+  aspect-ratio: 1;
+  background: color-mix(in oklch, var(--clock-fg) 16%, transparent);
+  transition: background-color 120ms ease;
+}
+
+.clock-dot.is-on {
+  background: var(--primary);
+}
+
+[data-dot-shape="circle"] .clock-dot {
+  border-radius: 50%;
+}
+
+[data-dot-shape="square"] .clock-dot {
+  border-radius: 0;
+}
+
+[data-dot-shape="rounded"] .clock-dot {
+  border-radius: 28%;
+}
+
+[data-dot-shape="star"] .clock-dot {
+  clip-path: polygon(50% 2%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.settings-dot-shape-preview {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+}
+
+.settings-dot-shape-preview .clock-dot {
+  width: 0.72rem;
+  height: 0.72rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clock-dot {
+    transition: none;
+  }
+}
+
 @media (prefers-reduced-transparency: reduce) {
   .clock-dial,
   .clock-object-bezel {

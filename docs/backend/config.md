@@ -19,8 +19,9 @@
   - `music_album_enabled`：音乐专辑首页模块开关（默认 `false`）
   - `active_music_album_id`：当前启用的音乐专辑 ID，可在关闭模块时保留
   - `clock_enabled`：全屏时钟看板开关（默认 `false`）
-  - `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object`（默认 `lines`）
+  - `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object` / `dots`（默认 `lines`）
   - `clock_show_week` / `clock_show_date` / `clock_show_seconds`：钟面信息开关（默认 `true`）
+  - `clock_dot_shape`：点阵点形状 `circle` / `square` / `rounded` / `star`（默认 `circle`，仅点阵钟面使用）
 - `EnabledModules`：`cpu` / `memory` / `gpu` / `disk` / `network`（默认全开）
 
 ## 行为

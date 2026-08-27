@@ -8,9 +8,10 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockStyle, Lang, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
+  CLOCK_DOT_SHAPES,
   CLOCK_STYLES,
   DEFAULT_BACKGROUND_COLOR,
   DEFAULT_GLASS_GRADIENT_END,
@@ -113,6 +114,9 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     clock_show_week: base.clock_show_week !== false,
     clock_show_date: base.clock_show_date !== false,
     clock_show_seconds: base.clock_show_seconds !== false,
+    clock_dot_shape: CLOCK_DOT_SHAPES.includes(base.clock_dot_shape as ClockDotShape)
+      ? (base.clock_dot_shape as ClockDotShape)
+      : "circle",
     audio_visualizer_enabled: Boolean(base.audio_visualizer_enabled),
     audio_device_id: typeof base.audio_device_id === "string" && base.audio_device_id.trim() ? base.audio_device_id : null,
     audio_visualizer_mode: (["particles", "grid", "aurora", "radial", "city3d", "nebula3d", "terrain3d", "crystal3d"] as const).includes(base.audio_visualizer_mode as AudioVisualizerMode) ? base.audio_visualizer_mode as AudioVisualizerMode : "particles",
@@ -195,6 +199,7 @@ interface AppearanceContextValue {
   setClockShowWeek: (v: boolean) => void;
   setClockShowDate: (v: boolean) => void;
   setClockShowSeconds: (v: boolean) => void;
+  setClockDotShape: (v: ClockDotShape) => void;
   setAudioVisualizerEnabled: (v: boolean) => void;
   setAudioDeviceId: (v: string | null) => void;
   setAudioVisualizerMode: (v: AudioVisualizerMode) => void;
@@ -298,6 +303,7 @@ export function AppearanceProvider({
       setClockShowWeek: (clock_show_week) => patch({ clock_show_week }),
       setClockShowDate: (clock_show_date) => patch({ clock_show_date }),
       setClockShowSeconds: (clock_show_seconds) => patch({ clock_show_seconds }),
+      setClockDotShape: (clock_dot_shape) => patch({ clock_dot_shape }),
       setAudioVisualizerEnabled: (audio_visualizer_enabled) => patch({ audio_visualizer_enabled, ...(audio_visualizer_enabled ? { photo_album_enabled: false, music_album_enabled: false, clock_enabled: false } : {}) }),
       setAudioDeviceId: (audio_device_id) => patch({ audio_device_id }),
       setAudioVisualizerMode: (audio_visualizer_mode) => patch({ audio_visualizer_mode }),

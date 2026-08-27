@@ -1,9 +1,9 @@
 import { Check } from "lucide-react";
 import { SettingsGroup, SettingsSwitchRow } from "@/components/settings/SettingsList";
-import { CLOCK_STYLE_OPTIONS } from "@/components/clock/ClockPage";
+import { CLOCK_DOT_SHAPE_OPTIONS, CLOCK_STYLE_OPTIONS } from "@/components/clock/ClockPage";
 import { useAppearance } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
-import type { ClockStyle } from "@/types";
+import type { ClockDotShape, ClockStyle } from "@/types";
 
 function ClockStylePreview({ id }: { id: ClockStyle }) {
   const base = "settings-style-preview";
@@ -54,6 +54,20 @@ function ClockStylePreview({ id }: { id: ClockStyle }) {
           <span className="block h-1.5 w-4 rounded-[1px]" style={{ background: "oklch(0.72 0.14 145)" }} />
         </div>
       );
+    case "dots":
+      return (
+        <div className={`${base} grid grid-cols-4 gap-px p-0.5`} style={{ borderRadius: "0.2rem" }}>
+          {[1, 1, 1, 0, 1, 1, 0, 0].map((on, index) => (
+            <span
+              key={index}
+              style={{
+                borderRadius: "50%",
+                background: on ? "var(--primary)" : "color-mix(in oklch, var(--foreground) 18%, transparent)",
+              }}
+            />
+          ))}
+        </div>
+      );
     default:
       return (
         <div
@@ -66,6 +80,14 @@ function ClockStylePreview({ id }: { id: ClockStyle }) {
   }
 }
 
+function ClockDotShapePreview({ id }: { id: ClockDotShape }) {
+  return (
+    <span className="settings-dot-shape-preview" data-dot-shape={id} aria-hidden="true">
+      <span className="clock-dot is-on" />
+    </span>
+  );
+}
+
 export function ClockSettings() {
   const {
     t,
@@ -75,6 +97,7 @@ export function ClockSettings() {
     setClockShowWeek,
     setClockShowDate,
     setClockShowSeconds,
+    setClockDotShape,
   } = useAppearance();
 
   return (
@@ -111,6 +134,32 @@ export function ClockSettings() {
           })}
         </div>
       </SettingsGroup>
+
+      {config.clock_style === "dots" ? (
+        <SettingsGroup label={t("clockDotShape")}>
+          <div className="settings-style-grid">
+            {CLOCK_DOT_SHAPE_OPTIONS.map((option) => {
+              const selected = config.clock_dot_shape === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setClockDotShape(option.id)}
+                  className={cn("settings-style-cell", selected && "is-selected")}
+                  aria-pressed={selected}
+                  aria-label={t(option.nameKey)}
+                >
+                  <span className="settings-style-thumb" aria-hidden="true">
+                    <ClockDotShapePreview id={option.id} />
+                  </span>
+                  <span className="settings-style-cell-name">{t(option.nameKey)}</span>
+                  {selected ? <Check className="h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={2.5} /> : null}
+                </button>
+              );
+            })}
+          </div>
+        </SettingsGroup>
+      ) : null}
 
       <SettingsGroup>
         <SettingsSwitchRow

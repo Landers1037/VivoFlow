@@ -26,7 +26,8 @@ export type AccentId = "teal" | "zinc" | "blue" | "violet" | "amber" | "custom";
 export type ThemeMode = "light" | "dark" | "system";
 export type Lang = "zh" | "en";
 export type PhotoAlbumEffect = "single" | "time_machine" | "cover_flow";
-export type ClockStyle = "lines" | "dial" | "pixel" | "flip" | "object";
+export type ClockStyle = "lines" | "dial" | "pixel" | "flip" | "object" | "dots";
+export type ClockDotShape = "circle" | "square" | "rounded" | "star";
 export type AudioVisualizerMode =
   | "particles"
   | "grid"
@@ -68,7 +69,8 @@ export const UI_STYLES: UiStyle[] = [
   "editorial",
 ];
 
-export const CLOCK_STYLES: ClockStyle[] = ["lines", "dial", "pixel", "flip", "object"];
+export const CLOCK_STYLES: ClockStyle[] = ["lines", "dial", "pixel", "flip", "object", "dots"];
+export const CLOCK_DOT_SHAPES: ClockDotShape[] = ["circle", "square", "rounded", "star"];
 
 export const ACCENT_PRESETS: Exclude<AccentId, "custom">[] = [
   "teal",
@@ -112,6 +114,7 @@ export interface AppConfig {
   clock_show_week: boolean;
   clock_show_date: boolean;
   clock_show_seconds: boolean;
+  clock_dot_shape: ClockDotShape;
   audio_visualizer_enabled: boolean;
   audio_device_id: string | null;
   audio_visualizer_mode: AudioVisualizerMode;
@@ -147,6 +150,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   clock_show_week: true,
   clock_show_date: true,
   clock_show_seconds: true,
+  clock_dot_shape: "circle",
   audio_visualizer_enabled: false,
   audio_device_id: null,
   audio_visualizer_mode: "particles",
