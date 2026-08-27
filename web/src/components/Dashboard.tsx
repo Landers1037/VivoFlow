@@ -799,19 +799,21 @@ export function Dashboard({
           height: 2,
           node:
             disks.length === 0 ? null : (
-              <div className="vf-surface vf-widget-2x gap-2 overflow-y-auto">
-                {disks.slice(0, 4).map((d) => (
-                  <div key={d.name} className="vf-row shrink-0 px-3 py-2 text-sm">
-                    <p className="truncate font-medium">{d.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {na(d.model, naLabel)} · {na(d.kind, naLabel)} · {formatBytes(d.total_bytes, naLabel)}
-                    </p>
-                    <div className="mt-1.5 flex gap-3 text-xs">
-                      <span className="vf-data">{t("read", { value: formatBps(d.read_bps, naLabel) })}</span>
-                      <span className="vf-data">{t("write", { value: formatBps(d.write_bps, naLabel) })}</span>
+              <div className="vf-surface vf-widget-2x">
+                <div className="vf-widget-body vf-scroll flex flex-col gap-2">
+                  {disks.map((d) => (
+                    <div key={d.name} className="vf-row shrink-0 px-3 py-2 text-sm">
+                      <p className="truncate font-medium">{d.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {na(d.model, naLabel)} · {na(d.kind, naLabel)} · {formatBytes(d.total_bytes, naLabel)}
+                      </p>
+                      <div className="mt-1.5 flex gap-3 text-xs">
+                        <span className="vf-data">{t("read", { value: formatBps(d.read_bps, naLabel) })}</span>
+                        <span className="vf-data">{t("write", { value: formatBps(d.write_bps, naLabel) })}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             ),
         },

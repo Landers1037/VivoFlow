@@ -1592,6 +1592,24 @@ textarea,
   width: 100%;
 }
 
+.vf-scroll {
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+.vf-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 html[data-ui-style="line"] .vf-surface,
 html[data-ui-style="line"] .vf-panel,
 html[data-ui-style="line"] .vf-kpi,
