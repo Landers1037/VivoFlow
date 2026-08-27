@@ -7,10 +7,9 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SettingsGroup, SettingsSwitchRow } from "@/components/settings/SettingsList";
+import { SettingsGroup, SettingsSheetBar, SettingsSwitchRow } from "@/components/settings/SettingsList";
 import { useAppearance } from "@/hooks/useAppearance";
 
 const MAX_COVER_BYTES = 25 * 1024 * 1024;
@@ -192,23 +191,33 @@ export function MusicAlbumSettings() {
       )}
 
       <Dialog open={editingId !== null} onOpenChange={(open) => !open && closeEditor()}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingId === "new" ? t("createMusicAlbum") : t("editMusicAlbum")}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-5">
-            <Input
-              autoFocus
-              placeholder={t("musicAlbumTitlePlaceholder")}
-              value={draftTitle}
-              onChange={(event) => {
-                setDraftTitle(event.target.value);
-                if (message || error) resetFeedback();
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") void saveAlbum();
-              }}
-            />
+        <DialogContent>
+          <SettingsSheetBar
+            title={<DialogTitle>{editingId === "new" ? t("createMusicAlbum") : t("editMusicAlbum")}</DialogTitle>}
+            cancelLabel={t("settingsCancel")}
+            doneLabel={t("settingsDone")}
+            doneDisabled={saving || !draftTitle.trim()}
+            onCancel={closeEditor}
+            onDone={() => void saveAlbum()}
+          />
+          <div className="settings-sheet-body">
+            <SettingsGroup>
+              <label className="settings-row settings-row-stack">
+                <span className="settings-row-title">{t("musicAlbumTitlePlaceholder")}</span>
+                <input
+                  autoFocus
+                  value={draftTitle}
+                  onChange={(event) => {
+                    setDraftTitle(event.target.value);
+                    if (message || error) resetFeedback();
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") void saveAlbum();
+                  }}
+                  className="settings-field-input is-start"
+                />
+              </label>
+            </SettingsGroup>
             {editingAlbum ? (
               <AlbumEditor
                 album={editingAlbum}
@@ -224,23 +233,18 @@ export function MusicAlbumSettings() {
                 }}
               />
             ) : (
-              <p className="text-sm text-muted-foreground">{t("musicAlbumSaveFirst")}</p>
+              <p className="settings-group-footer">{t("musicAlbumSaveFirst")}</p>
             )}
-            <div className="sticky bottom-0 space-y-3 border-t border-border bg-card pt-4">
-              {message ? (
-                <p role="status" className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-primary">
-                  {message}
-                </p>
-              ) : null}
-              {error ? (
-                <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                  {error}
-                </p>
-              ) : null}
-              <Button className="w-full rounded-lg" onClick={() => void saveAlbum()} disabled={saving || !draftTitle.trim()}>
-                {saving ? t("musicAlbumSaving") : t("musicAlbumSave")}
-              </Button>
-            </div>
+            {message ? (
+              <p role="status" className="settings-group-footer" style={{ color: "var(--primary)" }}>
+                {message}
+              </p>
+            ) : null}
+            {error ? (
+              <p role="alert" className="mb-4 rounded-[0.9rem] bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {error}
+              </p>
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>

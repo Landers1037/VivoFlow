@@ -17,24 +17,18 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { FolderOpen, GripVertical, ImagePlus, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, FolderOpen, GripVertical, ImagePlus, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { SettingsGroup, SettingsSwitchRow } from "@/components/settings/SettingsList";
+import { SettingsGroup, SettingsSheetBar, SettingsSliderRow, SettingsSwitchRow } from "@/components/settings/SettingsList";
 import { useAppearance } from "@/hooks/useAppearance";
 import { albumApi, type AlbumInput } from "@/lib/albums";
 import { cn } from "@/lib/utils";
 import type { Album, AlbumImage, PhotoAlbumEffect } from "@/types";
-
-const INPUT_CLASS =
-  "min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 const EFFECTS: { id: PhotoAlbumEffect; key: "effectSingle" | "effectTimeMachine" | "effectCoverFlow" }[] = [
   { id: "single", key: "effectSingle" },
@@ -240,86 +234,98 @@ export function AlbumSettings() {
       )}
 
       <Dialog open={editingId != null} onOpenChange={(open) => !open && setEditingId(null)}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingId === "new" ? t("createAlbum") : t("editAlbum")}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="album-title">{t("albumTitle")}</Label>
+        <DialogContent>
+          <SettingsSheetBar
+            title={<DialogTitle>{editingId === "new" ? t("createAlbum") : t("editAlbum")}</DialogTitle>}
+            cancelLabel={t("settingsCancel")}
+            doneLabel={t("settingsDone")}
+            doneDisabled={busy || !draft.title.trim()}
+            onCancel={() => setEditingId(null)}
+            onDone={() => void save()}
+          />
+          <div className="settings-sheet-body">
+            <SettingsGroup>
+              <label className="settings-row">
+                <span className="settings-row-title">{t("albumTitle")}</span>
                 <input
                   id="album-title"
                   value={draft.title}
                   maxLength={120}
+                  autoComplete="off"
+                  autoFocus
                   onChange={(event) => setDraft((value) => ({ ...value, title: event.target.value }))}
-                  className={INPUT_CLASS}
+                  className="settings-field-input"
                 />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="album-description">{t("albumDescription")}</Label>
+              </label>
+              <label className="settings-row settings-row-stack">
+                <span className="settings-row-title">{t("albumDescription")}</span>
                 <textarea
                   id="album-description"
                   value={draft.description ?? ""}
                   maxLength={2000}
                   rows={3}
                   onChange={(event) => setDraft((value) => ({ ...value, description: event.target.value || null }))}
-                  className={cn(INPUT_CLASS, "py-2.5")}
+                  className="settings-field-input is-start settings-field-area"
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="album-date">{t("albumDate")}</Label>
+              </label>
+            </SettingsGroup>
+
+            <SettingsGroup>
+              <label className="settings-row">
+                <span className="settings-row-title">{t("albumDate")}</span>
                 <input
                   id="album-date"
                   type="date"
                   value={draft.date ?? ""}
                   onChange={(event) => setDraft((value) => ({ ...value, date: event.target.value || null }))}
-                  className={INPUT_CLASS}
+                  className="settings-field-input"
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="album-interval">{t("albumInterval")}</Label>
-                <input
-                  id="album-interval"
-                  type="number"
-                  min={1}
-                  max={60}
-                  value={draft.interval_s}
-                  onChange={(event) => setDraft((value) => ({ ...value, interval_s: Number(event.target.value) }))}
-                  className={INPUT_CLASS}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="vf-row flex min-h-14 items-center justify-between gap-3 px-3 py-2">
-                <Label htmlFor="album-home">{t("showOnHome")}</Label>
-                <Switch id="album-home" checked={draft.show_on_home} onCheckedChange={(checked) => setDraft((value) => ({ ...value, show_on_home: checked }))} />
-              </div>
-              <div className="vf-row flex min-h-14 items-center justify-between gap-3 px-3 py-2">
-                <div>
-                  <Label htmlFor="album-shuffle">{t("shuffleAlbum")}</Label>
-                  <p className="text-[11px] text-muted-foreground">{t("shuffleAlbumHint")}</p>
-                </div>
-                <Switch id="album-shuffle" checked={draft.shuffle} onCheckedChange={(checked) => setDraft((value) => ({ ...value, shuffle: checked }))} />
-              </div>
-            </div>
-
-            <Button className="w-full" disabled={busy || !draft.title.trim()} onClick={save}>
-              {busy ? t("loading") : t("saveAlbum")}
-            </Button>
+              </label>
+              <SettingsSliderRow
+                id="album-interval"
+                title={t("albumInterval")}
+                valueLabel={String(draft.interval_s)}
+                min={1}
+                max={60}
+                step={1}
+                value={draft.interval_s}
+                onChange={(interval_s) => setDraft((value) => ({ ...value, interval_s }))}
+              />
+              <SettingsSwitchRow
+                id="album-home"
+                title={t("showOnHome")}
+                checked={draft.show_on_home}
+                onCheckedChange={(checked) => setDraft((value) => ({ ...value, show_on_home: checked }))}
+              />
+              <SettingsSwitchRow
+                id="album-shuffle"
+                title={t("shuffleAlbum")}
+                subtitle={t("shuffleAlbumHint")}
+                checked={draft.shuffle}
+                onCheckedChange={(checked) => setDraft((value) => ({ ...value, shuffle: checked }))}
+              />
+            </SettingsGroup>
 
             {editing ? (
               <ImageManager album={editing} busy={busy} onUpload={upload} onChange={replaceAlbum} onBusy={setBusy} onError={setError} onMessage={setMessage} />
-            ) : null}
+            ) : (
+              <p className="settings-group-footer">{t("emptyAlbumHint")}</p>
+            )}
 
-            {message ? <p className="text-sm text-primary">{message}</p> : null}
-            {error ? <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p> : null}
+            {message ? <p className="settings-group-footer" style={{ color: "var(--primary)" }}>{message}</p> : null}
+            {error ? <p className="mb-4 rounded-[0.9rem] bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p> : null}
 
             {editing ? (
-              <Button variant="outline" className="w-full border-destructive/40 text-destructive hover:bg-destructive/10" disabled={busy} onClick={deleteCurrent}>
-                <Trash2 className="h-4 w-4" /> {t("deleteAlbum")}
-              </Button>
+              <SettingsGroup>
+                <button
+                  type="button"
+                  className="settings-row settings-row-destructive"
+                  disabled={busy}
+                  onClick={() => void deleteCurrent()}
+                >
+                  <span className="settings-row-title">{t("deleteAlbum")}</span>
+                </button>
+              </SettingsGroup>
             ) : null}
           </div>
         </DialogContent>
@@ -429,35 +435,42 @@ function ImageManager({
   };
 
   return (
-    <section className="space-y-3 border-t border-border pt-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h3 className="font-medium">{t("albumImages")}</h3>
-          <p className="text-xs text-muted-foreground">{t("emptyAlbumHint")}</p>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <button
-            type="button"
+    <>
+      <SettingsGroup label={t("albumImages")} footer={t("emptyAlbumHint")}>
+        <label className={cn("settings-row", busy && "is-disabled")}>
+          <span className="settings-row-icon" aria-hidden="true">
+            <ImagePlus className="h-4 w-4" strokeWidth={1.75} />
+          </span>
+          <span className="settings-row-title">{busy ? t("uploadingImages") : t("uploadImages")}</span>
+          <input
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+            className="sr-only"
             disabled={busy}
-            onClick={() => setPathOpen((open) => !open)}
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-medium hover:bg-muted"
-          >
-            <FolderOpen className="h-4 w-4" />
-            {t("configureLocalPath")}
-          </button>
-          <label className={cn("inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground", busy && "pointer-events-none opacity-60")}>
-            <ImagePlus className="h-4 w-4" />
-            {busy ? t("uploadingImages") : t("uploadImages")}
-            <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="sr-only" onChange={onUpload} />
-          </label>
-        </div>
-      </div>
+            onChange={onUpload}
+          />
+          <ChevronRight className="settings-row-chevron" aria-hidden="true" />
+        </label>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => setPathOpen((open) => !open)}
+          className="settings-row"
+        >
+          <span className="settings-row-icon" aria-hidden="true">
+            <FolderOpen className="h-4 w-4" strokeWidth={1.75} />
+          </span>
+          <span className="settings-row-copy">
+            <span className="settings-row-title">{t("configureLocalPath")}</span>
+          </span>
+          <ChevronRight className="settings-row-chevron" aria-hidden="true" />
+        </button>
+      </SettingsGroup>
 
       {pathOpen ? (
-        <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
-          <Label htmlFor="album-local-path">{t("localPathLabel")}</Label>
-          <p className="text-xs text-muted-foreground">{t("configureLocalPathHint")}</p>
-          <div className="flex flex-col gap-2 sm:flex-row">
+        <SettingsGroup label={t("localPathLabel")} footer={t("configureLocalPathHint")}>
+          <label className="settings-row settings-row-stack">
             <input
               id="album-local-path"
               value={localPath}
@@ -469,27 +482,36 @@ function ImageManager({
                   void scanLocal();
                 }
               }}
-              className={INPUT_CLASS}
+              className="settings-field-input is-start"
             />
-            <Button className="shrink-0" disabled={busy || !localPath.trim()} onClick={() => void scanLocal()}>
+          </label>
+          <button
+            type="button"
+            className="settings-row"
+            disabled={busy || !localPath.trim()}
+            onClick={() => void scanLocal()}
+          >
+            <span className="settings-row-title text-primary">
               {busy ? t("scanningLocalPath") : t("scanLocalPath")}
-            </Button>
-          </div>
-        </div>
+            </span>
+          </button>
+        </SettingsGroup>
       ) : null}
 
       {album.images.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">{t("emptyAlbum")}</div>
+        <p className="settings-group-footer">{t("emptyAlbum")}</p>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={dragEnd}>
           <SortableContext items={album.images.map((image) => image.id)} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {album.images.map((image, index) => <SortableImage key={image.id} image={image} cover={index === 0} onDelete={() => remove(image)} />)}
+            <div className="mb-4 grid grid-cols-3 gap-1.5">
+              {album.images.map((image, index) => (
+                <SortableImage key={image.id} image={image} cover={index === 0} onDelete={() => remove(image)} />
+              ))}
             </div>
           </SortableContext>
         </DndContext>
       )}
-    </section>
+    </>
   );
 }
 

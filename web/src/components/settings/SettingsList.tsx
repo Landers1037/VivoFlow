@@ -4,6 +4,43 @@ import { ChevronRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
+export function SettingsSheetBar({
+  title,
+  cancelLabel,
+  doneLabel,
+  onCancel,
+  onDone,
+  doneDisabled,
+}: {
+  title: ReactNode;
+  cancelLabel: string;
+  doneLabel?: string;
+  onCancel: () => void;
+  onDone?: () => void;
+  doneDisabled?: boolean;
+}) {
+  return (
+    <header className="settings-sheet-bar">
+      <button type="button" className="settings-nav-link" onClick={onCancel}>
+        {cancelLabel}
+      </button>
+      {title}
+      {onDone ? (
+        <button
+          type="button"
+          className="settings-nav-link is-strong"
+          disabled={doneDisabled}
+          onClick={onDone}
+        >
+          {doneLabel}
+        </button>
+      ) : (
+        <span />
+      )}
+    </header>
+  );
+}
+
 export function SettingsGroup({
   label,
   footer,
