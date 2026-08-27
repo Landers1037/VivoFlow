@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { Music2, Pencil, Plus, Trash2, Upload } from "lucide-react";
+import { Music2, Plus, Trash2, Upload } from "lucide-react";
 import { musicApi, musicCoverUrl } from "@/lib/music";
 import type { MusicAlbum, MusicTrack } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SettingsGroup, SettingsSwitchRow } from "@/components/settings/SettingsList";
 import { useAppearance } from "@/hooks/useAppearance";
 
 const MAX_COVER_BYTES = 25 * 1024 * 1024;
@@ -23,7 +23,7 @@ function draftsFromAlbum(album: MusicAlbum): Record<string, TrackDraft> {
 }
 
 export function MusicAlbumSettings() {
-  const { config, setMusicAlbumEnabled, activateMusicAlbum } = useAppearance();
+  const { t, config, setMusicAlbumEnabled, activateMusicAlbum } = useAppearance();
   const [albums, setAlbums] = useState<MusicAlbum[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
@@ -87,7 +87,7 @@ export function MusicAlbumSettings() {
     const title = draftTitle.trim();
     if (!title) {
       setMessage("");
-      setError("请填写专辑标题");
+      setError(t("musicAlbumNeedTitle"));
       return;
     }
     setSaving(true);
@@ -99,7 +99,7 @@ export function MusicAlbumSettings() {
         await load();
         setEditingId(album.id);
         setDraftTitle(album.title);
-        setMessage("专辑已创建，可以继续上传封面和音乐");
+        setMessage(t("musicAlbumCreated"));
         return;
       }
       if (!editingAlbum) return;
@@ -114,9 +114,9 @@ export function MusicAlbumSettings() {
         }
       }
       await load();
-      setMessage("已保存");
+      setMessage(t("musicAlbumSaved"));
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "保存失败");
+      setError(reason instanceof Error ? reason.message : t("musicAlbumSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -129,73 +129,77 @@ export function MusicAlbumSettings() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-card/40 p-4">
-        <div>
-          <h3 className="font-semibold">音乐专辑</h3>
-          <p className="mt-1 text-xs text-muted-foreground">与相册、音频可视化互斥</p>
-        </div>
-        <Switch checked={config.music_album_enabled} onCheckedChange={setMusicAlbumEnabled} />
-      </div>
+    <div className="settings-module">
+      <SettingsGroup footer={t("musicAlbumsHint")}>
+        <SettingsSwitchRow
+          id="music-album-enabled"
+          title={t("musicAlbums")}
+          checked={config.music_album_enabled}
+          onCheckedChange={setMusicAlbumEnabled}
+        />
+      </SettingsGroup>
 
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h4 className="font-medium">我的专辑</h4>
-          <p className="text-sm text-muted-foreground">创建专辑后，在弹窗中管理封面、音乐和歌词。</p>
-        </div>
-        <Button onClick={openNew} className="shrink-0 gap-2 rounded-lg">
-          <Plus className="h-4 w-4" />
-          新建专辑
-        </Button>
-      </div>
+      <SettingsGroup label={t("myMusicAlbums")} footer={t("myMusicAlbumsHint")}>
+        <button type="button" className="settings-row" onClick={openNew}>
+          <span className="settings-row-icon">
+            <Plus className="h-4 w-4" strokeWidth={1.75} />
+          </span>
+          <span className="settings-row-title">{t("createMusicAlbum")}</span>
+        </button>
+      </SettingsGroup>
 
       {albums.length ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <SettingsGroup>
           {albums.map((album) => (
-            <div
-              key={album.id}
-              className="group flex items-center gap-3 rounded-2xl border border-border/70 bg-card/35 p-3 transition-colors hover:border-primary/50 hover:bg-card/70"
-            >
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
+            <div key={album.id} className="settings-list-card">
+              <div className="settings-cover">
                 {album.cover_file ? (
-                  <img src={musicCoverUrl(album.id)} alt="" className="h-full w-full object-cover" />
+                  <img src={musicCoverUrl(album.id)} alt="" />
                 ) : (
-                  <Music2 className="h-7 w-7 text-muted-foreground" />
+                  <Music2 className="m-2.5 h-6 w-6 text-muted-foreground" />
                 )}
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">{album.title}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{album.tracks.length} 首曲目</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <Button size="sm" variant="outline" className="h-7 gap-1 rounded-lg px-2" onClick={() => openEdit(album)}>
-                    <Pencil className="h-3 w-3" /> 编辑
-                  </Button>
-                  <Button size="sm" variant={config.active_music_album_id === album.id ? "default" : "ghost"} className="h-7 rounded-lg px-2" onClick={() => void enable(album)}>
-                    {config.active_music_album_id === album.id ? "已启用" : "启用"}
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-7 rounded-lg px-2 text-destructive" onClick={async () => { await musicApi.remove(album.id); await load(); }}>
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
+              <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openEdit(album)}>
+                <span className="block truncate font-medium">{album.title}</span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  {t("musicAlbumTracks", { count: album.tracks.length })}
+                </span>
+              </button>
+              <Button
+                size="sm"
+                variant={config.active_music_album_id === album.id ? "default" : "ghost"}
+                className="h-9 shrink-0 px-2"
+                onClick={() => void enable(album)}
+              >
+                {config.active_music_album_id === album.id ? t("musicAlbumEnabled") : t("musicAlbumEnable")}
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9 shrink-0 text-destructive"
+                onClick={async () => {
+                  await musicApi.remove(album.id);
+                  await load();
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           ))}
-        </div>
+        </SettingsGroup>
       ) : (
-        <div className="rounded-2xl border border-dashed border-border/80 px-6 py-10 text-center text-sm text-muted-foreground">
-          还没有专辑，点击“新建专辑”开始创建。
-        </div>
+        <p className="px-1 text-sm text-muted-foreground">{t("musicAlbumEmpty")}</p>
       )}
 
       <Dialog open={editingId !== null} onOpenChange={(open) => !open && closeEditor()}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editingId === "new" ? "新建音乐专辑" : "编辑音乐专辑"}</DialogTitle>
+            <DialogTitle>{editingId === "new" ? t("createMusicAlbum") : t("editMusicAlbum")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-5">
             <Input
               autoFocus
-              placeholder="专辑标题"
+              placeholder={t("musicAlbumTitlePlaceholder")}
               value={draftTitle}
               onChange={(event) => {
                 setDraftTitle(event.target.value);
@@ -220,7 +224,7 @@ export function MusicAlbumSettings() {
                 }}
               />
             ) : (
-              <p className="text-sm text-muted-foreground">先填写标题并保存，随后即可上传媒体文件。</p>
+              <p className="text-sm text-muted-foreground">{t("musicAlbumSaveFirst")}</p>
             )}
             <div className="sticky bottom-0 space-y-3 border-t border-border bg-card pt-4">
               {message ? (
@@ -234,7 +238,7 @@ export function MusicAlbumSettings() {
                 </p>
               ) : null}
               <Button className="w-full rounded-lg" onClick={() => void saveAlbum()} disabled={saving || !draftTitle.trim()}>
-                {saving ? "保存中…" : "保存"}
+                {saving ? t("musicAlbumSaving") : t("musicAlbumSave")}
               </Button>
             </div>
           </div>
@@ -257,22 +261,23 @@ function AlbumEditor({
   onChange: () => Promise<void>;
   onError: (message: string) => void;
 }) {
+  const { t } = useAppearance();
   const [files, setFiles] = useState<File[]>([]);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/70 bg-muted/20 p-3">
         <div className="h-20 w-20 overflow-hidden rounded-lg bg-muted">
-          {album.cover_file ? <img src={musicCoverUrl(album.id)} alt="专辑封面" className="h-full w-full object-cover" /> : <Music2 className="m-6 h-8 w-8 text-muted-foreground" />}
+          {album.cover_file ? <img src={musicCoverUrl(album.id)} alt={t("musicAlbumCoverAlt")} className="h-full w-full object-cover" /> : <Music2 className="m-6 h-8 w-8 text-muted-foreground" />}
         </div>
         <label>
-          <Button asChild variant="outline" className="gap-2 rounded-lg"><span><Upload className="h-4 w-4" />上传封面</span></Button>
-          <input className="hidden" type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={async (event) => { const input = event.currentTarget; const file = input.files?.[0]; if (!file) return; onError(""); if (file.size > MAX_COVER_BYTES) { onError(`封面大小不能超过 25 MB，当前文件为 ${(file.size / 1024 / 1024).toFixed(1)} MB。`); input.value = ""; return; } if (!SUPPORTED_COVER_TYPES.has(file.type)) { onError("封面仅支持 JPEG、PNG、GIF 和 WebP 格式。"); input.value = ""; return; } try { await musicApi.cover(album.id, file); await onChange(); } catch (error) { onError(error instanceof Error ? error.message : "封面上传失败"); } finally { input.value = ""; } }} />
+          <Button asChild variant="outline" className="gap-2 rounded-lg"><span><Upload className="h-4 w-4" />{t("musicAlbumUploadCover")}</span></Button>
+          <input className="hidden" type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={async (event) => { const input = event.currentTarget; const file = input.files?.[0]; if (!file) return; onError(""); if (file.size > MAX_COVER_BYTES) { onError(t("musicAlbumCoverTooLarge", { size: (file.size / 1024 / 1024).toFixed(1) })); input.value = ""; return; } if (!SUPPORTED_COVER_TYPES.has(file.type)) { onError(t("musicAlbumCoverType")); input.value = ""; return; } try { await musicApi.cover(album.id, file); await onChange(); } catch (error) { onError(error instanceof Error ? error.message : t("musicAlbumCoverFailed")); } finally { input.value = ""; } }} />
         </label>
         <label>
-          <Button asChild variant="outline" className="rounded-lg"><span>选择音乐</span></Button>
+          <Button asChild variant="outline" className="rounded-lg"><span>{t("musicAlbumChooseTracks")}</span></Button>
           <input className="hidden" type="file" multiple accept="audio/*" onChange={(event) => setFiles(Array.from(event.target.files ?? []))} />
         </label>
-        {files.length ? <Button className="rounded-lg" onClick={async () => { try { await musicApi.tracks(album.id, files); setFiles([]); await onChange(); } catch (error) { onError(error instanceof Error ? error.message : "音乐上传失败"); } }}>上传 {files.length} 首</Button> : null}
+        {files.length ? <Button className="rounded-lg" onClick={async () => { try { await musicApi.tracks(album.id, files); setFiles([]); await onChange(); } catch (error) { onError(error instanceof Error ? error.message : t("musicAlbumTracksFailed")); } }}>{t("musicAlbumUploadTracks", { count: files.length })}</Button> : null}
       </div>
       {album.tracks.length ? album.tracks.map((track) => {
         const draft = trackDrafts[track.id] ?? { title: track.title, lyrics: track.lyrics };
@@ -286,7 +291,7 @@ function AlbumEditor({
             onChange={onChange}
           />
         );
-      }) : <p className="text-sm text-muted-foreground">还没有曲目，请选择音乐文件上传。</p>}
+      }) : <p className="text-sm text-muted-foreground">{t("musicAlbumNoTracks")}</p>}
     </div>
   );
 }
@@ -304,6 +309,7 @@ function TrackEditor({
   onDraftChange: (draft: TrackDraft) => void;
   onChange: () => Promise<void>;
 }) {
+  const { t } = useAppearance();
   return (
     <div className="space-y-2 rounded-xl border border-border/70 p-3">
       <div className="flex gap-2">
@@ -316,12 +322,12 @@ function TrackEditor({
             await onChange();
           }}
         >
-          删除
+          {t("musicAlbumDeleteTrack")}
         </Button>
       </div>
       <textarea
         className="min-h-24 w-full rounded-md border border-border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
-        placeholder="歌词或 LRC"
+        placeholder={t("musicAlbumLyricsPlaceholder")}
         value={draft.lyrics}
         onChange={(event) => onDraftChange({ ...draft, lyrics: event.target.value })}
       />

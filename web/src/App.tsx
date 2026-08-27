@@ -38,6 +38,11 @@ function AppShell({
 }: ReturnType<typeof useVivoflowWs>) {
   const { t, config: appearanceConfig } = useAppearance();
   const [page, setPage] = useState<"dashboard" | "settings">("dashboard");
+  const [settingsReset, setSettingsReset] = useState(0);
+  const openSettings = () => {
+    if (page === "settings") setSettingsReset((nonce) => nonce + 1);
+    else setPage("settings");
+  };
   const [headerRevealed, setHeaderRevealed] = useState(false);
   const headerTimer = useRef<number | null>(null);
   const hideTitleBar = appearanceConfig.hide_title_bar && page === "dashboard";
@@ -79,7 +84,7 @@ function AppShell({
       config={config}
       t={t}
       onReveal={revealHeader}
-      onOpenSettings={() => setPage("settings")}
+      onOpenSettings={openSettings}
       inFlow={inFlow}
     />
   );
@@ -87,7 +92,7 @@ function AppShell({
   if (page === "dashboard" && appearanceConfig.music_album_enabled && musicAlbum) {
     return (
       <div className="vf-shell overflow-hidden">
-        <MusicAlbumPage album={musicAlbum} onOpenSettings={() => setPage("settings")} />
+        <MusicAlbumPage album={musicAlbum} onOpenSettings={openSettings} />
         {titleBar()}
       </div>
     );
@@ -96,7 +101,7 @@ function AppShell({
   if (page === "dashboard" && appearanceConfig.audio_visualizer_enabled) {
     return (
       <div className="vf-shell overflow-hidden">
-        <AudioVisualizerPage frame={audioFrame} status={audioStatus} onSubscribe={setAudioSubscription} onOpenSettings={() => setPage("settings")} />
+        <AudioVisualizerPage frame={audioFrame} status={audioStatus} onSubscribe={setAudioSubscription} onOpenSettings={openSettings} />
         {titleBar()}
       </div>
     );
@@ -105,7 +110,7 @@ function AppShell({
   if (page === "dashboard" && appearanceConfig.photo_album_enabled) {
     return (
       <div className="vf-shell overflow-hidden">
-        <PhotoAlbumPage onOpenSettings={() => setPage("settings")} />
+        <PhotoAlbumPage onOpenSettings={openSettings} />
         {titleBar()}
       </div>
     );
@@ -113,7 +118,7 @@ function AppShell({
 
   return (
     <div className={cn("vf-shell", mobileCardModeActive && "overflow-hidden")}>
-      <div className="safe-pad mx-auto max-w-5xl">
+      <div className={cn("safe-pad mx-auto", page === "settings" ? "settings-shell" : "max-w-5xl")}>
         {page === "settings" ? (
           <SettingsPage
             config={config}
@@ -122,6 +127,7 @@ function AppShell({
             audioFrame={audioFrame}
             audioStatus={audioStatus}
             onAudioSubscribe={setAudioSubscription}
+            resetNonce={settingsReset}
           />
         ) : (
           <>
@@ -166,7 +172,7 @@ function AppShell({
           type="button"
           className={cn("vf-mobile-nav-item", page === "settings" && "vf-mobile-nav-item-active")}
           aria-current={page === "settings" ? "page" : undefined}
-          onClick={() => setPage("settings")}
+          onClick={openSettings}
         >
           <Settings2 className="h-[18px] w-[18px]" />
           <span>{t("settings")}</span>

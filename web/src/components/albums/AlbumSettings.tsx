@@ -17,7 +17,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CalendarDays, FolderOpen, GripVertical, ImagePlus, Pencil, Plus, Trash2 } from "lucide-react";
+import { FolderOpen, GripVertical, ImagePlus, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,11 +27,11 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { SettingsGroup, SettingsSwitchRow } from "@/components/settings/SettingsList";
 import { useAppearance } from "@/hooks/useAppearance";
 import { albumApi, type AlbumInput } from "@/lib/albums";
 import { cn } from "@/lib/utils";
 import type { Album, AlbumImage, PhotoAlbumEffect } from "@/types";
-import { CardLinearSpread } from "./CardLinearSpread";
 
 const INPUT_CLASS =
   "min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -171,52 +171,38 @@ export function AlbumSettings() {
   };
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-4">
-        <div className="flex min-h-12 items-center justify-between gap-4">
-          <div>
-            <Label htmlFor="photo-album-enabled">{t("electronicAlbum")}</Label>
-            <p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
-              {t("electronicAlbumHint")}
-            </p>
-          </div>
-          <Switch
-            id="photo-album-enabled"
-            checked={config.photo_album_enabled}
+    <div className="settings-module">
+      <SettingsGroup footer={t("electronicAlbumHint")}>
+        <SettingsSwitchRow
+          id="photo-album-enabled"
+          title={t("electronicAlbum")}
+          checked={config.photo_album_enabled}
+          disabled={!synced}
+          onCheckedChange={setPhotoAlbumEnabled}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup label={t("albumEffect")}>
+        {EFFECTS.map((effect) => (
+          <button
+            type="button"
+            key={effect.id}
             disabled={!synced}
-            onCheckedChange={setPhotoAlbumEnabled}
-          />
-        </div>
+            onClick={() => setPhotoAlbumEffect(effect.id)}
+            className={cn("settings-row", config.photo_album_effect === effect.id && "is-selected")}
+          >
+            <span className="settings-row-title">{t(effect.key)}</span>
+            {config.photo_album_effect === effect.id ? (
+              <span className="settings-row-value text-primary">{t("settingsOn")}</span>
+            ) : null}
+          </button>
+        ))}
+      </SettingsGroup>
 
-        <div className="space-y-2">
-          <Label>{t("albumEffect")}</Label>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {EFFECTS.map((effect) => (
-              <button
-                type="button"
-                key={effect.id}
-                disabled={!synced}
-                onClick={() => setPhotoAlbumEffect(effect.id)}
-                className={cn(
-                  "min-h-11 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
-                  config.photo_album_effect === effect.id
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                {t(effect.key)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div className="flex items-center justify-between gap-3 border-t border-border pt-5">
-        <div>
-          <h2 className="text-base font-semibold">{t("albums")}</h2>
-          <p className="text-xs text-muted-foreground">{t("dragToReorder")}</p>
-        </div>
-        <Button
+      <SettingsGroup label={t("albums")} footer={t("dragToReorder")}>
+        <button
+          type="button"
+          className="settings-row"
           onClick={() => {
             setEditingId("new");
             setDraft(emptyDraft());
@@ -224,30 +210,33 @@ export function AlbumSettings() {
             setError(null);
           }}
         >
-          <Plus className="h-4 w-4" /> {t("createAlbum")}
-        </Button>
-      </div>
+          <span className="settings-row-icon">
+            <Plus className="h-4 w-4" strokeWidth={1.75} />
+          </span>
+          <span className="settings-row-title">{t("createAlbum")}</span>
+        </button>
+      </SettingsGroup>
 
       {error && !editingId ? (
-        <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+        <p className="mb-4 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
       ) : null}
 
       {albums.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border px-5 py-10 text-center">
+        <div className="settings-group-body px-5 py-10 text-center">
           <ImagePlus className="mx-auto h-8 w-8 text-muted-foreground" />
           <p className="mt-3 font-medium">{t("noAlbums")}</p>
           <p className="mt-1 text-sm text-muted-foreground">{t("noAlbumsHint")}</p>
         </div>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onAlbumDragEnd}>
-          <SortableContext items={albums.map((album) => album.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-3">
+        <SettingsGroup>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onAlbumDragEnd}>
+            <SortableContext items={albums.map((album) => album.id)} strategy={verticalListSortingStrategy}>
               {albums.map((album) => (
                 <SortableAlbum key={album.id} album={album} onEdit={() => openAlbum(album)} />
               ))}
-            </div>
-          </SortableContext>
-        </DndContext>
+            </SortableContext>
+          </DndContext>
+        </SettingsGroup>
       )}
 
       <Dialog open={editingId != null} onOpenChange={(open) => !open && setEditingId(null)}>
@@ -346,25 +335,22 @@ function SortableAlbum({ album, onEdit }: { album: Album; onEdit: () => void }) 
     <article
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn("vf-row flex items-center gap-3 p-3", isDragging && "relative z-20 opacity-70 shadow-xl")}
+      className={cn("settings-list-card", isDragging && "relative z-20 opacity-70")}
     >
-      <button type="button" aria-label={t("dragToReorder")} className="touch-none rounded-md p-1 text-muted-foreground hover:text-foreground" {...attributes} {...listeners}>
+      <button type="button" aria-label={t("dragToReorder")} className="touch-none p-1 text-muted-foreground" {...attributes} {...listeners}>
         <GripVertical className="h-5 w-5" />
       </button>
-      <CardLinearSpread images={album.images} />
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="truncate font-semibold">{album.title}</h3>
-          {album.show_on_home ? <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">{t("showOnHome")}</span> : null}
-        </div>
-        {album.description ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{album.description}</p> : null}
-        <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-          <span>{album.images.length} {t("albumImages")}</span>
-          {album.date ? <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{album.date}</span> : null}
-          <span>{album.interval_s}s</span>
-        </p>
+      <div className="settings-cover">
+        {album.images[0] ? <img src={album.images[0].content_url} alt="" /> : null}
       </div>
-      <Button variant="outline" size="icon" aria-label={t("editAlbum")} onClick={onEdit}>
+      <button type="button" className="min-w-0 flex-1 text-left" onClick={onEdit}>
+        <span className="block truncate font-medium">{album.title}</span>
+        <span className="mt-0.5 block text-xs text-muted-foreground">
+          {album.images.length} {t("albumImages")}
+          {album.show_on_home ? ` · ${t("showOnHome")}` : ""}
+        </span>
+      </button>
+      <Button variant="ghost" size="icon" aria-label={t("editAlbum")} onClick={onEdit}>
         <Pencil className="h-4 w-4" />
       </Button>
     </article>

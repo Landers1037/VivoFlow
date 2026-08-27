@@ -1,11 +1,18 @@
-import { useEffect, useState } from "react";
-import { ArrowLeft, AudioLines, Images, Info, Music2, Palette, Radio } from "lucide-react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { Check, ChevronLeft, AudioLines, Images, Info, Music2, Palette, Radio } from "lucide-react";
 import { AlbumSettings } from "@/components/albums/AlbumSettings";
 import { MusicAlbumSettings } from "@/components/music/MusicAlbumSettings";
 import { AudioSettings } from "@/components/audio/AudioSettings";
+import {
+  SettingsGroup,
+  SettingsRow,
+  SettingsSegmented,
+  SettingsSliderRow,
+  SettingsSwitchRow,
+} from "@/components/settings/SettingsList";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   ACCENT_OPTIONS,
   BACKGROUND_OPTIONS,
@@ -20,7 +27,7 @@ import { DEFAULT_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
 
-type TabId = "appearance" | "collection" | "albums" | "music" | "audio" | "about";
+export type SettingsPane = "index" | "appearance" | "collection" | "albums" | "music" | "audio" | "about";
 
 export function SettingsPage({
   config,
@@ -29,6 +36,7 @@ export function SettingsPage({
   audioFrame,
   audioStatus,
   onAudioSubscribe,
+  resetNonce = 0,
 }: {
   config: AppConfig | null;
   onSave: (cfg: AppConfig) => void;
@@ -36,6 +44,7 @@ export function SettingsPage({
   audioFrame: AudioFrame | null;
   audioStatus: AudioStatus | null;
   onAudioSubscribe: (enabled: boolean) => void;
+  resetNonce?: number;
 }) {
   const {
     t,
@@ -52,7 +61,8 @@ export function SettingsPage({
     setMobileAutoCarousel,
     setMobileCarouselInterval,
   } = useAppearance();
-  const [tab, setTab] = useState<TabId>("appearance");
+  const reduceMotion = useReducedMotion();
+  const [pane, setPane] = useState<SettingsPane>("index");
   const [savedFlash, setSavedFlash] = useState(false);
   const [local, setLocal] = useState<AppConfig>(config ?? DEFAULT_CONFIG);
 
@@ -60,189 +70,258 @@ export function SettingsPage({
     if (config) setLocal(config);
   }, [config]);
 
-  const tabs: { id: TabId; label: string; icon: typeof Palette }[] = [
-    { id: "appearance", label: t("appearance"), icon: Palette },
-    { id: "collection", label: t("collection"), icon: Radio },
-    { id: "albums", label: t("albums"), icon: Images },
-    { id: "music", label: "音乐专辑", icon: Music2 },
-    { id: "audio", label: t("audioVisualizer"), icon: AudioLines },
-    { id: "about", label: t("about"), icon: Info },
-  ];
-  const activeTab = tabs.find((item) => item.id === tab) ?? tabs[0];
+  useEffect(() => {
+    setPane("index");
+  }, [resetNonce]);
+
+  const styleName = t(
+    UI_STYLE_OPTIONS.find((option) => option.id === synced.ui_style)?.nameKey ?? "styleAmicro",
+  );
+
+  const open = (next: Exclude<SettingsPane, "index">) => setPane(next);
+  const closePane = () => setPane("index");
 
   return (
-    <div className="settings-page flex min-h-[70dvh] flex-col gap-4">
-      <header className="settings-header flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            className="settings-back-button"
-            aria-label={t("back")}
-            onClick={onBack}
-          >
-          <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="settings-heading-copy min-w-0">
-            <p className="settings-eyebrow">VivoFlow / CONTROL ROOM</p>
-            <h1 className="text-2xl font-semibold tracking-tight">{t("settings")}</h1>
-          </div>
-        </div>
-        <div className={cn("settings-sync-badge", config ? "settings-sync-live" : "settings-sync-waiting")}>
-          <span className="settings-sync-dot" />
-          <span>{config ? t("connected") : t("connecting")}</span>
-        </div>
-      </header>
-
-      <div className="settings-layout flex min-h-0 flex-1 flex-col gap-3 sm:flex-row landscape:gap-4">
-        <nav
-          className="settings-nav flex w-full shrink-0 gap-1 overflow-x-auto pb-1 sm:w-36 sm:flex-col sm:overflow-visible sm:pb-0"
-          aria-label={t("settings")}
-        >
-          {tabs.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTab(id)}
-              className={cn(
-                "settings-nav-item flex min-h-11 shrink-0 items-center gap-2 px-3 py-2 text-left text-sm transition-colors sm:w-full",
-                tab === id && "settings-nav-item-active",
-              )}
-            >
-              <span className="settings-nav-icon"><Icon className="h-4 w-4 shrink-0" /></span>
-              <span className="settings-nav-label truncate">{label}</span>
-              <span className="settings-nav-arrow" aria-hidden="true">›</span>
+    <div className={cn("settings-page", pane !== "index" && "is-drilled")}>
+      <div className="settings-index" aria-hidden={pane !== "index"} inert={pane !== "index" || undefined}>
+        <header className="settings-index-header">
+          <div className="settings-index-tools">
+            <button type="button" className="settings-back-link" aria-label={t("back")} onClick={onBack}>
+              <ChevronLeft className="h-6 w-6" strokeWidth={2} />
             </button>
-          ))}
-        </nav>
-
-        <section className="vf-panel settings-content-panel min-w-0 flex-1">
-          <div className="settings-content-header">
-            <div className="settings-content-title">
-              <span className="settings-content-index">0{tabs.findIndex((item) => item.id === tab) + 1}</span>
-              <div>
-                <p className="settings-content-kicker">MODULE SETTINGS</p>
-                <h2 className="text-xl font-semibold tracking-tight">{activeTab.label}</h2>
-              </div>
-            </div>
-            <span className="settings-content-meta">{config ? t("connected") : t("connecting")}</span>
+            <span
+              className={cn("settings-live-dot", config ? "is-live" : "is-waiting")}
+              title={config ? t("connected") : t("connecting")}
+            />
           </div>
-          <div className="settings-content-body">
-          {tab === "appearance" ? (
-            <div className="settings-tab-content">
-              <AppearanceTab
-                t={t}
-                config={synced}
-              setAccent={setAccent}
-              setAccentCustom={setAccentCustom}
-              setBackgroundColor={setBackgroundColor}
-              setGlassGradient={setGlassGradient}
-                setLanguage={setLanguage}
-                setUiStyle={setUiStyle}
-                setThemeMode={setThemeMode}
-                setHideTitleBar={setHideTitleBar}
-                setMobileCardMode={setMobileCardMode}
-                setMobileAutoCarousel={setMobileAutoCarousel}
-                setMobileCarouselInterval={setMobileCarouselInterval}
-              />
-            </div>
-          ) : null}
+          <h1 className="settings-large-title">{t("settings")}</h1>
+        </header>
 
-          {tab === "collection" ? (
-            <div className="settings-tab-content collection-tab space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="interval">
-                  {t("interval")}: {local.interval_ms}
-                </Label>
-                <input
-                  id="interval"
-                  type="range"
-                  min={200}
-                  max={5000}
-                  step={100}
-                  value={local.interval_ms}
-                  onChange={(e) =>
-                    setLocal((s) => ({ ...s, interval_ms: Number(e.target.value) }))
-                  }
-                  className="w-full accent-primary"
+        <SettingsGroup label={t("settingsGroupDisplay")}>
+          <SettingsRow
+            icon={Palette}
+            title={t("appearance")}
+            value={styleName}
+            chevron
+            onClick={() => open("appearance")}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup label={t("settingsGroupData")}>
+          <SettingsRow
+            icon={Radio}
+            title={t("collection")}
+            chevron
+            onClick={() => open("collection")}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup label={t("settingsGroupMedia")}>
+          <SettingsRow
+            icon={Images}
+            title={t("albums")}
+            value={synced.photo_album_enabled ? t("settingsOn") : t("settingsOff")}
+            chevron
+            onClick={() => open("albums")}
+          />
+          <SettingsRow
+            icon={Music2}
+            title={t("musicAlbums")}
+            value={synced.music_album_enabled ? t("settingsOn") : t("settingsOff")}
+            chevron
+            onClick={() => open("music")}
+          />
+          <SettingsRow
+            icon={AudioLines}
+            title={t("audioVisualizer")}
+            value={synced.audio_visualizer_enabled ? t("settingsOn") : t("settingsOff")}
+            chevron
+            onClick={() => open("audio")}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup>
+          <SettingsRow
+            icon={Info}
+            title={t("about")}
+            value={APP_VERSION}
+            chevron
+            onClick={() => open("about")}
+          />
+        </SettingsGroup>
+      </div>
+
+      <AnimatePresence>
+        {pane !== "index" ? (
+          <motion.section
+            key={pane}
+            className="settings-detail"
+            initial={reduceMotion ? { opacity: 1 } : { x: "100%" }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={reduceMotion ? { opacity: 1 } : { x: "100%" }}
+            transition={{ type: "spring", stiffness: 420, damping: 38, mass: 0.85 }}
+            aria-label={paneLabel(t, pane)}
+          >
+            <header className="settings-detail-bar">
+              <button type="button" className="settings-back-link" onClick={closePane}>
+                <ChevronLeft className="h-6 w-6" strokeWidth={2} />
+                <span>{t("settings")}</span>
+              </button>
+              <h1 className="settings-detail-title">{paneLabel(t, pane)}</h1>
+            </header>
+
+            <div className={cn("settings-detail-body", pane === "collection" && "has-apply-bar")}>
+              {pane === "appearance" ? (
+                <AppearanceTab
+                  t={t}
+                  config={synced}
+                  setAccent={setAccent}
+                  setAccentCustom={setAccentCustom}
+                  setBackgroundColor={setBackgroundColor}
+                  setGlassGradient={setGlassGradient}
+                  setLanguage={setLanguage}
+                  setUiStyle={setUiStyle}
+                  setThemeMode={setThemeMode}
+                  setHideTitleBar={setHideTitleBar}
+                  setMobileCardMode={setMobileCardMode}
+                  setMobileAutoCarousel={setMobileAutoCarousel}
+                  setMobileCarouselInterval={setMobileCarouselInterval}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="history">
-                  {t("history")}: {local.history_points}
-                </Label>
-                <input
-                  id="history"
-                  type="range"
-                  min={10}
-                  max={180}
-                  step={5}
-                  value={local.history_points}
-                  onChange={(e) =>
-                    setLocal((s) => ({ ...s, history_points: Number(e.target.value) }))
-                  }
-                  className="w-full accent-primary"
+              ) : null}
+
+              {pane === "collection" ? (
+                <CollectionTab
+                  t={t}
+                  local={local}
+                  setLocal={setLocal}
+                  config={config}
+                  savedFlash={savedFlash}
+                  onApply={() => {
+                    onSave({
+                      ...synced,
+                      interval_ms: local.interval_ms,
+                      history_points: local.history_points,
+                      enabled: local.enabled,
+                    });
+                    setSavedFlash(true);
+                    window.setTimeout(() => setSavedFlash(false), 1600);
+                  }}
                 />
-              </div>
-              <div className="space-y-3">
-                <p className="text-sm font-medium">{t("modules")}</p>
-                {(
-                  [
-                    ["cpu", "cpu"],
-                    ["memory", "memory"],
-                    ["gpu", "gpu"],
-                    ["disk", "disk"],
-                    ["network", "network"],
-                  ] as const
-                ).map(([key, labelKey]) => (
-                  <div key={key} className="flex min-h-11 items-center justify-between gap-3">
-                    <Label htmlFor={key}>{t(labelKey)}</Label>
-                    <Switch
-                      id={key}
-                      checked={local.enabled[key]}
-                      onCheckedChange={(checked) =>
-                        setLocal((s) => ({
-                          ...s,
-                          enabled: { ...s.enabled, [key]: checked },
-                        }))
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
-              <Button
-                className="w-full"
-                disabled={!config}
-                onClick={() => {
-                  onSave({
-                    ...synced,
-                    interval_ms: local.interval_ms,
-                    history_points: local.history_points,
-                    enabled: local.enabled,
-                  });
-                  setSavedFlash(true);
-                  window.setTimeout(() => setSavedFlash(false), 1600);
-                }}
-              >
-                {savedFlash ? t("applied") : t("apply")}
-              </Button>
+              ) : null}
+
+              {pane === "albums" ? <AlbumSettings /> : null}
+              {pane === "music" ? <MusicAlbumSettings /> : null}
+              {pane === "audio" ? (
+                <AudioSettings
+                  frame={audioFrame}
+                  status={audioStatus}
+                  onSubscribe={onAudioSubscribe}
+                />
+              ) : null}
+              {pane === "about" ? <AboutTab t={t} /> : null}
             </div>
-          ) : null}
+          </motion.section>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
 
-          {tab === "albums" ? <div className="settings-tab-content"><AlbumSettings /></div> : null}
-          {tab === "music" ? <div className="settings-tab-content"><MusicAlbumSettings /></div> : null}
-          {tab === "audio" ? <div className="settings-tab-content"><AudioSettings frame={audioFrame} status={audioStatus} onSubscribe={onAudioSubscribe} /></div> : null}
+function paneLabel(t: TFunction, pane: SettingsPane): string {
+  switch (pane) {
+    case "appearance":
+      return t("appearance");
+    case "collection":
+      return t("collection");
+    case "albums":
+      return t("albums");
+    case "music":
+      return t("musicAlbums");
+    case "audio":
+      return t("audioVisualizer");
+    case "about":
+      return t("about");
+    default:
+      return t("settings");
+  }
+}
 
-          {tab === "about" ? <div className="settings-tab-content"><AboutTab t={t} /></div> : null}
-          </div>
-        </section>
+function CollectionTab({
+  t,
+  local,
+  setLocal,
+  config,
+  savedFlash,
+  onApply,
+}: {
+  t: TFunction;
+  local: AppConfig;
+  setLocal: Dispatch<SetStateAction<AppConfig>>;
+  config: AppConfig | null;
+  savedFlash: boolean;
+  onApply: () => void;
+}) {
+  return (
+    <div className="settings-collection">
+      <SettingsGroup>
+        <SettingsSliderRow
+          id="interval"
+          title={t("interval")}
+          valueLabel={String(local.interval_ms)}
+          min={200}
+          max={5000}
+          step={100}
+          value={local.interval_ms}
+          onChange={(interval_ms) => setLocal((state) => ({ ...state, interval_ms }))}
+        />
+        <SettingsSliderRow
+          id="history"
+          title={t("history")}
+          valueLabel={String(local.history_points)}
+          min={10}
+          max={180}
+          step={5}
+          value={local.history_points}
+          onChange={(history_points) => setLocal((state) => ({ ...state, history_points }))}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup label={t("modules")}>
+        {(
+          [
+            ["cpu", "cpu"],
+            ["memory", "memory"],
+            ["gpu", "gpu"],
+            ["disk", "disk"],
+            ["network", "network"],
+          ] as const
+        ).map(([key, labelKey]) => (
+          <SettingsSwitchRow
+            key={key}
+            id={key}
+            title={t(labelKey)}
+            checked={local.enabled[key]}
+            onCheckedChange={(checked) =>
+              setLocal((state) => ({
+                ...state,
+                enabled: { ...state.enabled, [key]: checked },
+              }))
+            }
+          />
+        ))}
+      </SettingsGroup>
+
+      <div className="settings-apply-bar">
+        <Button className="w-full" disabled={!config} onClick={onApply}>
+          {savedFlash ? t("applied") : t("apply")}
+        </Button>
       </div>
     </div>
   );
 }
 
 function StylePreview({ id }: { id: UiStyle }) {
-  const base = "h-11 w-full overflow-hidden";
+  const base = "settings-style-preview";
   switch (id) {
     case "neumorph":
       return (
@@ -454,12 +533,16 @@ function AppearanceTab({
     setGlassGradientEndDraft(config.glass_gradient_end);
   }, [config.glass_gradient_start, config.glass_gradient_end]);
 
+  const customBackground = !BACKGROUND_OPTIONS.some((option) => option.swatch === config.background_color);
+  const customGlass = !GLASS_GRADIENT_OPTIONS.some(
+    (option) =>
+      option.start === config.glass_gradient_start && option.end === config.glass_gradient_end,
+  );
+
   return (
-    <div className="settings-appearance-tab space-y-6">
-      <div className="settings-form-section settings-style-section space-y-2">
-        <Label>{t("uiStyle")}</Label>
-        <p className="text-xs text-muted-foreground">{t("uiStyleHint")}</p>
-        <div className="grid max-h-[min(52dvh,28rem)] grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+    <div className="settings-appearance">
+      <SettingsGroup label={t("uiStyle")} footer={t("uiStyleHint")}>
+        <div className="settings-style-grid">
           {UI_STYLE_OPTIONS.map((opt) => {
             const selected = config.ui_style === opt.id;
             return (
@@ -467,107 +550,71 @@ function AppearanceTab({
                 key={opt.id}
                 type="button"
                 onClick={() => setUiStyle(opt.id)}
-                className={cn(
-                  "vf-style-option flex flex-col gap-2 border px-3 py-3 text-left text-sm transition-colors",
-                  selected ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40",
-                  selected && "settings-style-selected",
-                )}
-                style={{ borderRadius: "var(--nav-radius)" }}
+                className={cn("settings-style-cell", selected && "is-selected")}
+                aria-pressed={selected}
               >
-                <StylePreview id={opt.id} />
-                <div className="flex items-start justify-between gap-2">
-                  <span className="font-medium">{t(opt.nameKey)}</span>
-                  {selected ? (
-                    <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium text-primary">
-                      ON
-                    </span>
-                  ) : null}
-                </div>
-                <p className="text-[11px] leading-snug text-muted-foreground">
-                  {t(opt.hintKey)}
-                </p>
+                <span className="settings-style-thumb" aria-hidden="true">
+                  <StylePreview id={opt.id} />
+                </span>
+                <span className="settings-style-cell-name">{t(opt.nameKey)}</span>
+                {selected ? <Check className="h-3.5 w-3.5 shrink-0 text-primary" strokeWidth={2.5} /> : null}
               </button>
             );
           })}
         </div>
-      </div>
+      </SettingsGroup>
 
-      <div className="settings-form-section settings-accent-section space-y-2">
-        <Label>{t("accent")}</Label>
-        <p className="text-xs text-muted-foreground">{t("accentCustomHint")}</p>
-        <div className="flex flex-wrap gap-2">
+      <SettingsGroup label={t("accent")} footer={t("accentCustomHint")}>
+        <div className="settings-swatch-row">
           {ACCENT_OPTIONS.map((opt) => (
             <button
               key={opt.id}
               type="button"
               aria-label={opt.label}
+              aria-pressed={config.accent === opt.id}
               onClick={() => setAccent(opt.id)}
-              className={cn(
-                "flex min-h-11 min-w-11 items-center justify-center border p-1.5 transition-colors",
-                config.accent === opt.id ? "border-primary ring-2 ring-ring" : "border-border",
-              )}
-              style={{ borderRadius: "var(--nav-radius)" }}
+              className={cn("settings-swatch", config.accent === opt.id && "is-selected")}
             >
-              <span className="h-7 w-7 rounded-full" style={{ backgroundColor: opt.swatch }} />
+              <span style={{ backgroundColor: opt.swatch }} />
             </button>
           ))}
-          <label
-            className={cn(
-              "relative flex min-h-11 min-w-11 cursor-pointer items-center justify-center border p-1.5 transition-colors",
-              config.accent === "custom" ? "border-primary ring-2 ring-ring" : "border-border",
-            )}
-            style={{ borderRadius: "var(--nav-radius)" }}
-            title={t("accentCustom")}
-          >
+          <label className={cn("settings-swatch", config.accent === "custom" && "is-selected")}>
             <span
-              className="h-7 w-7 rounded-full border border-border"
               style={{
-                background: `conic-gradient(from 0deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)`,
+                background: "conic-gradient(from 0deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)",
               }}
             />
             <input
               type="color"
               aria-label={t("accentCustom")}
               value={config.accent_custom}
-              onChange={(e) => {
-                setHexDraft(e.target.value);
-                setAccentCustom(e.target.value);
+              onChange={(event) => {
+                setHexDraft(event.target.value);
+                setAccentCustom(event.target.value);
               }}
-              className="absolute inset-0 cursor-pointer opacity-0"
             />
           </label>
         </div>
-        <div className="flex items-center gap-2">
-          <Label htmlFor="accent-hex" className="shrink-0 text-xs text-muted-foreground">
-            {t("accentHex")}
-          </Label>
+        <div className="settings-hex-row">
+          <Label htmlFor="accent-hex">{t("accentHex")}</Label>
           <input
             id="accent-hex"
             type="text"
             spellCheck={false}
             value={hexDraft}
-            onChange={(e) => setHexDraft(e.target.value)}
+            onChange={(event) => setHexDraft(event.target.value)}
             onBlur={() => setAccentCustom(hexDraft)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.currentTarget.blur();
-              }
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.currentTarget.blur();
             }}
-            className="min-h-10 flex-1 border border-border bg-background px-3 font-mono text-sm"
-            style={{ borderRadius: "var(--nav-radius)" }}
+            className="settings-hex-input"
             placeholder="#0d9488"
           />
         </div>
-      </div>
+      </SettingsGroup>
 
-      <div className="settings-form-section settings-background-section space-y-3">
-        <div>
-          <Label>{t("backgroundColor")}</Label>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            {t("backgroundColorHint")}
-          </p>
-        </div>
-        <div className="settings-background-options">
+      <SettingsGroup label={t("backgroundColor")} footer={t("backgroundColorHint")}>
+        <div className="settings-swatch-row">
           {BACKGROUND_OPTIONS.map((option) => {
             const selected = config.background_color === option.swatch;
             return (
@@ -575,20 +622,19 @@ function AppearanceTab({
                 key={option.id}
                 type="button"
                 aria-label={t(option.labelKey)}
-                className={cn("settings-background-option", selected && "settings-background-option-active")}
+                aria-pressed={selected}
+                className={cn("settings-swatch", selected && "is-selected")}
                 onClick={() => {
                   setBackgroundHexDraft(option.swatch);
                   setBackgroundColor(option.swatch);
                 }}
               >
-                <span className="settings-background-swatch" style={{ backgroundColor: option.swatch }} />
-                <span>{t(option.labelKey)}</span>
+                <span style={{ backgroundColor: option.swatch }} />
               </button>
             );
           })}
-          <label className={cn("settings-background-option settings-background-custom", !BACKGROUND_OPTIONS.some((option) => option.swatch === config.background_color) && "settings-background-option-active")}>
-            <span className="settings-background-swatch" style={{ backgroundColor: config.background_color }} />
-            <span>{t("backgroundCustom")}</span>
+          <label className={cn("settings-swatch", customBackground && "is-selected")}>
+            <span style={{ backgroundColor: config.background_color }} />
             <input
               type="color"
               aria-label={t("backgroundCustom")}
@@ -597,45 +643,30 @@ function AppearanceTab({
                 setBackgroundHexDraft(event.target.value);
                 setBackgroundColor(event.target.value);
               }}
-              className="absolute inset-0 cursor-pointer opacity-0"
             />
           </label>
         </div>
-        <div className="settings-background-input-row">
-          <span className="settings-background-preview" style={{ backgroundColor: config.background_color }} aria-hidden="true">
-            <span />
-          </span>
-          <div className="min-w-0 flex-1">
-            <Label htmlFor="background-hex" className="text-xs text-muted-foreground">
-              {t("backgroundHex")}
-            </Label>
-            <input
-              id="background-hex"
-              type="text"
-              spellCheck={false}
-              value={backgroundHexDraft}
-              onChange={(event) => setBackgroundHexDraft(event.target.value)}
-              onBlur={() => setBackgroundColor(backgroundHexDraft)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") event.currentTarget.blur();
-              }}
-              className="mt-1 min-h-10 w-full border border-border bg-background px-3 font-mono text-sm"
-              style={{ borderRadius: "var(--nav-radius)" }}
-              placeholder="#0b1a20"
-            />
-          </div>
+        <div className="settings-hex-row">
+          <Label htmlFor="background-hex">{t("backgroundHex")}</Label>
+          <input
+            id="background-hex"
+            type="text"
+            spellCheck={false}
+            value={backgroundHexDraft}
+            onChange={(event) => setBackgroundHexDraft(event.target.value)}
+            onBlur={() => setBackgroundColor(backgroundHexDraft)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.currentTarget.blur();
+            }}
+            className="settings-hex-input"
+            placeholder="#0b1a20"
+          />
         </div>
-      </div>
+      </SettingsGroup>
 
       {config.ui_style === "glass" ? (
-        <div className="settings-form-section settings-glass-gradient-section space-y-3">
-          <div>
-            <Label>{t("glassGradient")}</Label>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {t("glassGradientHint")}
-            </p>
-          </div>
-          <div className="settings-glass-gradient-options">
+        <SettingsGroup label={t("glassGradient")} footer={t("glassGradientHint")}>
+          <div className="settings-swatch-row">
             {GLASS_GRADIENT_OPTIONS.map((option) => {
               const selected =
                 config.glass_gradient_start === option.start &&
@@ -645,10 +676,8 @@ function AppearanceTab({
                   key={option.id}
                   type="button"
                   aria-label={t(option.labelKey)}
-                  className={cn(
-                    "settings-glass-gradient-option",
-                    selected && "settings-glass-gradient-option-active",
-                  )}
+                  aria-pressed={selected}
+                  className={cn("settings-swatch", selected && "is-selected")}
                   onClick={() => {
                     setGlassGradientStartDraft(option.start);
                     setGlassGradientEndDraft(option.end);
@@ -656,213 +685,137 @@ function AppearanceTab({
                   }}
                 >
                   <span
-                    className="settings-glass-gradient-swatch"
                     style={{ background: `linear-gradient(135deg, ${option.start}, ${option.end})` }}
                   />
-                  <span>{t(option.labelKey)}</span>
                 </button>
               );
             })}
-            <div
-              className={cn(
-                "settings-glass-gradient-option settings-glass-gradient-custom",
-                !GLASS_GRADIENT_OPTIONS.some(
-                  (option) =>
-                    option.start === config.glass_gradient_start &&
-                    option.end === config.glass_gradient_end,
-                ) && "settings-glass-gradient-option-active",
-              )}
-            >
+            <span className={cn("settings-swatch", customGlass && "is-selected")} aria-hidden="true">
               <span
-                className="settings-glass-gradient-swatch"
                 style={{
                   background: `linear-gradient(135deg, ${config.glass_gradient_start}, ${config.glass_gradient_end})`,
                 }}
               />
-              <span>{t("glassGradientCustom")}</span>
-            </div>
+            </span>
           </div>
-          <div className="settings-glass-gradient-preview" aria-hidden="true">
-            <span
-              style={{
-                background: `linear-gradient(135deg, ${config.glass_gradient_start}, ${config.glass_gradient_end})`,
+          <div className="settings-hex-row">
+            <Label htmlFor="glass-start">{t("glassGradientStart")}</Label>
+            <input
+              type="color"
+              aria-label={t("glassGradientStart")}
+              value={config.glass_gradient_start}
+              onChange={(event) => {
+                setGlassGradientStartDraft(event.target.value);
+                setGlassGradient(event.target.value, config.glass_gradient_end);
               }}
+              className="settings-color-chip"
             />
-            <div>
-              <strong>VivoFlow</strong>
-              <small>{t("glassGradientPreview")}</small>
-            </div>
+            <input
+              id="glass-start"
+              type="text"
+              spellCheck={false}
+              value={glassGradientStartDraft}
+              onChange={(event) => setGlassGradientStartDraft(event.target.value)}
+              onBlur={() => setGlassGradient(glassGradientStartDraft, config.glass_gradient_end)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.currentTarget.blur();
+              }}
+              className="settings-hex-input"
+              placeholder="#d9f8ff"
+            />
           </div>
-          <div className="settings-glass-gradient-stop-grid">
-            <label className="settings-glass-gradient-stop">
-              <span className="settings-glass-gradient-stop-heading">
-                <span className="settings-glass-gradient-stop-dot" style={{ backgroundColor: config.glass_gradient_start }} />
-                {t("glassGradientStart")}
-              </span>
-              <span className="settings-glass-gradient-stop-input">
-                <input
-                  type="color"
-                  aria-label={t("glassGradientStart")}
-                  value={config.glass_gradient_start}
-                  onChange={(event) => {
-                    setGlassGradientStartDraft(event.target.value);
-                    setGlassGradient(event.target.value, config.glass_gradient_end);
-                  }}
-                />
-                <input
-                  type="text"
-                  spellCheck={false}
-                  value={glassGradientStartDraft}
-                  onChange={(event) => setGlassGradientStartDraft(event.target.value)}
-                  onBlur={() => setGlassGradient(glassGradientStartDraft, config.glass_gradient_end)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") event.currentTarget.blur();
-                  }}
-                  aria-label={t("glassGradientStart")}
-                  placeholder="#d9f8ff"
-                />
-              </span>
-            </label>
-            <label className="settings-glass-gradient-stop">
-              <span className="settings-glass-gradient-stop-heading">
-                <span className="settings-glass-gradient-stop-dot" style={{ backgroundColor: config.glass_gradient_end }} />
-                {t("glassGradientEnd")}
-              </span>
-              <span className="settings-glass-gradient-stop-input">
-                <input
-                  type="color"
-                  aria-label={t("glassGradientEnd")}
-                  value={config.glass_gradient_end}
-                  onChange={(event) => {
-                    setGlassGradientEndDraft(event.target.value);
-                    setGlassGradient(config.glass_gradient_start, event.target.value);
-                  }}
-                />
-                <input
-                  type="text"
-                  spellCheck={false}
-                  value={glassGradientEndDraft}
-                  onChange={(event) => setGlassGradientEndDraft(event.target.value)}
-                  onBlur={() => setGlassGradient(config.glass_gradient_start, glassGradientEndDraft)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") event.currentTarget.blur();
-                  }}
-                  aria-label={t("glassGradientEnd")}
-                  placeholder="#d7f4ee"
-                />
-              </span>
-            </label>
+          <div className="settings-hex-row">
+            <Label htmlFor="glass-end">{t("glassGradientEnd")}</Label>
+            <input
+              type="color"
+              aria-label={t("glassGradientEnd")}
+              value={config.glass_gradient_end}
+              onChange={(event) => {
+                setGlassGradientEndDraft(event.target.value);
+                setGlassGradient(config.glass_gradient_start, event.target.value);
+              }}
+              className="settings-color-chip"
+            />
+            <input
+              id="glass-end"
+              type="text"
+              spellCheck={false}
+              value={glassGradientEndDraft}
+              onChange={(event) => setGlassGradientEndDraft(event.target.value)}
+              onBlur={() => setGlassGradient(config.glass_gradient_start, glassGradientEndDraft)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.currentTarget.blur();
+              }}
+              className="settings-hex-input"
+              placeholder="#d7f4ee"
+            />
           </div>
-        </div>
+        </SettingsGroup>
       ) : null}
 
-      <div className="settings-form-section settings-theme-section space-y-2">
-        <Label>{t("themeMode")}</Label>
-        <div className="grid grid-cols-3 gap-2">
-          {(
-            [
-              ["light", "themeLight"],
-              ["dark", "themeDark"],
-              ["system", "themeSystem"],
-            ] as const
-          ).map(([value, labelKey]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setThemeMode(value)}
-              className={cn(
-                "min-h-11 border px-2 text-sm",
-                config.theme === value ? "border-primary bg-primary/10 font-medium" : "border-border",
-              )}
-              style={{ borderRadius: "var(--nav-radius)" }}
-            >
-              {t(labelKey)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="settings-form-section settings-language-section space-y-2">
-        <Label>{t("language")}</Label>
-        <div className="grid grid-cols-2 gap-2">
-          {(
-            [
-              ["zh", "langZh"],
-              ["en", "langEn"],
-            ] as const
-          ).map(([value, labelKey]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setLanguage(value)}
-              className={cn(
-                "min-h-11 border px-2 text-sm",
-                config.language === value
-                  ? "border-primary bg-primary/10 font-medium"
-                  : "border-border",
-              )}
-              style={{ borderRadius: "var(--nav-radius)" }}
-            >
-              {t(labelKey)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="settings-form-section settings-preferences-section space-y-4 border-t border-border pt-5">
-        <div className="flex min-h-11 items-center justify-between gap-3">
-          <div className="min-w-0">
-            <Label htmlFor="hide-title-bar">{t("hideTitleBar")}</Label>
-            <p className="mt-1 text-xs text-muted-foreground">{t("hideTitleBarHint")}</p>
-          </div>
-          <Switch
-            id="hide-title-bar"
-            checked={config.hide_title_bar}
-            onCheckedChange={setHideTitleBar}
+      <SettingsGroup label={t("themeMode")}>
+        <div className="settings-row settings-row-flush">
+          <SettingsSegmented
+            value={config.theme}
+            onChange={setThemeMode}
+            options={[
+              { id: "light", label: t("themeLight") },
+              { id: "dark", label: t("themeDark") },
+              { id: "system", label: t("themeSystem") },
+            ]}
           />
         </div>
-        <div className="flex min-h-11 items-center justify-between gap-3">
-          <div className="min-w-0">
-            <Label htmlFor="mobile-card-mode">{t("mobileCardMode")}</Label>
-            <p className="mt-1 text-xs text-muted-foreground">{t("mobileCardModeHint")}</p>
-          </div>
-          <Switch
-            id="mobile-card-mode"
-            checked={config.mobile_card_mode}
-            onCheckedChange={setMobileCardMode}
+      </SettingsGroup>
+
+      <SettingsGroup label={t("language")}>
+        <div className="settings-row settings-row-flush">
+          <SettingsSegmented
+            value={config.language}
+            onChange={setLanguage}
+            options={[
+              { id: "zh", label: t("langZh") },
+              { id: "en", label: t("langEn") },
+            ]}
           />
         </div>
-        <div className={cn("space-y-3", !config.mobile_card_mode && "opacity-50")}>
-          <div className="flex min-h-11 items-center justify-between gap-3">
-            <div className="min-w-0">
-              <Label htmlFor="mobile-auto-carousel">{t("mobileAutoCarousel")}</Label>
-              <p className="mt-1 text-xs text-muted-foreground">{t("mobileAutoCarouselHint")}</p>
-            </div>
-            <Switch
-              id="mobile-auto-carousel"
-              checked={config.mobile_auto_carousel}
-              disabled={!config.mobile_card_mode}
-              onCheckedChange={setMobileAutoCarousel}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="carousel-interval">
-              {t("carouselInterval")}: {config.mobile_carousel_interval_s}
-            </Label>
-            <input
-              id="carousel-interval"
-              type="range"
-              min={5}
-              max={60}
-              step={1}
-              value={config.mobile_carousel_interval_s}
-              disabled={!config.mobile_card_mode}
-              onChange={(e) => setMobileCarouselInterval(Number(e.target.value))}
-              className="w-full accent-primary"
-            />
-          </div>
-        </div>
-      </div>
+      </SettingsGroup>
+
+      <SettingsGroup>
+        <SettingsSwitchRow
+          id="hide-title-bar"
+          title={t("hideTitleBar")}
+          subtitle={t("hideTitleBarHint")}
+          checked={config.hide_title_bar}
+          onCheckedChange={setHideTitleBar}
+        />
+        <SettingsSwitchRow
+          id="mobile-card-mode"
+          title={t("mobileCardMode")}
+          subtitle={t("mobileCardModeHint")}
+          checked={config.mobile_card_mode}
+          onCheckedChange={setMobileCardMode}
+        />
+        <SettingsSwitchRow
+          id="mobile-auto-carousel"
+          title={t("mobileAutoCarousel")}
+          subtitle={t("mobileAutoCarouselHint")}
+          checked={config.mobile_auto_carousel}
+          disabled={!config.mobile_card_mode}
+          onCheckedChange={setMobileAutoCarousel}
+        />
+        {config.mobile_card_mode && config.mobile_auto_carousel ? (
+          <SettingsSliderRow
+            id="carousel-interval"
+            title={t("carouselInterval")}
+            valueLabel={String(config.mobile_carousel_interval_s)}
+            min={5}
+            max={60}
+            step={1}
+            value={config.mobile_carousel_interval_s}
+            onChange={setMobileCarouselInterval}
+          />
+        ) : null}
+      </SettingsGroup>
     </div>
   );
 }
@@ -876,29 +829,19 @@ function AboutTab({ t }: { t: TFunction }) {
   ];
 
   return (
-    <div className="about-tab space-y-5">
-      <div>
-        <h2 className="text-lg font-semibold tracking-tight">{t("aboutTitle")}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t("aboutDesc")}</p>
-      </div>
-      <div className="vf-row flex items-center justify-between px-3 py-3 text-sm">
-        <span className="text-muted-foreground">{t("version")}</span>
-        <span className="vf-data font-medium">{APP_VERSION}</span>
-      </div>
-      <div className="space-y-2">
-        <p className="text-sm font-medium">{t("techStack")}</p>
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          {stacks.map((line) => (
-            <li key={line} className="vf-surface px-3 py-2">
-              {line}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="vf-row flex items-center justify-between px-3 py-3 text-sm">
-        <span className="text-muted-foreground">{t("license")}</span>
-        <span className="font-medium">Apache-2.0</span>
-      </div>
+    <div className="settings-about">
+      <p className="settings-about-lead">{t("aboutDesc")}</p>
+      <SettingsGroup>
+        <SettingsRow title={t("version")} value={APP_VERSION} />
+        <SettingsRow title={t("license")} value="Apache-2.0" />
+      </SettingsGroup>
+      <SettingsGroup label={t("techStack")}>
+        {stacks.map((line) => (
+          <div key={line} className="settings-row settings-row-stack">
+            <span className="settings-row-subtitle">{line}</span>
+          </div>
+        ))}
+      </SettingsGroup>
     </div>
   );
 }

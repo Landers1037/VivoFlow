@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AudioLines, Box, Check, ChevronDown, MonitorSpeaker, RefreshCw } from "lucide-react";
+import { AudioLines, Check, ChevronDown, MonitorSpeaker, RefreshCw } from "lucide-react";
 import { AudioRenderer } from "@/components/audio/AudioRenderer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SettingsGroup, SettingsSliderRow, SettingsSwitchRow } from "@/components/settings/SettingsList";
 import { normalizeHexColor, useAppearance } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
 import { isThreeAudioMode, type AudioDevice, type AudioFrame, type AudioStatus, type AudioVisualizerMode, type ThreeAudioVisualizerMode } from "@/types";
@@ -44,57 +44,79 @@ export function AudioSettings({ frame, status, onSubscribe }: { frame: AudioFram
   const commitColors = (nextPrimary = primary, nextSecondary = secondary) => setAudioColors(normalizeHexColor(nextPrimary), normalizeHexColor(nextSecondary));
   const statusText = status?.state === "fallback" ? t("audioFallback") : status?.state === "error" ? t("audioCaptureError") : status?.state === "capturing" ? t("audioListening") : t("audioDisabled");
 
-  return <div className="space-y-6">
-    <section className="space-y-4">
-      <div className="flex min-h-12 items-center justify-between gap-4">
-        <div><Label htmlFor="audio-visualizer-enabled">{t("audioVisualizer")}</Label><p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">{t("audioVisualizerHint")}</p></div>
-        <Switch id="audio-visualizer-enabled" checked={config.audio_visualizer_enabled} disabled={!synced} onCheckedChange={setAudioVisualizerEnabled} />
-      </div>
-      <div className="space-y-2 border-t border-border pt-5">
-        <div className="flex items-center justify-between gap-3"><Label htmlFor="audio-device">{t("audioOutputDevice")}</Label><Button variant="ghost" size="icon" className="h-8 min-h-8 w-8 rounded-full px-0 text-muted-foreground hover:text-foreground" disabled={loading} aria-label={t("refreshAudioDevices")} onClick={() => void loadDevices()}><RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} /></Button></div>
-        <AudioDevicePicker devices={devices} value={config.audio_device_id} disabled={!synced || loading} onChange={setAudioDeviceId} />
-        <p className={cn("flex items-center gap-1.5 text-xs", status?.state === "error" ? "text-destructive" : "text-muted-foreground")}><span className={cn("h-1.5 w-1.5 rounded-full", status?.state === "capturing" ? "bg-emerald-500" : status?.state === "fallback" ? "bg-amber-500" : "bg-muted-foreground")} />{deviceError ?? statusText}</p>
-      </div>
-    </section>
+  return <div className="settings-module space-y-1">
+    <SettingsGroup footer={t("audioVisualizerHint")}>
+      <SettingsSwitchRow
+        id="audio-visualizer-enabled"
+        title={t("audioVisualizer")}
+        checked={config.audio_visualizer_enabled}
+        disabled={!synced}
+        onCheckedChange={setAudioVisualizerEnabled}
+      />
+    </SettingsGroup>
 
-    <section className="space-y-3 border-t border-border pt-5"><div><h2 className="text-sm font-semibold">{t("audioSpectrumMode")}</h2><p className="text-xs text-muted-foreground">{t("audioSpectrumModeHint")}</p></div>
-      <p className="flex items-center gap-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"><AudioLines className="h-3.5 w-3.5" />{t("audioFlatModes")}</p>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{TWO_D_MODES.map((mode) => <button key={mode.id} type="button" disabled={!synced} onClick={() => setAudioVisualizerMode(mode.id)} className={cn("group overflow-hidden border text-left outline-none transition focus-visible:ring-2 focus-visible:ring-ring", config.audio_visualizer_mode === mode.id ? "border-primary bg-primary/8" : "border-border bg-card hover:border-primary/45")} style={{ borderRadius: "var(--radius)" }}>
-        <div className="h-28 bg-background/55"><AudioRenderer preview frame={frame} mode={mode.id} primary={config.audio_color_primary} secondary={config.audio_color_secondary} gradient={config.audio_color_mode === "gradient"} amplitude={config.audio_amplitude} smoothing={config.audio_smoothing} className="h-full w-full" /></div>
-        <div className="flex items-center justify-between px-3 py-2 text-sm font-medium"><span>{t(mode.key)}</span>{config.audio_visualizer_mode === mode.id ? <AudioLines className="h-4 w-4 text-primary" /> : null}</div>
-      </button>)}</div>
-
-      <div className="space-y-3 pt-3">
-        <div><p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"><Box className="h-3.5 w-3.5" />{t("audioSpatialModes")}</p><p className="mt-1 text-xs text-muted-foreground">{t("audioSpatialModesHint")}</p></div>
-        <div className="relative h-48 overflow-hidden border border-border bg-background sm:h-56" style={{ borderRadius: "var(--radius)" }}>
-          <AudioRenderer preview frame={frame} mode={threePreviewMode} primary={config.audio_color_primary} secondary={config.audio_color_secondary} gradient={config.audio_color_mode === "gradient"} amplitude={config.audio_amplitude} smoothing={config.audio_smoothing} className="h-full w-full" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/85 to-transparent px-4 pb-3 pt-10"><p className="text-sm font-semibold">{t(THREE_D_MODES.find((mode) => mode.id === threePreviewMode)?.key ?? "audioModeCity3d")}</p></div>
+    <SettingsGroup label={t("audioOutputDevice")}>
+      <div className="px-3 py-2">
+        <div className="mb-2 flex items-center justify-end">
+          <Button variant="ghost" size="icon" className="h-8 min-h-8 w-8 rounded-full px-0 text-muted-foreground hover:text-foreground" disabled={loading} aria-label={t("refreshAudioDevices")} onClick={() => void loadDevices()}><RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} /></Button>
         </div>
-        <div className="grid grid-cols-2 gap-2">{THREE_D_MODES.map((mode) => <button key={mode.id} type="button" disabled={!synced} onPointerEnter={() => setThreePreviewMode(mode.id)} onFocus={() => setThreePreviewMode(mode.id)} onClick={() => { setThreePreviewMode(mode.id); setAudioVisualizerMode(mode.id); }} className={cn("flex min-h-11 items-center justify-between gap-2 rounded-lg border px-3 text-left text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-ring", config.audio_visualizer_mode === mode.id ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/45 hover:text-foreground")}><span className="truncate">{t(mode.key)}</span>{config.audio_visualizer_mode === mode.id ? <Check className="h-4 w-4 shrink-0" /> : null}</button>)}</div>
+        <AudioDevicePicker devices={devices} value={config.audio_device_id} disabled={!synced || loading} onChange={setAudioDeviceId} />
+        <p className={cn("mt-2 flex items-center gap-1.5 text-xs", status?.state === "error" ? "text-destructive" : "text-muted-foreground")}><span className={cn("h-1.5 w-1.5 rounded-full", status?.state === "capturing" ? "bg-emerald-500" : status?.state === "fallback" ? "bg-amber-500" : "bg-muted-foreground")} />{deviceError ?? statusText}</p>
+      </div>
+    </SettingsGroup>
+
+    <section className="settings-group">
+      <h2 className="settings-group-label">{t("audioSpectrumMode")}</h2>
+      <p className="settings-group-footer mb-2 !mt-0">{t("audioSpectrumModeHint")}</p>
+      <p className="settings-group-label">{t("audioFlatModes")}</p>
+      <div className="settings-mode-grid">
+        {TWO_D_MODES.map((mode) => (
+          <button key={mode.id} type="button" disabled={!synced} onClick={() => setAudioVisualizerMode(mode.id)} className={cn("overflow-hidden border text-left outline-none transition focus-visible:ring-2 focus-visible:ring-ring", config.audio_visualizer_mode === mode.id ? "border-primary bg-primary/8" : "border-border bg-card")} style={{ borderRadius: "0.9rem" }}>
+            <div className="h-28 bg-background/55"><AudioRenderer preview frame={frame} mode={mode.id} primary={config.audio_color_primary} secondary={config.audio_color_secondary} gradient={config.audio_color_mode === "gradient"} amplitude={config.audio_amplitude} smoothing={config.audio_smoothing} className="h-full w-full" /></div>
+            <div className="flex min-h-11 items-center justify-between px-3 py-2 text-sm font-medium"><span>{t(mode.key)}</span>{config.audio_visualizer_mode === mode.id ? <AudioLines className="h-4 w-4 text-primary" /> : null}</div>
+          </button>
+        ))}
+      </div>
+      <p className="settings-group-label mt-4">{t("audioSpatialModes")}</p>
+      <p className="settings-group-footer mb-2 !mt-0">{t("audioSpatialModesHint")}</p>
+      <div className="relative mb-2 h-48 overflow-hidden border border-border bg-background" style={{ borderRadius: "0.9rem" }}>
+        <AudioRenderer preview frame={frame} mode={threePreviewMode} primary={config.audio_color_primary} secondary={config.audio_color_secondary} gradient={config.audio_color_mode === "gradient"} amplitude={config.audio_amplitude} smoothing={config.audio_smoothing} className="h-full w-full" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/85 to-transparent px-4 pb-3 pt-10"><p className="text-sm font-semibold">{t(THREE_D_MODES.find((mode) => mode.id === threePreviewMode)?.key ?? "audioModeCity3d")}</p></div>
+      </div>
+      <div className="settings-mode-grid">
+        {THREE_D_MODES.map((mode) => (
+          <button key={mode.id} type="button" disabled={!synced} onPointerEnter={() => setThreePreviewMode(mode.id)} onFocus={() => setThreePreviewMode(mode.id)} onClick={() => { setThreePreviewMode(mode.id); setAudioVisualizerMode(mode.id); }} className={cn("settings-mode-option", config.audio_visualizer_mode === mode.id && "is-active")}>
+            <span className="truncate">{t(mode.key)}</span>
+            {config.audio_visualizer_mode === mode.id ? <Check className="h-4 w-4 shrink-0" /> : null}
+          </button>
+        ))}
       </div>
     </section>
 
-    <section className="space-y-4 border-t border-border pt-5"><div><h2 className="text-sm font-semibold">{t("audioFrequencyColor")}</h2><p className="text-xs text-muted-foreground">{t("audioFrequencyColorHint")}</p></div>
-      <div className="grid grid-cols-2 gap-2">{(["single", "gradient"] as const).map((mode) => <button type="button" key={mode} onClick={() => setAudioColorMode(mode)} className={cn("min-h-10 rounded-lg border px-3 text-sm font-medium", config.audio_color_mode === mode ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground")}>{t(mode === "single" ? "audioSingleColor" : "audioGradientColor")}</button>)}</div>
-      <div className={cn("grid gap-3", config.audio_color_mode === "gradient" ? "sm:grid-cols-2" : "grid-cols-1")}>
+    <SettingsGroup label={t("audioFrequencyColor")} footer={t("audioFrequencyColorHint")}>
+      <div className="settings-row settings-row-flush">
+        <div className="settings-segmented w-full" role="radiogroup">
+          {(["single", "gradient"] as const).map((mode) => (
+            <button type="button" key={mode} role="radio" aria-checked={config.audio_color_mode === mode} onClick={() => setAudioColorMode(mode)} className={cn("settings-segmented-item", config.audio_color_mode === mode && "is-active")}>{t(mode === "single" ? "audioSingleColor" : "audioGradientColor")}</button>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-3 px-3 py-3">
         <ColorField id="audio-primary" label={t("audioPrimaryColor")} value={primary} onChange={(value) => { setPrimary(value); if (/^#[0-9a-fA-F]{6}$/.test(value)) setAudioColors(value, secondary); }} onBlur={() => commitColors()} />
         {config.audio_color_mode === "gradient" ? <ColorField id="audio-secondary" label={t("audioSecondaryColor")} value={secondary} onChange={(value) => { setSecondary(value); if (/^#[0-9a-fA-F]{6}$/.test(value)) setAudioColors(primary, value); }} onBlur={() => commitColors()} /> : null}
+        <div className="h-2 rounded-full" style={{ background: config.audio_color_mode === "gradient" ? `linear-gradient(90deg, ${config.audio_color_primary}, ${config.audio_color_secondary})` : config.audio_color_primary }} />
       </div>
-      <div className="h-2 rounded-full" style={{ background: config.audio_color_mode === "gradient" ? `linear-gradient(90deg, ${config.audio_color_primary}, ${config.audio_color_secondary})` : config.audio_color_primary }} />
-    </section>
+    </SettingsGroup>
 
-    <section className="space-y-5 border-t border-border pt-5">
-      <RangeField id="audio-amplitude" label={`${t("audioAmplitude")}: ${Math.round(config.audio_amplitude * 100)}%`} min={0.5} max={2} step={0.05} value={config.audio_amplitude} onChange={setAudioAmplitude} />
-      <RangeField id="audio-smoothing" label={`${t("audioSmoothing")}: ${Math.round(config.audio_smoothing * 100)}%`} min={0} max={0.9} step={0.05} value={config.audio_smoothing} onChange={setAudioSmoothing} />
-    </section>
+    <SettingsGroup>
+      <SettingsSliderRow id="audio-amplitude" title={t("audioAmplitude")} valueLabel={`${Math.round(config.audio_amplitude * 100)}%`} min={0.5} max={2} step={0.05} value={config.audio_amplitude} onChange={setAudioAmplitude} />
+      <SettingsSliderRow id="audio-smoothing" title={t("audioSmoothing")} valueLabel={`${Math.round(config.audio_smoothing * 100)}%`} min={0} max={0.9} step={0.05} value={config.audio_smoothing} onChange={setAudioSmoothing} />
+    </SettingsGroup>
   </div>;
 }
 
 function ColorField({ id, label, value, onChange, onBlur }: { id: string; label: string; value: string; onChange: (value: string) => void; onBlur: () => void }) {
   return <div className="space-y-1.5"><Label htmlFor={`${id}-text`}>{label}</Label><div className="flex gap-2"><input id={id} type="color" value={normalizeHexColor(value)} onChange={(e) => onChange(e.target.value)} className="h-10 w-12 cursor-pointer rounded-lg border border-border bg-background p-1" /><input id={`${id}-text`} value={value} maxLength={7} onChange={(e) => onChange(e.target.value)} onBlur={onBlur} className={INPUT} /></div></div>;
-}
-function RangeField({ id, label, min, max, step, value, onChange }: { id: string; label: string; min: number; max: number; step: number; value: number; onChange: (value: number) => void }) {
-  return <div className="space-y-2"><Label htmlFor={id}>{label}</Label><input id={id} type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-primary" /></div>;
 }
 
 function AudioDevicePicker({ devices, value, disabled, onChange }: { devices: AudioDevice[]; value: string | null; disabled: boolean; onChange: (value: string | null) => void }) {
