@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
 import type { MusicAlbum } from "@/types";
 import { musicCoverUrl, musicTrackUrl } from "@/lib/music";
@@ -28,9 +28,11 @@ export function MusicAlbumPage({
   onOpenSettings: () => void;
 }) {
   const audio = useRef<HTMLAudioElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
+  const [progressWidth, setProgressWidth] = useState<number>();
   const track = album.tracks[index];
   const lines = useMemo(() => parseLrc(track?.lyrics ?? ""), [track?.lyrics]);
   const current = lines.reduce((active, line, lineIndex) => (line.time <= time ? lineIndex : active), -1);
@@ -41,6 +43,16 @@ export function MusicAlbumPage({
     audio.current.load();
     if (playing) audio.current.play().catch(() => {});
   }, [album.id, track?.id]);
+
+  useLayoutEffect(() => {
+    const el = controlsRef.current;
+    if (!el) return;
+    const sync = () => setProgressWidth(el.getBoundingClientRect().width * 1.2);
+    sync();
+    const observer = new ResizeObserver(sync);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [track?.id]);
 
   if (!track) {
     return (
@@ -90,38 +102,41 @@ export function MusicAlbumPage({
               <p>{track.lyrics || "暂无歌词"}</p>
             )}
           </div>
-          <input
-            className="music-player-progress w-full accent-white"
-            type="range"
-            min={0}
-            max={audio.current?.duration || 0}
-            value={time}
-            aria-label="播放进度"
-            onChange={(event) => {
-              const value = Number(event.target.value);
-              if (audio.current) audio.current.currentTime = value;
-              setTime(value);
-            }}
-          />
-          <div className="music-player-controls flex items-center gap-4">
-            <button aria-label="上一首" onClick={previous}>
-              <SkipBack />
-            </button>
-            <button
-              className="music-player-toggle rounded-full bg-white p-4 text-black"
-              aria-label={playing ? "暂停" : "播放"}
-              onClick={() => {
-                if (!audio.current) return;
-                if (playing) audio.current.pause();
-                else audio.current.play().catch(() => {});
-                setPlaying(!playing);
+          <div className="music-player-transport">
+            <input
+              className="music-player-progress accent-white"
+              type="range"
+              min={0}
+              max={audio.current?.duration || 0}
+              value={time}
+              aria-label="播放进度"
+              style={progressWidth ? { width: progressWidth } : undefined}
+              onChange={(event) => {
+                const value = Number(event.target.value);
+                if (audio.current) audio.current.currentTime = value;
+                setTime(value);
               }}
-            >
-              {playing ? <Pause /> : <Play />}
-            </button>
-            <button aria-label="下一首" onClick={next}>
-              <SkipForward />
-            </button>
+            />
+            <div ref={controlsRef} className="music-player-controls">
+              <button aria-label="上一首" onClick={previous}>
+                <SkipBack />
+              </button>
+              <button
+                className="music-player-toggle rounded-full bg-white p-4 text-black"
+                aria-label={playing ? "暂停" : "播放"}
+                onClick={() => {
+                  if (!audio.current) return;
+                  if (playing) audio.current.pause();
+                  else audio.current.play().catch(() => {});
+                  setPlaying(!playing);
+                }}
+              >
+                {playing ? <Pause /> : <Play />}
+              </button>
+              <button aria-label="下一首" onClick={next}>
+                <SkipForward />
+              </button>
+            </div>
           </div>
         </section>
 

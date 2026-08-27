@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Music2, Pencil, Plus, Trash2, Upload } from "lucide-react";
 import { musicApi, musicCoverUrl } from "@/lib/music";
-import type { MusicAlbum } from "@/types";
+import type { MusicAlbum, MusicTrack } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -16,11 +16,20 @@ import { useAppearance } from "@/hooks/useAppearance";
 const MAX_COVER_BYTES = 25 * 1024 * 1024;
 const SUPPORTED_COVER_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
 
+type TrackDraft = { title: string; lyrics: string };
+
+function draftsFromAlbum(album: MusicAlbum): Record<string, TrackDraft> {
+  return Object.fromEntries(album.tracks.map((track) => [track.id, { title: track.title, lyrics: track.lyrics }]));
+}
+
 export function MusicAlbumSettings() {
   const { config, setMusicAlbumEnabled, activateMusicAlbum } = useAppearance();
   const [albums, setAlbums] = useState<MusicAlbum[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
+  const [trackDrafts, setTrackDrafts] = useState<Record<string, TrackDraft>>({});
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const editingAlbum = useMemo(
     () => albums.find((album) => album.id === editingId),
@@ -39,29 +48,77 @@ export function MusicAlbumSettings() {
     void load();
   }, []);
 
+  useEffect(() => {
+    if (!editingAlbum) return;
+    setTrackDrafts((current) => {
+      const next: Record<string, TrackDraft> = {};
+      for (const track of editingAlbum.tracks) {
+        next[track.id] = current[track.id] ?? { title: track.title, lyrics: track.lyrics };
+      }
+      return next;
+    });
+  }, [editingAlbum]);
+
+  const resetFeedback = () => {
+    setError("");
+    setMessage("");
+  };
+
   const openNew = () => {
+    resetFeedback();
     setDraftTitle("");
+    setTrackDrafts({});
     setEditingId("new");
   };
 
   const openEdit = (album: MusicAlbum) => {
+    resetFeedback();
     setDraftTitle(album.title);
+    setTrackDrafts(draftsFromAlbum(album));
     setEditingId(album.id);
   };
 
-  const closeEditor = () => { setError(""); setEditingId(null); };
+  const closeEditor = () => {
+    resetFeedback();
+    setEditingId(null);
+  };
 
   const saveAlbum = async () => {
     const title = draftTitle.trim();
-    if (!title) return;
-    if (editingId === "new") {
-      const album = await musicApi.create(title);
+    if (!title) {
+      setMessage("");
+      setError("请填写专辑标题");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    setMessage("");
+    try {
+      if (editingId === "new") {
+        const album = await musicApi.create(title);
+        await load();
+        setEditingId(album.id);
+        setDraftTitle(album.title);
+        setMessage("专辑已创建，可以继续上传封面和音乐");
+        return;
+      }
+      if (!editingAlbum) return;
+      if (title !== editingAlbum.title) {
+        await musicApi.update(editingAlbum.id, title);
+      }
+      for (const track of editingAlbum.tracks) {
+        const draft = trackDrafts[track.id];
+        if (!draft) continue;
+        if (draft.title !== track.title || draft.lyrics !== track.lyrics) {
+          await musicApi.updateTrack(editingAlbum.id, track.id, draft.title, draft.lyrics);
+        }
+      }
       await load();
-      setEditingId(album.id);
-      setDraftTitle(album.title);
-    } else if (editingAlbum && title !== editingAlbum.title) {
-      await musicApi.update(editingAlbum.id, title);
-      await load();
+      setMessage("已保存");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "保存失败");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -136,12 +193,50 @@ export function MusicAlbumSettings() {
             <DialogTitle>{editingId === "new" ? "新建音乐专辑" : "编辑音乐专辑"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-5">
-            <div className="flex gap-2">
-              <Input autoFocus placeholder="专辑标题" value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void saveAlbum(); }} />
-              <Button className="rounded-lg" onClick={() => void saveAlbum()} disabled={!draftTitle.trim()}>{editingId === "new" ? "创建" : "保存"}</Button>
+            <Input
+              autoFocus
+              placeholder="专辑标题"
+              value={draftTitle}
+              onChange={(event) => {
+                setDraftTitle(event.target.value);
+                if (message || error) resetFeedback();
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") void saveAlbum();
+              }}
+            />
+            {editingAlbum ? (
+              <AlbumEditor
+                album={editingAlbum}
+                trackDrafts={trackDrafts}
+                onTrackDraftChange={(trackId, draft) => {
+                  setTrackDrafts((current) => ({ ...current, [trackId]: draft }));
+                  if (message || error) resetFeedback();
+                }}
+                onChange={load}
+                onError={(text) => {
+                  setMessage("");
+                  setError(text);
+                }}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">先填写标题并保存，随后即可上传媒体文件。</p>
+            )}
+            <div className="sticky bottom-0 space-y-3 border-t border-border bg-card pt-4">
+              {message ? (
+                <p role="status" className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-primary">
+                  {message}
+                </p>
+              ) : null}
+              {error ? (
+                <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {error}
+                </p>
+              ) : null}
+              <Button className="w-full rounded-lg" onClick={() => void saveAlbum()} disabled={saving || !draftTitle.trim()}>
+                {saving ? "保存中…" : "保存"}
+              </Button>
             </div>
-            {editingAlbum ? <AlbumEditor album={editingAlbum} onChange={load} onError={setError} /> : <p className="text-sm text-muted-foreground">先填写标题并创建专辑，随后即可上传媒体文件。</p>}
-            {error ? <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p> : null}
           </div>
         </DialogContent>
       </Dialog>
@@ -149,7 +244,19 @@ export function MusicAlbumSettings() {
   );
 }
 
-function AlbumEditor({ album, onChange, onError }: { album: MusicAlbum; onChange: () => Promise<void>; onError: (message: string) => void }) {
+function AlbumEditor({
+  album,
+  trackDrafts,
+  onTrackDraftChange,
+  onChange,
+  onError,
+}: {
+  album: MusicAlbum;
+  trackDrafts: Record<string, TrackDraft>;
+  onTrackDraftChange: (trackId: string, draft: TrackDraft) => void;
+  onChange: () => Promise<void>;
+  onError: (message: string) => void;
+}) {
   const [files, setFiles] = useState<File[]>([]);
   return (
     <div className="space-y-4">
@@ -167,22 +274,57 @@ function AlbumEditor({ album, onChange, onError }: { album: MusicAlbum; onChange
         </label>
         {files.length ? <Button className="rounded-lg" onClick={async () => { try { await musicApi.tracks(album.id, files); setFiles([]); await onChange(); } catch (error) { onError(error instanceof Error ? error.message : "音乐上传失败"); } }}>上传 {files.length} 首</Button> : null}
       </div>
-      {album.tracks.length ? album.tracks.map((track) => <TrackEditor key={track.id} album={album} track={track} onChange={onChange} />) : <p className="text-sm text-muted-foreground">还没有曲目，请选择音乐文件上传。</p>}
+      {album.tracks.length ? album.tracks.map((track) => {
+        const draft = trackDrafts[track.id] ?? { title: track.title, lyrics: track.lyrics };
+        return (
+          <TrackEditor
+            key={track.id}
+            albumId={album.id}
+            track={track}
+            draft={draft}
+            onDraftChange={(next) => onTrackDraftChange(track.id, next)}
+            onChange={onChange}
+          />
+        );
+      }) : <p className="text-sm text-muted-foreground">还没有曲目，请选择音乐文件上传。</p>}
     </div>
   );
 }
 
-function TrackEditor({ album, track, onChange }: { album: MusicAlbum; track: MusicAlbum["tracks"][number]; onChange: () => Promise<void> }) {
-  const [title, setTitle] = useState(track.title);
-  const [lyrics, setLyrics] = useState(track.lyrics);
+function TrackEditor({
+  albumId,
+  track,
+  draft,
+  onDraftChange,
+  onChange,
+}: {
+  albumId: string;
+  track: MusicTrack;
+  draft: TrackDraft;
+  onDraftChange: (draft: TrackDraft) => void;
+  onChange: () => Promise<void>;
+}) {
   return (
     <div className="space-y-2 rounded-xl border border-border/70 p-3">
       <div className="flex gap-2">
-        <Input value={title} onChange={(event) => setTitle(event.target.value)} />
-        <Button variant="outline" className="rounded-lg" onClick={async () => { await musicApi.updateTrack(album.id, track.id, title, lyrics); await onChange(); }}>保存</Button>
-        <Button variant="ghost" className="rounded-lg text-destructive" onClick={async () => { await musicApi.removeTrack(album.id, track.id); await onChange(); }}>删除</Button>
+        <Input value={draft.title} onChange={(event) => onDraftChange({ ...draft, title: event.target.value })} />
+        <Button
+          variant="ghost"
+          className="rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive"
+          onClick={async () => {
+            await musicApi.removeTrack(albumId, track.id);
+            await onChange();
+          }}
+        >
+          删除
+        </Button>
       </div>
-      <textarea className="min-h-24 w-full rounded-md border border-border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-primary/40" placeholder="歌词或 LRC" value={lyrics} onChange={(event) => setLyrics(event.target.value)} />
+      <textarea
+        className="min-h-24 w-full rounded-md border border-border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
+        placeholder="歌词或 LRC"
+        value={draft.lyrics}
+        onChange={(event) => onDraftChange({ ...draft, lyrics: event.target.value })}
+      />
     </div>
   );
 }
