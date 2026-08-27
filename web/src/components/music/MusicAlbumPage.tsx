@@ -79,7 +79,7 @@ export function MusicAlbumPage({
       />
       <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/85 to-transparent" />
 
-      <div className="music-player-layout relative grid h-full items-center gap-8 p-8 md:grid-cols-[minmax(260px,380px)_1fr] md:p-16">
+      <div className="music-player-layout relative grid h-full items-center gap-6 p-8 md:grid-cols-[max-content_minmax(0,1fr)] md:gap-8 md:p-16">
         <section className="music-player-panel z-10 space-y-7">
           <p className="music-player-eyebrow text-xs uppercase tracking-[.35em] text-white/50">
             Now playing / {album.title}

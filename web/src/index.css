@@ -1175,6 +1175,10 @@ textarea,
   gap: 1rem;
 }
 
+.music-record-stage {
+  min-width: 0;
+}
+
 @media (orientation: landscape) and (max-height: 640px) {
   .music-player-page {
     height: 100dvh;
@@ -1185,15 +1189,11 @@ textarea,
   .music-player-layout {
     height: 100dvh;
     min-height: 0;
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-columns: max-content minmax(0, 1fr);
     align-items: center;
-    gap: clamp(1rem, 4vw, 3rem);
+    gap: clamp(1.25rem, 3vw, 2rem);
     padding-block: max(clamp(0.75rem, 3dvh, 1.5rem), env(safe-area-inset-top));
     padding-inline: max(clamp(1.25rem, 5vw, 4rem), env(safe-area-inset-left));
-  }
-
-  .music-player-panel {
-    min-width: 0;
   }
 
   .music-player-panel > :not([hidden]) ~ :not([hidden]) {
@@ -1255,7 +1255,6 @@ textarea,
   .music-record-stage {
     min-width: 0;
     justify-content: flex-start;
-    transform: translateX(clamp(-8rem, -10vw, -4rem));
   }
 
   .music-record {
