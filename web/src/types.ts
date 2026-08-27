@@ -84,6 +84,8 @@ export const DEFAULT_ACCENT_CUSTOM = "#0d9488";
 export const DEFAULT_BACKGROUND_COLOR = "#0b1a20";
 export const DEFAULT_GLASS_GRADIENT_START = "#d9f8ff";
 export const DEFAULT_GLASS_GRADIENT_END = "#d7f4ee";
+export const DEFAULT_BLACKHOLE_COLOR = "#e8c09a";
+export const DEFAULT_BLACKHOLE_SPIN_SPEED = 1;
 
 export interface AppConfig {
   interval_ms: number;
@@ -123,6 +125,12 @@ export interface AppConfig {
   audio_color_secondary: string;
   audio_amplitude: number;
   audio_smoothing: number;
+  blackhole_enabled: boolean;
+  /** `#RRGGBB`，吸积盘色，当前画面为默认暖色 */
+  blackhole_color: string;
+  blackhole_interactive: boolean;
+  /** 旋转速度倍率，`1` 为当前默认慢旋 */
+  blackhole_spin_speed: number;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -159,6 +167,10 @@ export const DEFAULT_CONFIG: AppConfig = {
   audio_color_secondary: "#a855f7",
   audio_amplitude: 1,
   audio_smoothing: 0.65,
+  blackhole_enabled: false,
+  blackhole_color: DEFAULT_BLACKHOLE_COLOR,
+  blackhole_interactive: false,
+  blackhole_spin_speed: DEFAULT_BLACKHOLE_SPIN_SPEED,
 };
 
 export interface AudioDevice { id: string; name: string; is_default: boolean; }

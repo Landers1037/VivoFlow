@@ -3193,6 +3193,47 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   background: var(--clock-bg, var(--background));
 }
 
+.blackhole-page {
+  position: relative;
+  min-height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+.blackhole-stage {
+  position: absolute;
+  inset: 0;
+}
+
+.blackhole-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.blackhole-canvas.is-interactive {
+  touch-action: none;
+  cursor: grab;
+}
+
+.blackhole-canvas.is-interactive:active {
+  cursor: grabbing;
+}
+
+.blackhole-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 1.5rem;
+  color: color-mix(in oklch, white 72%, transparent);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
 .clock-meta {
   margin: 0 0 0.85rem;
   color: color-mix(in oklch, var(--clock-fg) 62%, transparent);

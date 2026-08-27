@@ -22,12 +22,16 @@
   - `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object` / `dots`（默认 `lines`）
   - `clock_show_week` / `clock_show_date` / `clock_show_seconds`：钟面信息开关（默认 `true`）
   - `clock_dot_shape`：点阵点形状 `circle` / `square` / `rounded` / `star`（默认 `circle`，仅点阵钟面使用）
+  - `blackhole_enabled`：全屏黑洞看板开关（默认 `false`）
+  - `blackhole_color`：吸积盘 `#RRGGBB`（默认 `#e8c09a`）
+  - `blackhole_interactive`：拖拽/缩放手势（默认 `false`）
+  - `blackhole_spin_speed`：旋转倍率 `0..=3`（默认 `1`）
 - `EnabledModules`：`cpu` / `memory` / `gpu` / `disk` / `network`（默认全开）
 
 ## 行为
 
 - `Default` 提供开箱即用的默认值。
 - `sanitize()` 在 `set_config` 时调用，限制间隔、历史长度和轮播间隔，并校验风格 / 主题色 / 背景色 / 自定义 hex，防止极端配置拖垮系统。
-- `clock_enabled` 与 `music_album_enabled`、`photo_album_enabled`、`audio_visualizer_enabled` 互斥，最多启用一个首页全屏模块。同时开启时优先保留时钟，其次音乐，再次音频。旧配置缺少时钟字段时使用默认值。
+- `clock_enabled`、`music_album_enabled`、`photo_album_enabled`、`audio_visualizer_enabled`、`blackhole_enabled` 互斥，最多启用一个首页全屏模块。同时开启时优先保留时钟，其次音乐，再次音频，再次相册，最后黑洞。旧配置缺少字段时使用默认值。
 
 配置由 `MetricsHub` 持有，采集循环与 IPC 读写同一把 `RwLock`。

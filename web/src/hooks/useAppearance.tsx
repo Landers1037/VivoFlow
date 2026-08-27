@@ -14,6 +14,8 @@ import {
   CLOCK_DOT_SHAPES,
   CLOCK_STYLES,
   DEFAULT_BACKGROUND_COLOR,
+  DEFAULT_BLACKHOLE_COLOR,
+  DEFAULT_BLACKHOLE_SPIN_SPEED,
   DEFAULT_GLASS_GRADIENT_END,
   DEFAULT_GLASS_GRADIENT_START,
   DEFAULT_ACCENT_CUSTOM,
@@ -22,6 +24,7 @@ import {
 } from "@/types";
 
 export type { AccentId, Lang, UiStyle };
+export { DEFAULT_BLACKHOLE_COLOR, DEFAULT_BLACKHOLE_SPIN_SPEED };
 export type TFunction = (key: MessageKey, vars?: TranslateVars) => string;
 
 const ACCENT_HUES: Record<
@@ -125,6 +128,12 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     audio_color_secondary: normalizeHexColor(base.audio_color_secondary || "#a855f7"),
     audio_amplitude: Number.isFinite(Number(base.audio_amplitude)) ? Math.min(2, Math.max(0.5, Number(base.audio_amplitude))) : 1,
     audio_smoothing: Number.isFinite(Number(base.audio_smoothing)) ? Math.min(0.9, Math.max(0, Number(base.audio_smoothing))) : 0.65,
+    blackhole_enabled: Boolean(base.blackhole_enabled),
+    blackhole_color: normalizeHexColor(base.blackhole_color, DEFAULT_BLACKHOLE_COLOR),
+    blackhole_interactive: Boolean(base.blackhole_interactive),
+    blackhole_spin_speed: Number.isFinite(Number(base.blackhole_spin_speed))
+      ? Math.min(3, Math.max(0, Number(base.blackhole_spin_speed)))
+      : DEFAULT_BLACKHOLE_SPIN_SPEED,
   };
 }
 
@@ -207,6 +216,10 @@ interface AppearanceContextValue {
   setAudioColors: (primary: string, secondary: string) => void;
   setAudioAmplitude: (v: number) => void;
   setAudioSmoothing: (v: number) => void;
+  setBlackholeEnabled: (v: boolean) => void;
+  setBlackholeColor: (hex: string) => void;
+  setBlackholeInteractive: (v: boolean) => void;
+  setBlackholeSpinSpeed: (v: number) => void;
   t: TFunction;
   lang: Lang;
 }
@@ -287,30 +300,35 @@ export function AppearanceProvider({
       setMobileAutoCarousel: (mobile_auto_carousel) => patch({ mobile_auto_carousel }),
       setMobileCarouselInterval: (mobile_carousel_interval_s) =>
         patch({ mobile_carousel_interval_s }),
-      setPhotoAlbumEnabled: (photo_album_enabled) => patch({ photo_album_enabled, ...(photo_album_enabled ? { audio_visualizer_enabled: false, music_album_enabled: false, clock_enabled: false } : {}) }),
+      setPhotoAlbumEnabled: (photo_album_enabled) => patch({ photo_album_enabled, ...(photo_album_enabled ? { audio_visualizer_enabled: false, music_album_enabled: false, clock_enabled: false, blackhole_enabled: false } : {}) }),
       setPhotoAlbumEffect: (photo_album_effect) => patch({ photo_album_effect }),
-      setMusicAlbumEnabled: (music_album_enabled) => patch({ music_album_enabled, ...(music_album_enabled ? { photo_album_enabled: false, audio_visualizer_enabled: false, clock_enabled: false } : {}) }),
+      setMusicAlbumEnabled: (music_album_enabled) => patch({ music_album_enabled, ...(music_album_enabled ? { photo_album_enabled: false, audio_visualizer_enabled: false, clock_enabled: false, blackhole_enabled: false } : {}) }),
       activateMusicAlbum: (active_music_album_id) => patch({
         active_music_album_id,
         music_album_enabled: true,
         photo_album_enabled: false,
         audio_visualizer_enabled: false,
         clock_enabled: false,
+        blackhole_enabled: false,
       }),
       setActiveMusicAlbumId: (active_music_album_id) => patch({ active_music_album_id }),
-      setClockEnabled: (clock_enabled) => patch({ clock_enabled, ...(clock_enabled ? { photo_album_enabled: false, music_album_enabled: false, audio_visualizer_enabled: false } : {}) }),
+      setClockEnabled: (clock_enabled) => patch({ clock_enabled, ...(clock_enabled ? { photo_album_enabled: false, music_album_enabled: false, audio_visualizer_enabled: false, blackhole_enabled: false } : {}) }),
       setClockStyle: (clock_style) => patch({ clock_style }),
       setClockShowWeek: (clock_show_week) => patch({ clock_show_week }),
       setClockShowDate: (clock_show_date) => patch({ clock_show_date }),
       setClockShowSeconds: (clock_show_seconds) => patch({ clock_show_seconds }),
       setClockDotShape: (clock_dot_shape) => patch({ clock_dot_shape }),
-      setAudioVisualizerEnabled: (audio_visualizer_enabled) => patch({ audio_visualizer_enabled, ...(audio_visualizer_enabled ? { photo_album_enabled: false, music_album_enabled: false, clock_enabled: false } : {}) }),
+      setAudioVisualizerEnabled: (audio_visualizer_enabled) => patch({ audio_visualizer_enabled, ...(audio_visualizer_enabled ? { photo_album_enabled: false, music_album_enabled: false, clock_enabled: false, blackhole_enabled: false } : {}) }),
       setAudioDeviceId: (audio_device_id) => patch({ audio_device_id }),
       setAudioVisualizerMode: (audio_visualizer_mode) => patch({ audio_visualizer_mode }),
       setAudioColorMode: (audio_color_mode) => patch({ audio_color_mode }),
       setAudioColors: (audio_color_primary, audio_color_secondary) => patch({ audio_color_primary: normalizeHexColor(audio_color_primary), audio_color_secondary: normalizeHexColor(audio_color_secondary) }),
       setAudioAmplitude: (audio_amplitude) => patch({ audio_amplitude }),
       setAudioSmoothing: (audio_smoothing) => patch({ audio_smoothing }),
+      setBlackholeEnabled: (blackhole_enabled) => patch({ blackhole_enabled, ...(blackhole_enabled ? { photo_album_enabled: false, music_album_enabled: false, audio_visualizer_enabled: false, clock_enabled: false } : {}) }),
+      setBlackholeColor: (hex) => patch({ blackhole_color: normalizeHexColor(hex, DEFAULT_BLACKHOLE_COLOR) }),
+      setBlackholeInteractive: (blackhole_interactive) => patch({ blackhole_interactive }),
+      setBlackholeSpinSpeed: (blackhole_spin_speed) => patch({ blackhole_spin_speed }),
       t,
       lang: resolved.language,
     }),

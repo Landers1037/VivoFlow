@@ -66,6 +66,14 @@ fn default_audio_smoothing() -> f32 {
     0.65
 }
 
+fn default_blackhole_color() -> String {
+    "#e8c09a".into()
+}
+
+fn default_blackhole_spin_speed() -> f32 {
+    1.0
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub interval_ms: u64,
@@ -131,6 +139,14 @@ pub struct AppConfig {
     pub audio_amplitude: f32,
     #[serde(default = "default_audio_smoothing")]
     pub audio_smoothing: f32,
+    #[serde(default)]
+    pub blackhole_enabled: bool,
+    #[serde(default = "default_blackhole_color")]
+    pub blackhole_color: String,
+    #[serde(default)]
+    pub blackhole_interactive: bool,
+    #[serde(default = "default_blackhole_spin_speed")]
+    pub blackhole_spin_speed: f32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -178,6 +194,10 @@ impl Default for AppConfig {
             audio_color_secondary: default_audio_color_secondary(),
             audio_amplitude: default_audio_amplitude(),
             audio_smoothing: default_audio_smoothing(),
+            blackhole_enabled: false,
+            blackhole_color: default_blackhole_color(),
+            blackhole_interactive: false,
+            blackhole_spin_speed: default_blackhole_spin_speed(),
         }
     }
 }
@@ -300,6 +320,16 @@ impl AppConfig {
         } else {
             default_audio_smoothing()
         };
+        if !is_hex_color(&self.blackhole_color) {
+            self.blackhole_color = default_blackhole_color();
+        } else {
+            self.blackhole_color = self.blackhole_color.to_ascii_lowercase();
+        }
+        self.blackhole_spin_speed = if self.blackhole_spin_speed.is_finite() {
+            self.blackhole_spin_speed.clamp(0.0, 3.0)
+        } else {
+            default_blackhole_spin_speed()
+        };
         self.audio_device_id = self.audio_device_id.and_then(|id| {
             let id = id.trim();
             (!id.is_empty() && id.len() <= 1024).then(|| id.to_owned())
@@ -318,11 +348,16 @@ impl AppConfig {
             self.photo_album_enabled = false;
             self.music_album_enabled = false;
             self.audio_visualizer_enabled = false;
+            self.blackhole_enabled = false;
         } else if self.music_album_enabled {
             self.photo_album_enabled = false;
             self.audio_visualizer_enabled = false;
+            self.blackhole_enabled = false;
         } else if self.audio_visualizer_enabled {
             self.photo_album_enabled = false;
+            self.blackhole_enabled = false;
+        } else if self.photo_album_enabled {
+            self.blackhole_enabled = false;
         }
         self
     }
@@ -538,6 +573,7 @@ mod tests {
         assert!(!cfg.photo_album_enabled);
         assert!(!cfg.audio_visualizer_enabled);
         assert!(!cfg.music_album_enabled);
+        assert!(!cfg.blackhole_enabled);
         assert_eq!(cfg.clock_style, "lines");
     }
 
@@ -559,6 +595,66 @@ mod tests {
         }
         .sanitize();
         assert_eq!(bad.clock_dot_shape, "circle");
+    }
+
+    #[test]
+    fn blackhole_module_is_exclusive_and_lowest_priority() {
+        let clock_wins = AppConfig {
+            clock_enabled: true,
+            blackhole_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(clock_wins.clock_enabled);
+        assert!(!clock_wins.blackhole_enabled);
+
+        let music_wins = AppConfig {
+            music_album_enabled: true,
+            blackhole_enabled: true,
+            photo_album_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(music_wins.music_album_enabled);
+        assert!(!music_wins.blackhole_enabled);
+        assert!(!music_wins.photo_album_enabled);
+
+        let photo_wins = AppConfig {
+            photo_album_enabled: true,
+            blackhole_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(photo_wins.photo_album_enabled);
+        assert!(!photo_wins.blackhole_enabled);
+
+        let only = AppConfig {
+            blackhole_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(only.blackhole_enabled);
+    }
+
+    #[test]
+    fn blackhole_look_is_sanitized() {
+        let bad = AppConfig {
+            blackhole_color: "not-a-color".into(),
+            blackhole_spin_speed: 9.0,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(bad.blackhole_color, "#e8c09a");
+        assert_eq!(bad.blackhole_spin_speed, 3.0);
+
+        let low = AppConfig {
+            blackhole_spin_speed: -1.0,
+            blackhole_color: "#AABBCC".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(low.blackhole_spin_speed, 0.0);
+        assert_eq!(low.blackhole_color, "#aabbcc");
     }
 
     #[test]

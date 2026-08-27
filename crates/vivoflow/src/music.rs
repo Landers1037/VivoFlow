@@ -221,6 +221,7 @@ async fn enable(
     c.photo_album_enabled = false;
     c.audio_visualizer_enabled = false;
     c.clock_enabled = false;
+    c.blackhole_enabled = false;
     c.active_music_album_id = Some(id);
     crate::config::save_config(&c).map_err(MusicError::internal)?;
     Ok(Json(a))

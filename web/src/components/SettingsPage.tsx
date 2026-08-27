@@ -1,7 +1,8 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, ChevronLeft, AudioLines, Clock, Images, Info, Music2, Palette, Radio } from "lucide-react";
+import { Check, ChevronLeft, AudioLines, Clock, Images, Info, Music2, Orbit, Palette, Radio } from "lucide-react";
 import { ClockSettings } from "@/components/clock/ClockSettings";
+import { BlackholeSettings } from "@/components/blackhole/BlackholeSettings";
 import { AlbumSettings } from "@/components/albums/AlbumSettings";
 import { MusicAlbumSettings } from "@/components/music/MusicAlbumSettings";
 import { AudioSettings } from "@/components/audio/AudioSettings";
@@ -28,7 +29,7 @@ import { DEFAULT_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
 
-export type SettingsPane = "index" | "appearance" | "clock" | "collection" | "albums" | "music" | "audio" | "about";
+export type SettingsPane = "index" | "appearance" | "clock" | "blackhole" | "collection" | "albums" | "music" | "audio" | "about";
 
 export function SettingsPage({
   config,
@@ -112,6 +113,13 @@ export function SettingsPage({
             value={synced.clock_enabled ? t("settingsOn") : t("settingsOff")}
             chevron
             onClick={() => open("clock")}
+          />
+          <SettingsRow
+            icon={Orbit}
+            title={t("blackhole")}
+            value={synced.blackhole_enabled ? t("settingsOn") : t("settingsOff")}
+            chevron
+            onClick={() => open("blackhole")}
           />
         </SettingsGroup>
 
@@ -218,6 +226,7 @@ export function SettingsPage({
               ) : null}
 
               {pane === "clock" ? <ClockSettings /> : null}
+              {pane === "blackhole" ? <BlackholeSettings /> : null}
               {pane === "albums" ? <AlbumSettings /> : null}
               {pane === "music" ? <MusicAlbumSettings /> : null}
               {pane === "audio" ? (
@@ -242,6 +251,8 @@ function paneLabel(t: TFunction, pane: SettingsPane): string {
       return t("appearance");
     case "clock":
       return t("clock");
+    case "blackhole":
+      return t("blackhole");
     case "collection":
       return t("collection");
     case "albums":

@@ -13,6 +13,8 @@
 - `ThemeMode` / `Lang`
 - `hide_title_bar`、`mobile_card_mode`、`mobile_auto_carousel`、`mobile_carousel_interval_s`
 - `clock_enabled`、`clock_style`（`lines` / `dial` / `pixel` / `flip` / `object` / `dots`）、`clock_show_week` / `clock_show_date` / `clock_show_seconds`、`clock_dot_shape`（`circle` / `square` / `rounded` / `star`）
+- `blackhole_enabled`：全屏黑洞看板
+- `blackhole_color` / `blackhole_interactive` / `blackhole_spin_speed`
 - `Snapshot` 及 `CpuMetrics`、`MemoryMetrics`、`GpuMetrics`、`DiskMetrics`、`NetworkMetrics`
 - `ConnState`：`"connecting" | "connected" | "disconnected"`
 
