@@ -20,6 +20,42 @@
     U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+@font-face {
+  font-family: "Fusion Pixel 12";
+  src: url("./fonts/fusion-pixel-12px-proportional-zh_hans.otf.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Barlow Condensed";
+  src: url("./fonts/BarlowCondensed-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  font-synthesis: none;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "DSEG7 Classic";
+  src: url("./fonts/DSEG7Classic-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DSEG14 Classic";
+  src: url("./fonts/DSEG14Classic-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -3118,8 +3154,469 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   .vf-connection-live::before,
   .settings-sync-live .settings-sync-dot,
   .settings-live-dot.is-live,
-  .vf-mobile-nav-item {
+  .vf-mobile-nav-item,
+  .clock-flip-digit.is-flipping .clock-flip-leaf {
     animation: none;
     transition: none;
+  }
+}
+
+.clock-page {
+  display: flex;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + 2.5rem)
+    calc(env(safe-area-inset-right, 0px) + 1.25rem)
+    calc(env(safe-area-inset-bottom, 0px) + 2.5rem)
+    calc(env(safe-area-inset-left, 0px) + 1.25rem);
+  color: var(--clock-fg, var(--foreground));
+  background: var(--clock-bg, var(--background));
+}
+
+.clock-meta {
+  margin: 0 0 0.85rem;
+  color: color-mix(in oklch, var(--clock-fg) 62%, transparent);
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.clock-meta-gap {
+  display: inline-block;
+  width: 0.7rem;
+}
+
+.clock-page[data-clock-style="lines"] {
+  --clock-bg: oklch(0.97 0.004 95);
+  --clock-fg: oklch(0.2 0.02 250);
+}
+
+.dark .clock-page[data-clock-style="lines"] {
+  --clock-bg: oklch(0.13 0.012 250);
+  --clock-fg: oklch(0.94 0.01 95);
+}
+
+.clock-lines {
+  width: min(100%, 36rem);
+  text-align: center;
+}
+
+.clock-lines-time {
+  display: flex;
+  justify-content: center;
+  gap: 0.32em;
+  margin: 0;
+  font-family: Outfit, "Noto Sans SC", system-ui, sans-serif;
+  font-size: clamp(3.4rem, 22vw, 8.4rem);
+  font-weight: 200;
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-page[data-clock-style="dial"] {
+  --clock-bg: oklch(0.93 0.012 240);
+  --clock-fg: oklch(0.22 0.03 240);
+}
+
+.dark .clock-page[data-clock-style="dial"] {
+  --clock-bg: oklch(0.18 0.02 240);
+  --clock-fg: oklch(0.9 0.015 95);
+}
+
+.clock-dial-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.clock-dial-week {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.clock-dial {
+  position: relative;
+  width: min(72vmin, 22rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: var(--clock-fg);
+  background:
+    radial-gradient(circle at 32% 28%, oklch(1 0 0 / 42%), transparent 36%),
+    linear-gradient(145deg, color-mix(in oklch, var(--clock-bg) 70%, white), color-mix(in oklch, var(--clock-bg) 82%, black));
+  box-shadow:
+    14px 18px 32px oklch(0.45 0.03 240 / 28%),
+    -10px -12px 24px oklch(1 0 0 / 55%),
+    inset 0 1px 0 oklch(1 0 0 / 55%),
+    inset 0 -2px 6px oklch(0.4 0.03 240 / 12%);
+}
+
+.dark .clock-dial {
+  box-shadow:
+    14px 18px 36px oklch(0.08 0.02 240 / 70%),
+    -8px -10px 18px oklch(1 0 0 / 8%),
+    inset 0 1px 0 oklch(1 0 0 / 12%),
+    inset 0 -2px 8px oklch(0 0 0 / 35%);
+}
+
+.clock-dial-tick {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.clock-dial-tick::before {
+  position: absolute;
+  top: 5.2%;
+  left: 50%;
+  width: 1.5px;
+  height: 3.2%;
+  margin-left: -0.75px;
+  background: color-mix(in oklch, var(--clock-fg) 28%, transparent);
+  content: "";
+}
+
+.clock-dial-tick.is-hour::before {
+  width: 2.5px;
+  height: 5.4%;
+  margin-left: -1.25px;
+  background: var(--clock-fg);
+}
+
+.clock-dial-num-slot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.clock-dial-num {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  width: 1.6rem;
+  font-family: Outfit, system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  text-align: center;
+}
+
+.clock-dial-window {
+  position: absolute;
+  top: 50%;
+  right: 18%;
+  display: flex;
+  min-width: 1.7rem;
+  height: 1.15rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.18rem;
+  background: color-mix(in oklch, var(--clock-bg) 70%, black);
+  box-shadow: inset 0 1px 2px oklch(0 0 0 / 25%);
+  font-family: Outfit, system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.clock-dial-hand {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  transform-origin: 50% 100%;
+  border-radius: 999px;
+  background: var(--clock-fg);
+}
+
+.clock-dial-hand.is-hour {
+  width: 5px;
+  height: 26%;
+  margin-left: -2.5px;
+}
+
+.clock-dial-hand.is-minute {
+  width: 3.5px;
+  height: 36%;
+  margin-left: -1.75px;
+}
+
+.clock-dial-hand.is-second {
+  width: 2px;
+  height: 40%;
+  margin-left: -1px;
+  background: oklch(0.55 0.16 25);
+}
+
+.clock-dial-cap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 999px;
+  background: var(--clock-fg);
+  transform: translate(-50%, -50%);
+}
+
+.clock-page[data-clock-style="pixel"] {
+  --clock-bg: oklch(0.96 0.01 95);
+  --clock-fg: oklch(0.22 0.04 145);
+}
+
+.dark .clock-page[data-clock-style="pixel"] {
+  --clock-bg: oklch(0.12 0.03 145);
+  --clock-fg: oklch(0.78 0.14 145);
+}
+
+.clock-pixel {
+  font-family: "Fusion Pixel 12", "Noto Sans SC", monospace;
+  text-align: center;
+}
+
+.clock-pixel-meta {
+  margin: 0 0 0.7rem;
+  font-size: 24px;
+  letter-spacing: 0.08em;
+  opacity: 0.72;
+}
+
+.clock-pixel-time {
+  margin: 0;
+  font-size: 60px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+@media (min-width: 420px) {
+  .clock-pixel-meta {
+    font-size: 36px;
+  }
+
+  .clock-pixel-time {
+    font-size: 84px;
+  }
+}
+
+.clock-page[data-clock-style="flip"] {
+  --clock-bg: oklch(0.18 0.015 250);
+  --clock-fg: oklch(0.96 0.01 95);
+}
+
+.dark .clock-page[data-clock-style="flip"] {
+  --clock-bg: oklch(0.11 0.012 250);
+}
+
+html:not(.dark) .clock-page[data-clock-style="flip"] {
+  --clock-bg: oklch(0.9 0.01 95);
+  --clock-fg: oklch(0.16 0.02 250);
+}
+
+.clock-flip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.clock-flip-row {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.clock-flip-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.clock-flip-pair {
+  display: flex;
+  gap: 0.28rem;
+}
+
+.clock-flip-label {
+  font-family: "Barlow Condensed", Outfit, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  opacity: 0.55;
+}
+
+.clock-flip-digit {
+  --flip-h: min(23vw, 6.6rem);
+  --flip-w: min(16vw, 4.6rem);
+  position: relative;
+  width: var(--flip-w);
+  height: var(--flip-h);
+  overflow: hidden;
+  border-radius: 0.35rem;
+  background: color-mix(in oklch, var(--clock-bg) 55%, black);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 12%), 0 8px 16px oklch(0 0 0 / 28%);
+  color: var(--clock-fg);
+  font-family: "Barlow Condensed", Outfit, sans-serif;
+  font-size: calc(var(--flip-h) * 0.72);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  line-height: var(--flip-h);
+  text-align: center;
+  perspective: 480px;
+}
+
+html:not(.dark) .clock-flip-digit {
+  background: oklch(0.22 0.02 250);
+  color: oklch(0.96 0.01 95);
+}
+
+.clock-flip-static,
+.clock-flip-leaf {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  overflow: hidden;
+}
+
+.clock-flip-static.is-top,
+.clock-flip-leaf.is-upper {
+  top: 0;
+}
+
+.clock-flip-static.is-bottom,
+.clock-flip-leaf.is-lower {
+  bottom: 0;
+}
+
+.clock-flip-static.is-bottom span,
+.clock-flip-leaf.is-lower span {
+  display: block;
+  margin-top: calc(var(--flip-h) / -2);
+  line-height: var(--flip-h);
+}
+
+.clock-flip-digit::after {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 3;
+  width: 100%;
+  height: 1px;
+  background: oklch(0 0 0 / 45%);
+  content: "";
+}
+
+.clock-flip-leaf {
+  z-index: 2;
+  visibility: hidden;
+  background: inherit;
+  color: inherit;
+  backface-visibility: hidden;
+}
+
+.clock-flip-digit.is-flipping .clock-flip-leaf {
+  visibility: visible;
+}
+
+.clock-flip-leaf.is-upper {
+  transform-origin: 50% 100%;
+}
+
+.clock-flip-leaf.is-lower {
+  transform-origin: 50% 0%;
+  transform: rotateX(90deg);
+}
+
+.clock-flip-digit.is-flipping .clock-flip-leaf.is-upper {
+  animation: clock-flip-top 0.26s ease-in forwards;
+}
+
+.clock-flip-digit.is-flipping .clock-flip-leaf.is-lower {
+  animation: clock-flip-bottom 0.26s ease-out 0.26s forwards;
+}
+
+@keyframes clock-flip-top {
+  from { transform: rotateX(0deg); }
+  to { transform: rotateX(-90deg); }
+}
+
+@keyframes clock-flip-bottom {
+  from { transform: rotateX(90deg); }
+  to { transform: rotateX(0deg); }
+}
+
+.clock-page[data-clock-style="object"] {
+  --clock-bg: oklch(0.88 0.008 250);
+  --clock-fg: oklch(0.32 0.05 145);
+}
+
+.dark .clock-page[data-clock-style="object"] {
+  --clock-bg: oklch(0.16 0.015 80);
+  --clock-fg: oklch(0.76 0.14 145);
+}
+
+.clock-object-bezel {
+  width: min(92vw, 28rem);
+  padding: 1.15rem 1.25rem 1rem;
+  border-radius: 1.1rem;
+  background:
+    linear-gradient(180deg, color-mix(in oklch, var(--clock-bg) 78%, white), color-mix(in oklch, var(--clock-bg) 88%, black));
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 28%),
+    0 18px 40px oklch(0.2 0.03 80 / 28%);
+}
+
+.clock-object-aux {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.7rem;
+  font-size: clamp(0.95rem, 4.6vw, 1.35rem);
+}
+
+.clock-lcd {
+  position: relative;
+  display: inline-block;
+  color: var(--clock-fg);
+}
+
+.clock-lcd-ghost {
+  position: absolute;
+  inset: 0;
+  color: var(--clock-fg);
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+.clock-lcd-7 {
+  display: block;
+  font-family: "DSEG7 Classic", Outfit, monospace;
+  font-size: clamp(2.2rem, 12vw, 4.6rem);
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.clock-lcd-14 {
+  font-family: "DSEG14 Classic", Outfit, monospace;
+  letter-spacing: 0.06em;
+}
+
+.clock-object-legend {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 0.55rem;
+  font-family: "Barlow Condensed", Outfit, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .clock-dial,
+  .clock-object-bezel {
+    backdrop-filter: none;
   }
 }

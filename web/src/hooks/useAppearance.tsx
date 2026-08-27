@@ -8,9 +8,10 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, Lang, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockStyle, Lang, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
+  CLOCK_STYLES,
   DEFAULT_BACKGROUND_COLOR,
   DEFAULT_GLASS_GRADIENT_END,
   DEFAULT_GLASS_GRADIENT_START,
@@ -104,6 +105,14 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     )
       ? (base.photo_album_effect as PhotoAlbumEffect)
       : "single",
+    music_album_enabled: Boolean(base.music_album_enabled),
+    clock_enabled: Boolean(base.clock_enabled),
+    clock_style: CLOCK_STYLES.includes(base.clock_style as ClockStyle)
+      ? (base.clock_style as ClockStyle)
+      : "lines",
+    clock_show_week: base.clock_show_week !== false,
+    clock_show_date: base.clock_show_date !== false,
+    clock_show_seconds: base.clock_show_seconds !== false,
     audio_visualizer_enabled: Boolean(base.audio_visualizer_enabled),
     audio_device_id: typeof base.audio_device_id === "string" && base.audio_device_id.trim() ? base.audio_device_id : null,
     audio_visualizer_mode: (["particles", "grid", "aurora", "radial", "city3d", "nebula3d", "terrain3d", "crystal3d"] as const).includes(base.audio_visualizer_mode as AudioVisualizerMode) ? base.audio_visualizer_mode as AudioVisualizerMode : "particles",
@@ -181,6 +190,11 @@ interface AppearanceContextValue {
   setMusicAlbumEnabled: (v: boolean) => void;
   activateMusicAlbum: (id: string) => void;
   setActiveMusicAlbumId: (v: string | null) => void;
+  setClockEnabled: (v: boolean) => void;
+  setClockStyle: (v: ClockStyle) => void;
+  setClockShowWeek: (v: boolean) => void;
+  setClockShowDate: (v: boolean) => void;
+  setClockShowSeconds: (v: boolean) => void;
   setAudioVisualizerEnabled: (v: boolean) => void;
   setAudioDeviceId: (v: string | null) => void;
   setAudioVisualizerMode: (v: AudioVisualizerMode) => void;
@@ -268,17 +282,23 @@ export function AppearanceProvider({
       setMobileAutoCarousel: (mobile_auto_carousel) => patch({ mobile_auto_carousel }),
       setMobileCarouselInterval: (mobile_carousel_interval_s) =>
         patch({ mobile_carousel_interval_s }),
-      setPhotoAlbumEnabled: (photo_album_enabled) => patch({ photo_album_enabled, ...(photo_album_enabled ? { audio_visualizer_enabled: false, music_album_enabled: false } : {}) }),
+      setPhotoAlbumEnabled: (photo_album_enabled) => patch({ photo_album_enabled, ...(photo_album_enabled ? { audio_visualizer_enabled: false, music_album_enabled: false, clock_enabled: false } : {}) }),
       setPhotoAlbumEffect: (photo_album_effect) => patch({ photo_album_effect }),
-      setMusicAlbumEnabled: (music_album_enabled) => patch({ music_album_enabled, ...(music_album_enabled ? { photo_album_enabled: false, audio_visualizer_enabled: false } : {}) }),
+      setMusicAlbumEnabled: (music_album_enabled) => patch({ music_album_enabled, ...(music_album_enabled ? { photo_album_enabled: false, audio_visualizer_enabled: false, clock_enabled: false } : {}) }),
       activateMusicAlbum: (active_music_album_id) => patch({
         active_music_album_id,
         music_album_enabled: true,
         photo_album_enabled: false,
         audio_visualizer_enabled: false,
+        clock_enabled: false,
       }),
       setActiveMusicAlbumId: (active_music_album_id) => patch({ active_music_album_id }),
-      setAudioVisualizerEnabled: (audio_visualizer_enabled) => patch({ audio_visualizer_enabled, ...(audio_visualizer_enabled ? { photo_album_enabled: false, music_album_enabled: false } : {}) }),
+      setClockEnabled: (clock_enabled) => patch({ clock_enabled, ...(clock_enabled ? { photo_album_enabled: false, music_album_enabled: false, audio_visualizer_enabled: false } : {}) }),
+      setClockStyle: (clock_style) => patch({ clock_style }),
+      setClockShowWeek: (clock_show_week) => patch({ clock_show_week }),
+      setClockShowDate: (clock_show_date) => patch({ clock_show_date }),
+      setClockShowSeconds: (clock_show_seconds) => patch({ clock_show_seconds }),
+      setAudioVisualizerEnabled: (audio_visualizer_enabled) => patch({ audio_visualizer_enabled, ...(audio_visualizer_enabled ? { photo_album_enabled: false, music_album_enabled: false, clock_enabled: false } : {}) }),
       setAudioDeviceId: (audio_device_id) => patch({ audio_device_id }),
       setAudioVisualizerMode: (audio_visualizer_mode) => patch({ audio_visualizer_mode }),
       setAudioColorMode: (audio_color_mode) => patch({ audio_color_mode }),

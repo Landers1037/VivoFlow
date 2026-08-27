@@ -35,6 +35,14 @@ fn default_music_album_enabled() -> bool {
     false
 }
 
+fn default_clock_style() -> String {
+    "lines".into()
+}
+
+fn default_clock_show() -> bool {
+    true
+}
+
 fn default_audio_visualizer_mode() -> String {
     "particles".into()
 }
@@ -92,6 +100,16 @@ pub struct AppConfig {
     #[serde(default)]
     pub active_music_album_id: Option<String>,
     #[serde(default)]
+    pub clock_enabled: bool,
+    #[serde(default = "default_clock_style")]
+    pub clock_style: String,
+    #[serde(default = "default_clock_show")]
+    pub clock_show_week: bool,
+    #[serde(default = "default_clock_show")]
+    pub clock_show_date: bool,
+    #[serde(default = "default_clock_show")]
+    pub clock_show_seconds: bool,
+    #[serde(default)]
     pub audio_visualizer_enabled: bool,
     #[serde(default)]
     pub audio_device_id: Option<String>,
@@ -140,6 +158,11 @@ impl Default for AppConfig {
             photo_album_effect: default_photo_album_effect(),
             music_album_enabled: default_music_album_enabled(),
             active_music_album_id: None,
+            clock_enabled: false,
+            clock_style: default_clock_style(),
+            clock_show_week: true,
+            clock_show_date: true,
+            clock_show_seconds: true,
             audio_visualizer_enabled: false,
             audio_device_id: None,
             audio_visualizer_mode: default_audio_visualizer_mode(),
@@ -278,7 +301,14 @@ impl AppConfig {
             let id = id.trim();
             (!id.is_empty() && id.len() <= 128).then(|| id.to_owned())
         });
-        if self.music_album_enabled {
+        if !["lines", "dial", "pixel", "flip", "object"].contains(&self.clock_style.as_str()) {
+            self.clock_style = default_clock_style();
+        }
+        if self.clock_enabled {
+            self.photo_album_enabled = false;
+            self.music_album_enabled = false;
+            self.audio_visualizer_enabled = false;
+        } else if self.music_album_enabled {
             self.photo_album_enabled = false;
             self.audio_visualizer_enabled = false;
         } else if self.audio_visualizer_enabled {
@@ -409,6 +439,11 @@ mod tests {
         assert_eq!(cfg.photo_album_effect, "single");
         assert!(!cfg.audio_visualizer_enabled);
         assert!(!cfg.music_album_enabled);
+        assert!(!cfg.clock_enabled);
+        assert_eq!(cfg.clock_style, "lines");
+        assert!(cfg.clock_show_week);
+        assert!(cfg.clock_show_date);
+        assert!(cfg.clock_show_seconds);
         assert_eq!(cfg.active_music_album_id, None);
         assert_eq!(cfg.audio_visualizer_mode, "particles");
     }
@@ -475,6 +510,24 @@ mod tests {
         assert_eq!(cfg.audio_color_primary, "#22d3ee");
         assert_eq!(cfg.audio_amplitude, 2.0);
         assert_eq!(cfg.audio_smoothing, 0.0);
+    }
+
+    #[test]
+    fn clock_module_is_exclusive_and_style_is_sanitized() {
+        let cfg = AppConfig {
+            clock_enabled: true,
+            photo_album_enabled: true,
+            audio_visualizer_enabled: true,
+            music_album_enabled: true,
+            clock_style: "unknown".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(cfg.clock_enabled);
+        assert!(!cfg.photo_album_enabled);
+        assert!(!cfg.audio_visualizer_enabled);
+        assert!(!cfg.music_album_enabled);
+        assert_eq!(cfg.clock_style, "lines");
     }
 
     #[test]

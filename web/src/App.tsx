@@ -6,6 +6,7 @@ import { Dashboard } from "@/components/Dashboard";
 import { PhotoAlbumPage } from "@/components/albums/PhotoAlbumPage";
 import { AudioVisualizerPage } from "@/components/audio/AudioVisualizerPage";
 import { SettingsPage } from "@/components/SettingsPage";
+import { ClockPage } from "@/components/clock/ClockPage";
 import { MusicAlbumPage } from "@/components/music/MusicAlbumPage";
 import { musicApi } from "@/lib/music";
 import { FullPageLoader } from "@/components/viz";
@@ -88,6 +89,15 @@ function AppShell({
       inFlow={inFlow}
     />
   );
+
+  if (page === "dashboard" && appearanceConfig.clock_enabled) {
+    return (
+      <div className="vf-shell overflow-hidden">
+        <ClockPage />
+        {titleBar()}
+      </div>
+    );
+  }
 
   if (page === "dashboard" && appearanceConfig.music_album_enabled && musicAlbum) {
     return (

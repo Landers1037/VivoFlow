@@ -12,6 +12,7 @@
 - `glass_gradient_start` / `glass_gradient_end`：毛玻璃背景渐变两端色（`#RRGGBB`）
 - `ThemeMode` / `Lang`
 - `hide_title_bar`、`mobile_card_mode`、`mobile_auto_carousel`、`mobile_carousel_interval_s`
+- `clock_enabled`、`clock_style`（`lines` / `dial` / `pixel` / `flip` / `object`）、`clock_show_week` / `clock_show_date` / `clock_show_seconds`
 - `Snapshot` 及 `CpuMetrics`、`MemoryMetrics`、`GpuMetrics`、`DiskMetrics`、`NetworkMetrics`
 - `ConnState`：`"connecting" | "connected" | "disconnected"`
 

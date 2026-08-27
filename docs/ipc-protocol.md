@@ -37,6 +37,11 @@
   "mobile_card_mode": false,
   "mobile_auto_carousel": true,
   "mobile_carousel_interval_s": 10,
+  "clock_enabled": false,
+  "clock_style": "lines",
+  "clock_show_week": true,
+  "clock_show_date": true,
+  "clock_show_seconds": true,
   "audio_visualizer_enabled": false,
   "audio_device_id": null,
   "audio_visualizer_mode": "particles",
@@ -61,6 +66,7 @@
 | `mobile_card_mode` | `true` / `false`；手机启用 2x 分页卡片 |
 | `mobile_auto_carousel` | `true` / `false`；仅移动卡片模式生效 |
 | `mobile_carousel_interval_s` | `[5, 60]`，默认 `10` |
+| `clock_style` | `lines` / `dial` / `pixel` / `flip` / `object` |
 | `audio_visualizer_mode` | `particles` / `grid` / `aurora` / `radial` / `city3d` / `nebula3d` / `terrain3d` / `crystal3d` |
 | `audio_color_mode` | `single` / `gradient` |
 | `audio_amplitude` | `[0.5, 2.0]` |

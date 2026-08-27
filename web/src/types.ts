@@ -26,6 +26,7 @@ export type AccentId = "teal" | "zinc" | "blue" | "violet" | "amber" | "custom";
 export type ThemeMode = "light" | "dark" | "system";
 export type Lang = "zh" | "en";
 export type PhotoAlbumEffect = "single" | "time_machine" | "cover_flow";
+export type ClockStyle = "lines" | "dial" | "pixel" | "flip" | "object";
 export type AudioVisualizerMode =
   | "particles"
   | "grid"
@@ -67,6 +68,8 @@ export const UI_STYLES: UiStyle[] = [
   "editorial",
 ];
 
+export const CLOCK_STYLES: ClockStyle[] = ["lines", "dial", "pixel", "flip", "object"];
+
 export const ACCENT_PRESETS: Exclude<AccentId, "custom">[] = [
   "teal",
   "zinc",
@@ -104,6 +107,11 @@ export interface AppConfig {
   photo_album_effect: PhotoAlbumEffect;
   music_album_enabled: boolean;
   active_music_album_id: string | null;
+  clock_enabled: boolean;
+  clock_style: ClockStyle;
+  clock_show_week: boolean;
+  clock_show_date: boolean;
+  clock_show_seconds: boolean;
   audio_visualizer_enabled: boolean;
   audio_device_id: string | null;
   audio_visualizer_mode: AudioVisualizerMode;
@@ -134,6 +142,11 @@ export const DEFAULT_CONFIG: AppConfig = {
   photo_album_effect: "single",
   music_album_enabled: false,
   active_music_album_id: null,
+  clock_enabled: false,
+  clock_style: "lines",
+  clock_show_week: true,
+  clock_show_date: true,
+  clock_show_seconds: true,
   audio_visualizer_enabled: false,
   audio_device_id: null,
   audio_visualizer_mode: "particles",
