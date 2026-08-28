@@ -3,10 +3,12 @@ mod audio;
 mod collectors;
 mod config;
 mod hub;
+mod illustration;
 mod ipc;
 mod models;
 mod music;
 mod server;
+mod storage;
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -40,10 +42,12 @@ async fn main() -> anyhow::Result<()> {
     hub.clone().spawn_collector();
     let audio = crate::audio::AudioHub::new(hub.config.clone());
     audio.clone().spawn();
-    let albums = crate::album::AlbumStore::load()?;
-    let music = crate::music::MusicStore::load(hub.config.clone())?;
+    let storage = crate::storage::StorageManager::load()?;
+    let albums = crate::album::AlbumStore::load(storage.clone())?;
+    let music = crate::music::MusicStore::load(hub.config.clone(), storage.clone())?;
+    let illustrations = crate::illustration::IllustrationStore::load(storage.clone())?;
 
     tracing::info!("VivoFlow listening on http://{addr}");
     tracing::info!("WebSocket JSON IPC at ws://{addr}/ws");
-    serve(addr, hub, albums, music, audio).await
+    serve(addr, hub, albums, music, illustrations, audio, storage).await
 }

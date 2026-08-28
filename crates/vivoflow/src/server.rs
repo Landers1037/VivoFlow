@@ -13,6 +13,7 @@ use crate::album::AlbumStore;
 use crate::audio::AudioHub;
 use crate::hub::MetricsHub;
 use crate::ipc::handle_socket;
+use crate::storage::StorageManager;
 
 #[derive(Embed)]
 #[folder = "static"]
@@ -30,7 +31,9 @@ pub async fn serve(
     hub: MetricsHub,
     albums: AlbumStore,
     music: crate::music::MusicStore,
+    illustrations: crate::illustration::IllustrationStore,
     audio: AudioHub,
+    storage: StorageManager,
 ) -> anyhow::Result<()> {
     let state = AppState { hub, audio };
 
@@ -49,8 +52,10 @@ pub async fn serve(
                 .allow_headers(Any),
         )
         .with_state(state)
+        .merge(crate::storage::router(storage.clone()))
         .merge(crate::album::router(albums))
-        .merge(crate::music::router(music));
+        .merge(crate::music::router(music))
+        .merge(crate::illustration::router(illustrations));
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;

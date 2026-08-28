@@ -2,6 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use crate::storage::StorageManager;
 use axum::body::Body;
 use axum::extract::{DefaultBodyLimit, Multipart, Path as AxumPath, State};
 use axum::http::{header, HeaderValue, StatusCode};
@@ -40,7 +41,7 @@ pub struct MusicAlbum {
 pub struct MusicStore {
     albums: Arc<RwLock<Vec<MusicAlbum>>>,
     metadata: Arc<PathBuf>,
-    root: Arc<PathBuf>,
+    storage: StorageManager,
     config: Arc<RwLock<crate::config::AppConfig>>,
 }
 
@@ -68,14 +69,16 @@ impl IntoResponse for MusicError {
 }
 
 impl MusicStore {
-    pub fn load(config: Arc<RwLock<crate::config::AppConfig>>) -> anyhow::Result<Self> {
+    pub fn load(
+        config: Arc<RwLock<crate::config::AppConfig>>,
+        storage: StorageManager,
+    ) -> anyhow::Result<Self> {
         let base = crate::config::config_file_path()
             .parent()
             .unwrap_or(Path::new("."))
             .to_path_buf();
         let metadata = base.join("music_albums.json");
-        let root = base.join("music_albums");
-        fs::create_dir_all(&root)?;
+        fs::create_dir_all(storage.category_dir("music_albums"))?;
         let albums = match fs::read_to_string(&metadata) {
             Ok(s) => serde_json::from_str(&s).unwrap_or_default(),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Vec::new(),
@@ -84,7 +87,7 @@ impl MusicStore {
         Ok(Self {
             albums: Arc::new(RwLock::new(albums)),
             metadata: Arc::new(metadata),
-            root: Arc::new(root),
+            storage,
             config,
         })
     }
@@ -98,7 +101,7 @@ impl MusicStore {
         fs::rename(tmp, self.metadata.as_ref()).map_err(MusicError::internal)
     }
     fn dir(&self, id: &str) -> PathBuf {
-        self.root.join(id)
+        self.storage.category_dir("music_albums").join(id)
     }
 }
 
@@ -189,6 +192,7 @@ async fn remove(
     State(s): State<MusicStore>,
     AxumPath(id): AxumPath<String>,
 ) -> Result<Json<MusicAlbum>, MusicError> {
+    let _storage_guard = s.storage.operation_lock();
     let mut xs = s.albums.write();
     let n = xs
         .iter()
@@ -219,6 +223,7 @@ async fn enable(
     let mut c = s.config.write();
     c.music_album_enabled = true;
     c.photo_album_enabled = false;
+    c.illustration_enabled = false;
     c.audio_visualizer_enabled = false;
     c.clock_enabled = false;
     c.blackhole_enabled = false;
@@ -287,6 +292,7 @@ async fn upload_cover(
         return Err(MusicError::bad("cover exceeds 25 MB"));
     }
     let (mime, ext) = image_kind(&b).ok_or_else(|| MusicError::bad("unsupported cover format"))?;
+    let _storage_guard = s.storage.operation_lock();
     let mut xs = s.albums.write();
     let n = xs
         .iter()
@@ -334,6 +340,7 @@ async fn upload_tracks(
             return Err(MusicError::bad("too many tracks"));
         }
     }
+    let _storage_guard = s.storage.operation_lock();
     let mut xs = s.albums.write();
     let n = xs
         .iter()
@@ -395,6 +402,7 @@ async fn remove_track(
     State(s): State<MusicStore>,
     AxumPath((id, tid)): AxumPath<(String, String)>,
 ) -> Result<Json<MusicAlbum>, MusicError> {
+    let _storage_guard = s.storage.operation_lock();
     let mut xs = s.albums.write();
     let n = xs
         .iter()
@@ -461,37 +469,44 @@ async fn cover_content(
     State(s): State<MusicStore>,
     AxumPath(id): AxumPath<String>,
 ) -> Result<Response, MusicError> {
-    let a = s
-        .albums
-        .read()
-        .iter()
-        .find(|a| a.id == id)
-        .cloned()
-        .ok_or_else(|| MusicError::not_found("album not found"))?;
-    let f = a
-        .cover_file
-        .ok_or_else(|| MusicError::not_found("cover not found"))?;
-    file_response(
-        s.dir(&id).join(f),
-        a.cover_mime.unwrap_or_else(|| "image/jpeg".into()),
-    )
-    .await
+    let (path, mime) = {
+        let _storage_guard = s.storage.operation_lock();
+        let a = s
+            .albums
+            .read()
+            .iter()
+            .find(|a| a.id == id)
+            .cloned()
+            .ok_or_else(|| MusicError::not_found("album not found"))?;
+        let f = a
+            .cover_file
+            .ok_or_else(|| MusicError::not_found("cover not found"))?;
+        (
+            s.dir(&id).join(f),
+            a.cover_mime.unwrap_or_else(|| "image/jpeg".into()),
+        )
+    };
+    file_response(path, mime).await
 }
 async fn track_content(
     State(s): State<MusicStore>,
     AxumPath((id, tid)): AxumPath<(String, String)>,
 ) -> Result<Response, MusicError> {
-    let a = s
-        .albums
-        .read()
-        .iter()
-        .find(|a| a.id == id)
-        .cloned()
-        .ok_or_else(|| MusicError::not_found("album not found"))?;
-    let t = a
-        .tracks
-        .into_iter()
-        .find(|t| t.id == tid)
-        .ok_or_else(|| MusicError::not_found("track not found"))?;
-    file_response(s.dir(&id).join(t.file_name), t.mime_type).await
+    let (path, mime) = {
+        let _storage_guard = s.storage.operation_lock();
+        let a = s
+            .albums
+            .read()
+            .iter()
+            .find(|a| a.id == id)
+            .cloned()
+            .ok_or_else(|| MusicError::not_found("album not found"))?;
+        let t = a
+            .tracks
+            .into_iter()
+            .find(|t| t.id == tid)
+            .ok_or_else(|| MusicError::not_found("track not found"))?;
+        (s.dir(&id).join(t.file_name), t.mime_type)
+    };
+    file_response(path, mime).await
 }

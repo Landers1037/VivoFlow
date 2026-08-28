@@ -1,12 +1,14 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, ChevronLeft, AudioLines, Clock, Globe, Images, Info, Music2, Orbit, Palette, Radio } from "lucide-react";
+import { Check, ChevronLeft, AudioLines, Clock, Globe, HardDrive, Images, Info, Music2, Orbit, Palette, Radio, Sparkles } from "lucide-react";
 import { ClockSettings } from "@/components/clock/ClockSettings";
 import { BlackholeSettings } from "@/components/blackhole/BlackholeSettings";
 import { Models3dSettings } from "@/components/models3d/Models3dSettings";
 import { AlbumSettings } from "@/components/albums/AlbumSettings";
 import { MusicAlbumSettings } from "@/components/music/MusicAlbumSettings";
 import { AudioSettings } from "@/components/audio/AudioSettings";
+import { IllustrationSettings } from "@/components/illustration/IllustrationSettings";
+import { StorageSettings } from "@/components/storage/StorageSettings";
 import {
   SettingsGroup,
   SettingsRow,
@@ -30,7 +32,7 @@ import { DEFAULT_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
 
-export type SettingsPane = "index" | "appearance" | "clock" | "blackhole" | "models3d" | "collection" | "albums" | "music" | "audio" | "about";
+export type SettingsPane = "index" | "appearance" | "clock" | "blackhole" | "models3d" | "collection" | "storage" | "albums" | "music" | "illustration" | "audio" | "about";
 
 export function SettingsPage({
   config,
@@ -138,6 +140,12 @@ export function SettingsPage({
             chevron
             onClick={() => open("collection")}
           />
+          <SettingsRow
+            icon={HardDrive}
+            title={t("storage")}
+            chevron
+            onClick={() => open("storage")}
+          />
         </SettingsGroup>
 
         <SettingsGroup label={t("settingsGroupMedia")}>
@@ -154,6 +162,13 @@ export function SettingsPage({
             value={synced.music_album_enabled ? t("settingsOn") : t("settingsOff")}
             chevron
             onClick={() => open("music")}
+          />
+          <SettingsRow
+            icon={Sparkles}
+            title={t("illustration")}
+            value={synced.illustration_enabled ? t("settingsOn") : t("settingsOff")}
+            chevron
+            onClick={() => open("illustration")}
           />
           <SettingsRow
             icon={AudioLines}
@@ -233,11 +248,14 @@ export function SettingsPage({
                 />
               ) : null}
 
+              {pane === "storage" ? <StorageSettings /> : null}
+
               {pane === "clock" ? <ClockSettings /> : null}
               {pane === "blackhole" ? <BlackholeSettings /> : null}
               {pane === "models3d" ? <Models3dSettings /> : null}
               {pane === "albums" ? <AlbumSettings /> : null}
               {pane === "music" ? <MusicAlbumSettings /> : null}
+              {pane === "illustration" ? <IllustrationSettings /> : null}
               {pane === "audio" ? (
                 <AudioSettings
                   frame={audioFrame}
@@ -266,10 +284,14 @@ function paneLabel(t: TFunction, pane: SettingsPane): string {
       return t("models3d");
     case "collection":
       return t("collection");
+    case "storage":
+      return t("storage");
     case "albums":
       return t("albums");
     case "music":
       return t("musicAlbums");
+    case "illustration":
+      return t("illustration");
     case "audio":
       return t("audioVisualizer");
     case "about":

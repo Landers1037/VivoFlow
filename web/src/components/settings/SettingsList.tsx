@@ -185,14 +185,16 @@ export function SettingsSegmented<T extends string>({
   value,
   onChange,
   disabled,
+  className,
 }: {
   options: { id: T; label: string }[];
   value: T;
   onChange: (id: T) => void;
   disabled?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="settings-segmented" role="radiogroup">
+    <div className={cn("settings-segmented", className)} role="radiogroup">
       {options.map((option) => (
         <button
           key={option.id}

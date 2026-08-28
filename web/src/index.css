@@ -2560,6 +2560,11 @@ html.dark[data-ui-style="amicro"] {
   transform: scale(0.98);
 }
 
+.settings-segmented-palette {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-flow: row;
+}
+
 .settings-detail {
   position: fixed;
   inset: 0;
@@ -2716,6 +2721,11 @@ html.dark[data-ui-style="amicro"] {
 
 .settings-field-input.is-start {
   text-align: left;
+}
+
+.settings-field-input-wide {
+  text-align: left;
+  font-size: 0.9rem;
 }
 
 .settings-field-input::placeholder {
@@ -2992,6 +3002,51 @@ html.dark[data-ui-style="amicro"] {
   text-align: left;
 }
 
+.settings-list-card-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.15rem;
+  margin-left: auto;
+}
+
+.settings-list-card-control {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0.45rem;
+  padding: 0;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.settings-list-card-control:hover {
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--muted) 72%, transparent);
+}
+
+.settings-list-card-control:disabled {
+  pointer-events: none;
+  opacity: 0.42;
+}
+
+@media (max-width: 640px) {
+  .settings-list-card {
+    flex-wrap: wrap;
+  }
+
+  .settings-list-card-actions {
+    flex-basis: 100%;
+    justify-content: flex-end;
+    margin-left: 0;
+    padding-top: 0.15rem;
+  }
+}
+
 .settings-list-card:active {
   background: color-mix(in oklch, var(--muted) 50%, transparent);
 }
@@ -3012,6 +3067,10 @@ html.dark[data-ui-style="amicro"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .illustration-canvas {
+    transition: none;
+  }
+
   .settings-live-dot.is-live,
   .settings-back-link,
   .settings-segmented-item {
@@ -3266,6 +3325,126 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
 
 .models3d-stage canvas:active {
   cursor: grabbing;
+}
+
+.illustration-page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #080d11;
+}
+
+.vf-shell:has(.illustration-page) {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.illustration-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  image-rendering: pixelated;
+  transition: opacity 320ms ease;
+}
+
+.illustration-canvas.is-visible {
+  opacity: 1;
+}
+
+.illustration-loading {
+  position: absolute;
+  top: max(1rem, env(safe-area-inset-top));
+  left: 50%;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 1px solid color-mix(in oklch, white 22%, transparent);
+  border-radius: 999px;
+  color: white;
+  background: color-mix(in oklch, black 45%, transparent);
+  transform: translateX(-50%);
+}
+
+.illustration-page-count {
+  position: absolute;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  border: 1px solid color-mix(in oklch, white 20%, transparent);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  color: color-mix(in oklch, white 82%, transparent);
+  background: color-mix(in oklch, black 40%, transparent);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.illustration-error {
+  position: absolute;
+  right: 1rem;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid color-mix(in oklch, #f87171 35%, transparent);
+  border-radius: 0.8rem;
+  padding: 0.65rem 0.75rem;
+  color: #fecaca;
+  background: color-mix(in oklch, #450a0a 70%, transparent);
+  font-size: 0.8rem;
+}
+
+.illustration-empty {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  align-content: center;
+  gap: 0.8rem;
+  padding: 2rem;
+  color: var(--muted-foreground);
+  text-align: center;
+  background: var(--background);
+}
+
+.illustration-empty h1 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 1.45rem;
+  font-weight: 650;
+}
+
+.illustration-empty p {
+  max-width: 22rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.settings-empty-state {
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.settings-status-success,
+.settings-status-error {
+  margin: 0.75rem 0;
+  border-radius: var(--radius);
+  padding: 0.65rem 0.85rem;
+  font-size: 0.82rem;
+}
+
+.settings-status-success {
+  background: color-mix(in srgb, var(--accent-primary-light) 12%, transparent);
+  color: var(--accent-primary-light);
+}
+
+.settings-status-error {
+  background: color-mix(in srgb, var(--destructive) 12%, transparent);
+  color: var(--destructive);
 }
 
 .models3d-clock-layer {

@@ -35,6 +35,10 @@ fn default_music_album_enabled() -> bool {
     false
 }
 
+fn default_illustration_enabled() -> bool {
+    false
+}
+
 fn default_clock_style() -> String {
     "lines".into()
 }
@@ -169,6 +173,8 @@ pub struct AppConfig {
     pub photo_album_effect: String,
     #[serde(default = "default_music_album_enabled")]
     pub music_album_enabled: bool,
+    #[serde(default = "default_illustration_enabled")]
+    pub illustration_enabled: bool,
     #[serde(default)]
     pub active_music_album_id: Option<String>,
     #[serde(default)]
@@ -295,6 +301,7 @@ impl Default for AppConfig {
             photo_album_enabled: false,
             photo_album_effect: default_photo_album_effect(),
             music_album_enabled: default_music_album_enabled(),
+            illustration_enabled: default_illustration_enabled(),
             active_music_album_id: None,
             clock_enabled: false,
             clock_style: default_clock_style(),
@@ -582,19 +589,26 @@ impl AppConfig {
         if self.clock_enabled {
             self.photo_album_enabled = false;
             self.music_album_enabled = false;
+            self.illustration_enabled = false;
             self.audio_visualizer_enabled = false;
             self.blackhole_enabled = false;
             self.model3d_enabled = false;
         } else if self.music_album_enabled {
             self.photo_album_enabled = false;
+            self.illustration_enabled = false;
             self.audio_visualizer_enabled = false;
             self.blackhole_enabled = false;
             self.model3d_enabled = false;
         } else if self.audio_visualizer_enabled {
             self.photo_album_enabled = false;
+            self.illustration_enabled = false;
             self.blackhole_enabled = false;
             self.model3d_enabled = false;
         } else if self.photo_album_enabled {
+            self.illustration_enabled = false;
+            self.blackhole_enabled = false;
+            self.model3d_enabled = false;
+        } else if self.illustration_enabled {
             self.blackhole_enabled = false;
             self.model3d_enabled = false;
         } else if self.blackhole_enabled {
@@ -689,6 +703,52 @@ mod tests {
     }
 
     #[test]
+    fn illustration_module_is_exclusive_with_media_and_visual_modules() {
+        let cfg = AppConfig {
+            illustration_enabled: true,
+            photo_album_enabled: true,
+            music_album_enabled: true,
+            blackhole_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(cfg.music_album_enabled);
+        assert!(!cfg.illustration_enabled);
+        assert!(!cfg.photo_album_enabled);
+
+        let only = AppConfig {
+            illustration_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(only.illustration_enabled);
+        assert!(!only.blackhole_enabled);
+        assert!(!only.model3d_enabled);
+
+        let photo_wins = AppConfig {
+            photo_album_enabled: true,
+            illustration_enabled: true,
+            blackhole_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(photo_wins.photo_album_enabled);
+        assert!(!photo_wins.illustration_enabled);
+        assert!(!photo_wins.blackhole_enabled);
+
+        let illustration_wins = AppConfig {
+            illustration_enabled: true,
+            blackhole_enabled: true,
+            model3d_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(illustration_wins.illustration_enabled);
+        assert!(!illustration_wins.blackhole_enabled);
+        assert!(!illustration_wins.model3d_enabled);
+    }
+
+    #[test]
     fn audio_and_photo_modules_remain_exclusive() {
         let cfg = AppConfig {
             photo_album_enabled: true,
@@ -725,6 +785,7 @@ mod tests {
         assert_eq!(cfg.photo_album_effect, "single");
         assert!(!cfg.audio_visualizer_enabled);
         assert!(!cfg.music_album_enabled);
+        assert!(!cfg.illustration_enabled);
         assert!(!cfg.clock_enabled);
         assert_eq!(cfg.clock_style, "lines");
         assert!(cfg.clock_show_week);

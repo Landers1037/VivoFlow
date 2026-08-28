@@ -10,6 +10,7 @@ import { ClockPage } from "@/components/clock/ClockPage";
 import { BlackholePage } from "@/components/blackhole/BlackholePage";
 import { Models3dPage } from "@/components/models3d/Models3dPage";
 import { MusicAlbumPage } from "@/components/music/MusicAlbumPage";
+import { IllustrationPage } from "@/components/illustration/IllustrationPage";
 import { musicApi } from "@/lib/music";
 import { FullPageLoader } from "@/components/viz";
 import { AppearanceProvider, useAppearance } from "@/hooks/useAppearance";
@@ -101,24 +102,6 @@ function AppShell({
     );
   }
 
-  if (page === "dashboard" && appearanceConfig.blackhole_enabled) {
-    return (
-      <div className="vf-shell overflow-hidden">
-        <BlackholePage />
-        {titleBar()}
-      </div>
-    );
-  }
-
-  if (page === "dashboard" && appearanceConfig.model3d_enabled) {
-    return (
-      <div className="vf-shell overflow-hidden">
-        <Models3dPage />
-        {titleBar()}
-      </div>
-    );
-  }
-
   if (page === "dashboard" && appearanceConfig.music_album_enabled && musicAlbum) {
     return (
       <div className="vf-shell overflow-hidden">
@@ -141,6 +124,33 @@ function AppShell({
     return (
       <div className="vf-shell overflow-hidden">
         <PhotoAlbumPage onOpenSettings={openSettings} />
+        {titleBar()}
+      </div>
+    );
+  }
+
+  if (page === "dashboard" && appearanceConfig.illustration_enabled) {
+    return (
+      <div className="vf-shell overflow-hidden">
+        <IllustrationPage onOpenSettings={openSettings} />
+        {titleBar()}
+      </div>
+    );
+  }
+
+  if (page === "dashboard" && appearanceConfig.blackhole_enabled) {
+    return (
+      <div className="vf-shell overflow-hidden">
+        <BlackholePage />
+        {titleBar()}
+      </div>
+    );
+  }
+
+  if (page === "dashboard" && appearanceConfig.model3d_enabled) {
+    return (
+      <div className="vf-shell overflow-hidden">
+        <Models3dPage />
         {titleBar()}
       </div>
     );

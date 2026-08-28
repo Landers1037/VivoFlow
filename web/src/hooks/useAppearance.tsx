@@ -156,6 +156,7 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
       ? (base.photo_album_effect as PhotoAlbumEffect)
       : "single",
     music_album_enabled: Boolean(base.music_album_enabled),
+    illustration_enabled: Boolean(base.illustration_enabled),
     clock_enabled: Boolean(base.clock_enabled),
     clock_style: CLOCK_STYLES.includes(base.clock_style as ClockStyle)
       ? (base.clock_style as ClockStyle)
@@ -302,6 +303,7 @@ interface AppearanceContextValue {
   setPhotoAlbumEnabled: (v: boolean) => void;
   setPhotoAlbumEffect: (v: PhotoAlbumEffect) => void;
   setMusicAlbumEnabled: (v: boolean) => void;
+  setIllustrationEnabled: (v: boolean) => void;
   activateMusicAlbum: (id: string) => void;
   setActiveMusicAlbumId: (v: string | null) => void;
   setClockEnabled: (v: boolean) => void;
@@ -352,6 +354,7 @@ function exclusiveFullscreen(enabled: Partial<AppConfig>): Partial<AppConfig> {
   return {
     photo_album_enabled: false,
     music_album_enabled: false,
+    illustration_enabled: false,
     audio_visualizer_enabled: false,
     clock_enabled: false,
     blackhole_enabled: false,
@@ -439,6 +442,8 @@ export function AppearanceProvider({
       setPhotoAlbumEffect: (photo_album_effect) => patch({ photo_album_effect }),
       setMusicAlbumEnabled: (music_album_enabled) =>
         patch(music_album_enabled ? exclusiveFullscreen({ music_album_enabled: true }) : { music_album_enabled }),
+      setIllustrationEnabled: (illustration_enabled) =>
+        patch(illustration_enabled ? exclusiveFullscreen({ illustration_enabled: true }) : { illustration_enabled }),
       activateMusicAlbum: (active_music_album_id) =>
         patch(exclusiveFullscreen({ active_music_album_id, music_album_enabled: true })),
       setActiveMusicAlbumId: (active_music_album_id) => patch({ active_music_album_id }),

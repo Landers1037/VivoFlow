@@ -10,6 +10,8 @@ Windows 系统指标采集器 + 移动优先仪表盘。单进程：Rust 采集�
 - **磁盘**：数量、型号、容量、读写 IO
 - **网络**：网卡名称/型号、上下行速率
 - **音频可视化**：WASAPI 输出捕获、四种 2D 频谱与四种 Three.js 3D 声场、输出设备与配色控制
+- **像素插画**：浏览器 Canvas / Web Worker 本地生成像素插画，并支持原图轮播与高级参数
+- **媒体存储**：统一管理相册、音乐和插画原图目录，查看分类占用并迁移路径
 
 ## 快速开始
 
@@ -79,7 +81,7 @@ http://<电脑局域网IP>:8787
 | S→C | `error` | 错误信息 |
 | S→C | `audio_frame` / `audio_status` | 64 段频谱与捕获状态 |
 
-HTTP 调试：`GET /api/health`、`GET /api/snapshot`、`GET /api/config`、`GET /api/audio/devices`。
+HTTP 调试：`GET /api/health`、`GET /api/snapshot`、`GET /api/config`、`GET /api/audio/devices`、`GET /api/illustrations`、`GET /api/storage`。
 
 ### 配置示例
 

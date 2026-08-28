@@ -4,6 +4,7 @@ use std::io::Read;
 use std::path::{Path as FsPath, PathBuf};
 use std::sync::Arc;
 
+use crate::storage::StorageManager;
 use axum::body::Body;
 use axum::extract::{DefaultBodyLimit, Multipart, Path, State};
 use axum::http::{header, HeaderValue, StatusCode};
@@ -98,18 +99,18 @@ impl From<&StoredAlbum> for Album {
 pub struct AlbumStore {
     albums: Arc<RwLock<Vec<StoredAlbum>>>,
     metadata_path: Arc<PathBuf>,
-    media_root: Arc<PathBuf>,
+    storage: StorageManager,
 }
 
 impl AlbumStore {
-    pub fn load() -> anyhow::Result<Self> {
+    pub fn load(storage: StorageManager) -> anyhow::Result<Self> {
         let config_path = crate::config::config_file_path();
         let base = config_path.parent().unwrap_or_else(|| FsPath::new("."));
-        Self::load_from(base.join("albums.json"), base.join("albums"))
+        Self::load_from_storage(base.join("albums.json"), storage)
     }
 
-    fn load_from(metadata_path: PathBuf, media_root: PathBuf) -> anyhow::Result<Self> {
-        fs::create_dir_all(&media_root)?;
+    fn load_from_storage(metadata_path: PathBuf, storage: StorageManager) -> anyhow::Result<Self> {
+        fs::create_dir_all(storage.category_dir("albums"))?;
         let albums = match fs::read_to_string(&metadata_path) {
             Ok(raw) => serde_json::from_str(&raw).unwrap_or_else(|error| {
                 tracing::warn!(
@@ -124,8 +125,18 @@ impl AlbumStore {
         Ok(Self {
             albums: Arc::new(RwLock::new(albums)),
             metadata_path: Arc::new(metadata_path),
-            media_root: Arc::new(media_root),
+            storage,
         })
+    }
+
+    #[cfg(test)]
+    fn load_from(metadata_path: PathBuf, media_root: PathBuf) -> anyhow::Result<Self> {
+        let root = media_root
+            .parent()
+            .map(FsPath::to_path_buf)
+            .unwrap_or_else(|| PathBuf::from("."));
+        let storage = StorageManager::from_test_root(root)?;
+        Self::load_from_storage(metadata_path, storage)
     }
 
     fn save_locked(&self, albums: &[StoredAlbum]) -> Result<(), ApiError> {
@@ -142,7 +153,7 @@ impl AlbumStore {
     }
 
     fn album_dir(&self, album_id: &str) -> PathBuf {
-        self.media_root.join(album_id)
+        self.storage.category_dir("albums").join(album_id)
     }
 
     fn image_file_path(&self, album_id: &str, image: &StoredImage) -> PathBuf {
@@ -154,6 +165,7 @@ impl AlbumStore {
     }
 
     fn import_from_directory(&self, album_id: &str, raw_path: &str) -> Result<Album, ApiError> {
+        let _storage_guard = self.storage.operation_lock();
         let dir = resolve_directory(raw_path)?;
         let discovered = collect_local_images(&dir)?;
         let source_dir = raw_path.trim().to_string();
@@ -512,6 +524,7 @@ async fn delete_album(
     State(store): State<AlbumStore>,
     Path(album_id): Path<String>,
 ) -> Result<Json<Album>, ApiError> {
+    let _storage_guard = store.storage.operation_lock();
     let mut albums = store.albums.write();
     let index = albums
         .iter()
@@ -576,6 +589,7 @@ async fn upload_images(
         return Err(ApiError::bad_request("no images were provided"));
     }
 
+    let _storage_guard = store.storage.operation_lock();
     let mut albums = store.albums.write();
     let index = albums
         .iter()
@@ -654,6 +668,7 @@ async fn delete_image(
     State(store): State<AlbumStore>,
     Path((album_id, image_id)): Path<(String, String)>,
 ) -> Result<Json<Album>, ApiError> {
+    let _storage_guard = store.storage.operation_lock();
     let mut albums = store.albums.write();
     let album_index = albums
         .iter()
@@ -683,6 +698,7 @@ async fn image_content(
     Path((album_id, image_id)): Path<(String, String)>,
 ) -> Result<Response, ApiError> {
     let (path, mime_type) = {
+        let _storage_guard = store.storage.operation_lock();
         let albums = store.albums.read();
         let album = albums
             .iter()
