@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Copy, Dice5, Heart, Trash2 } from "lucide-react";
+import { Check, Clock, Copy, Dice5, Heart, Trash2 } from "lucide-react";
 import { Models3dRenderer } from "@/components/models3d/Models3dRenderer";
 import { SettingsGroup, SettingsSegmented, SettingsSheetBar, SettingsSwitchRow } from "@/components/settings/SettingsList";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
   useAppearance,
 } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
-import type { Model3dId, TownFavorite, TownPopulation, TownDensity, TownTime } from "@/types";
+import type { Model3dClockPosition, Model3dId, TownFavorite, TownPopulation, TownDensity, TownTime } from "@/types";
 
 const MODEL_CARDS: {
   id: Model3dId;
@@ -124,6 +124,7 @@ export function Models3dSettings() {
         )}
       </section>
 
+      <Models3dClockSettings />
       {selected === "solar_system" ? (
         <>
           <SettingsGroup label={t("models3dOrbit")} footer={t("models3dOrbitHint")}>
@@ -231,6 +232,94 @@ export function Models3dSettings() {
 
       {selected === "town" ? <TownSettings /> : null}
     </div>
+  );
+}
+
+const MODEL3D_CLOCK_POSITION_OPTIONS: {
+  id: Model3dClockPosition;
+  labelKey:
+    | "models3dClockTopLeft"
+    | "models3dClockTopCenter"
+    | "models3dClockTopRight"
+    | "models3dClockBottomLeft"
+    | "models3dClockBottomCenter"
+    | "models3dClockBottomRight";
+}[] = [
+  { id: "top_left", labelKey: "models3dClockTopLeft" },
+  { id: "top_center", labelKey: "models3dClockTopCenter" },
+  { id: "top_right", labelKey: "models3dClockTopRight" },
+  { id: "bottom_left", labelKey: "models3dClockBottomLeft" },
+  { id: "bottom_center", labelKey: "models3dClockBottomCenter" },
+  { id: "bottom_right", labelKey: "models3dClockBottomRight" },
+];
+
+function Models3dClockSettings() {
+  const {
+    t,
+    config,
+    synced,
+    setModel3dClockEnabled,
+    setModel3dClockPosition,
+    setModel3dClockShowDate,
+    setModel3dClockShowSeconds,
+  } = useAppearance();
+
+  return (
+    <>
+      <SettingsGroup label={t("models3dClock")} footer={t("models3dClockHint")}>
+        <SettingsSwitchRow
+          id="model3d-clock-enabled"
+          icon={Clock}
+          title={t("models3dClockEnabled")}
+          subtitle={t("models3dClockEnabledHint")}
+          checked={config.model3d_clock_enabled}
+          disabled={!synced}
+          onCheckedChange={setModel3dClockEnabled}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup label={t("models3dClockPosition")} footer={t("models3dClockPositionHint")}>
+        <div
+          className="settings-model3d-clock-position-grid"
+          role="radiogroup"
+          aria-label={t("models3dClockPosition")}
+        >
+          {MODEL3D_CLOCK_POSITION_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="radio"
+              aria-checked={config.model3d_clock_position === option.id}
+              disabled={!synced}
+              className={cn(
+                "settings-model3d-clock-position-item",
+                config.model3d_clock_position === option.id && "is-active",
+              )}
+              onClick={() => setModel3dClockPosition(option.id)}
+            >
+              {t(option.labelKey)}
+            </button>
+          ))}
+        </div>
+      </SettingsGroup>
+
+      <SettingsGroup>
+        <SettingsSwitchRow
+          id="model3d-clock-date"
+          title={t("models3dClockShowDate")}
+          checked={config.model3d_clock_show_date}
+          disabled={!synced}
+          onCheckedChange={setModel3dClockShowDate}
+        />
+        <SettingsSwitchRow
+          id="model3d-clock-seconds"
+          title={t("models3dClockShowSeconds")}
+          checked={config.model3d_clock_show_seconds}
+          disabled={!synced}
+          onCheckedChange={setModel3dClockShowSeconds}
+        />
+      </SettingsGroup>
+    </>
   );
 }
 

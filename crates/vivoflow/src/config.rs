@@ -126,6 +126,14 @@ fn default_model3d_town_time() -> String {
     "day".into()
 }
 
+fn default_model3d_clock_position() -> String {
+    "top_right".into()
+}
+
+fn default_model3d_clock_show() -> bool {
+    true
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub interval_ms: u64,
@@ -229,6 +237,14 @@ pub struct AppConfig {
     pub model3d_town_time: String,
     #[serde(default)]
     pub model3d_town_favorites: Vec<TownFavorite>,
+    #[serde(default)]
+    pub model3d_clock_enabled: bool,
+    #[serde(default = "default_model3d_clock_position")]
+    pub model3d_clock_position: String,
+    #[serde(default = "default_model3d_clock_show")]
+    pub model3d_clock_show_date: bool,
+    #[serde(default = "default_model3d_clock_show")]
+    pub model3d_clock_show_seconds: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -313,6 +329,10 @@ impl Default for AppConfig {
             model3d_town_density: default_model3d_town_density(),
             model3d_town_time: default_model3d_town_time(),
             model3d_town_favorites: Vec::new(),
+            model3d_clock_enabled: false,
+            model3d_clock_position: default_model3d_clock_position(),
+            model3d_clock_show_date: default_model3d_clock_show(),
+            model3d_clock_show_seconds: default_model3d_clock_show(),
         }
     }
 }
@@ -547,6 +567,18 @@ impl AppConfig {
             })
             .take(50)
             .collect();
+        if ![
+            "top_left",
+            "top_center",
+            "top_right",
+            "bottom_left",
+            "bottom_center",
+            "bottom_right",
+        ]
+        .contains(&self.model3d_clock_position.as_str())
+        {
+            self.model3d_clock_position = default_model3d_clock_position();
+        }
         if self.clock_enabled {
             self.photo_album_enabled = false;
             self.music_album_enabled = false;
@@ -716,6 +748,10 @@ mod tests {
         assert_eq!(cfg.model3d_town_density, "medium");
         assert_eq!(cfg.model3d_town_time, "day");
         assert!(cfg.model3d_town_favorites.is_empty());
+        assert!(!cfg.model3d_clock_enabled);
+        assert_eq!(cfg.model3d_clock_position, "top_right");
+        assert!(cfg.model3d_clock_show_date);
+        assert!(cfg.model3d_clock_show_seconds);
     }
 
     #[test]
@@ -1058,6 +1094,29 @@ mod tests {
         .sanitize();
         assert_eq!(cfg.model3d_town_favorites.len(), 1);
         assert_eq!(cfg.model3d_town_favorites[0].id, "one");
+    }
+
+    #[test]
+    fn model3d_clock_position_is_sanitized() {
+        let valid = AppConfig {
+            model3d_clock_enabled: true,
+            model3d_clock_position: "bottom_center".into(),
+            model3d_clock_show_date: false,
+            model3d_clock_show_seconds: false,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(valid.model3d_clock_enabled);
+        assert_eq!(valid.model3d_clock_position, "bottom_center");
+        assert!(!valid.model3d_clock_show_date);
+        assert!(!valid.model3d_clock_show_seconds);
+
+        let invalid = AppConfig {
+            model3d_clock_position: "middle".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(invalid.model3d_clock_position, "top_right");
     }
 
     #[test]

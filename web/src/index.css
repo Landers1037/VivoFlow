@@ -3268,6 +3268,170 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   cursor: grabbing;
 }
 
+.models3d-clock-layer {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  pointer-events: none;
+}
+
+.models3d-clock {
+  position: absolute;
+  display: inline-flex;
+  min-width: 9.5rem;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.7rem 0.9rem;
+  color: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 0.75rem;
+  background: rgba(8, 15, 26, 0.56);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.models3d-clock-layer.is-top_left .models3d-clock {
+  top: 1.5rem;
+  left: 1.5rem;
+}
+
+.models3d-clock-layer.is-top_center .models3d-clock {
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.models3d-clock-layer.is-top_right .models3d-clock {
+  top: 1.5rem;
+  right: 1.5rem;
+}
+
+.models3d-clock-layer.is-bottom_left .models3d-clock {
+  bottom: 1.5rem;
+  left: 1.5rem;
+}
+
+.models3d-clock-layer.is-bottom_center .models3d-clock {
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.models3d-clock-layer.is-bottom_right .models3d-clock {
+  right: 1.5rem;
+  bottom: 1.5rem;
+}
+
+.models3d-clock-time {
+  font-family: "Barlow Condensed", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: clamp(1.6rem, 4vw, 2.7rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 0.95;
+}
+
+.models3d-clock-colon {
+  opacity: 0.62;
+  animation: models3d-clock-blink 1s steps(2, end) infinite;
+}
+
+.models3d-clock-date {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+.models3d-clock.is-voxel {
+  min-width: 10rem;
+  color: var(--models3d-clock-accent, #ffd36a);
+  border: 3px solid var(--models3d-clock-accent, #ffd36a);
+  border-radius: 0.18rem;
+  background: color-mix(in srgb, var(--models3d-clock-base, #234c3b) 84%, #08111b);
+  box-shadow: 4px 4px 0 color-mix(in srgb, #000 52%, transparent), inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+.models3d-clock.is-voxel .models3d-clock-time {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+  letter-spacing: 0.04em;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+
+.models3d-clock.is-voxel .models3d-clock-date {
+  color: color-mix(in srgb, var(--models3d-clock-accent, #ffd36a) 72%, white);
+}
+
+.models3d-clock.is-town {
+  --models3d-clock-accent: #ffd36a;
+  --models3d-clock-base: #234c3b;
+}
+
+.models3d-clock.is-tree {
+  --models3d-clock-accent: #e07a28;
+  --models3d-clock-base: #333333;
+}
+
+.models3d-clock.is-night {
+  color: #ffe08b;
+  border-color: #8eaee6;
+  background: #132445;
+  box-shadow: 4px 4px 0 rgba(4, 8, 22, 0.68), inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+@keyframes models3d-clock-blink {
+  50% {
+    opacity: 0.26;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .models3d-clock-colon {
+    animation: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .models3d-clock-layer.is-top_left .models3d-clock {
+    top: 0.85rem;
+    left: 0.85rem;
+  }
+
+  .models3d-clock-layer.is-top_center .models3d-clock {
+    top: 0.85rem;
+  }
+
+  .models3d-clock-layer.is-top_right .models3d-clock {
+    top: 0.85rem;
+    right: 0.85rem;
+  }
+
+  .models3d-clock-layer.is-bottom_left .models3d-clock {
+    bottom: 0.85rem;
+    left: 0.85rem;
+  }
+
+  .models3d-clock-layer.is-bottom_center .models3d-clock {
+    bottom: 0.85rem;
+  }
+
+  .models3d-clock-layer.is-bottom_right .models3d-clock {
+    right: 0.85rem;
+    bottom: 0.85rem;
+  }
+
+  .models3d-clock {
+    min-width: 8.6rem;
+    padding: 0.58rem 0.7rem;
+  }
+
+  .models3d-clock.is-voxel {
+    min-width: 9rem;
+  }
+}
+
 .models3d-fallback {
   display: flex;
   height: 100%;
@@ -3279,6 +3443,38 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   color: color-mix(in oklch, white 72%, transparent);
   font-size: 0.95rem;
   text-align: center;
+}
+
+.settings-model3d-clock-position-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.2rem;
+  padding: 0.45rem;
+}
+
+.settings-model3d-clock-position-item {
+  min-height: 2.25rem;
+  border: 0;
+  border-radius: 0.55rem;
+  color: var(--muted-foreground);
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.settings-model3d-clock-position-item.is-active {
+  color: var(--foreground);
+  background: var(--card);
+  box-shadow: 0 1px 4px color-mix(in oklch, var(--foreground) 10%, transparent);
+}
+
+.settings-model3d-clock-position-item:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.settings-model3d-clock-position-item:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
 }
 
 .settings-town-seed-row {

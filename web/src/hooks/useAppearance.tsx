@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dClockPosition, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
@@ -20,6 +20,7 @@ import {
   DEFAULT_GLASS_GRADIENT_START,
   DEFAULT_ACCENT_CUSTOM,
   DEFAULT_CONFIG,
+  DEFAULT_MODEL3D_CLOCK_POSITION,
   DEFAULT_MODEL3D_TREE_BASE_COLOR,
   DEFAULT_MODEL3D_TREE_CANOPY_COLOR,
   DEFAULT_MODEL3D_TREE_TRUNK_COLOR,
@@ -28,6 +29,7 @@ import {
   DEFAULT_MODEL3D_TOWN_SEED,
   DEFAULT_MODEL3D_TOWN_TIME,
   MODEL3D_TOWN_GENERATOR_VERSION,
+  MODEL3D_CLOCK_POSITIONS,
   MODEL3D_IDS,
   MODEL3D_ORBIT_STYLES,
   MODEL3D_TREE_BASE_SHAPES,
@@ -213,6 +215,12 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
       .map((favorite) => normalizeTownFavorite(favorite))
       .filter((favorite): favorite is TownFavorite => favorite != null)
       .slice(0, 50),
+    model3d_clock_enabled: Boolean(base.model3d_clock_enabled),
+    model3d_clock_position: MODEL3D_CLOCK_POSITIONS.includes(base.model3d_clock_position as Model3dClockPosition)
+      ? base.model3d_clock_position as Model3dClockPosition
+      : DEFAULT_MODEL3D_CLOCK_POSITION,
+    model3d_clock_show_date: base.model3d_clock_show_date !== false,
+    model3d_clock_show_seconds: base.model3d_clock_show_seconds !== false,
   };
 }
 
@@ -327,6 +335,10 @@ interface AppearanceContextValue {
   setModel3dTownPopulation: (v: TownPopulation) => void;
   setModel3dTownDensity: (v: TownDensity) => void;
   setModel3dTownTime: (v: TownTime) => void;
+  setModel3dClockEnabled: (v: boolean) => void;
+  setModel3dClockPosition: (v: Model3dClockPosition) => void;
+  setModel3dClockShowDate: (v: boolean) => void;
+  setModel3dClockShowSeconds: (v: boolean) => void;
   saveModel3dTownFavorite: (name: string) => void;
   loadModel3dTownFavorite: (favorite: TownFavorite) => void;
   removeModel3dTownFavorite: (id: string) => void;
@@ -477,6 +489,10 @@ export function AppearanceProvider({
       setModel3dTownPopulation: (model3d_town_population) => patch({ model3d_town_population }),
       setModel3dTownDensity: (model3d_town_density) => patch({ model3d_town_density }),
       setModel3dTownTime: (model3d_town_time) => patch({ model3d_town_time }),
+      setModel3dClockEnabled: (model3d_clock_enabled) => patch({ model3d_clock_enabled }),
+      setModel3dClockPosition: (model3d_clock_position) => patch({ model3d_clock_position }),
+      setModel3dClockShowDate: (model3d_clock_show_date) => patch({ model3d_clock_show_date }),
+      setModel3dClockShowSeconds: (model3d_clock_show_seconds) => patch({ model3d_clock_show_seconds }),
       saveModel3dTownFavorite: (name) => {
         const normalized = name.trim().slice(0, 40);
         if (!normalized || resolved.model3d_town_favorites.length >= 50) return;

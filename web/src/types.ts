@@ -59,6 +59,25 @@ export function isModel3dId(id: string): id is Model3dId {
   return MODEL3D_IDS.includes(id as Model3dId);
 }
 
+export type Model3dClockPosition =
+  | "top_left"
+  | "top_center"
+  | "top_right"
+  | "bottom_left"
+  | "bottom_center"
+  | "bottom_right";
+
+export const MODEL3D_CLOCK_POSITIONS: Model3dClockPosition[] = [
+  "top_left",
+  "top_center",
+  "top_right",
+  "bottom_left",
+  "bottom_center",
+  "bottom_right",
+];
+
+export const DEFAULT_MODEL3D_CLOCK_POSITION: Model3dClockPosition = "top_right";
+
 export type Model3dOrbitStyle = "solid" | "dashed" | "hidden";
 
 export const MODEL3D_ORBIT_STYLES: Model3dOrbitStyle[] = ["solid", "dashed", "hidden"];
@@ -188,6 +207,10 @@ export interface AppConfig {
   model3d_town_density: TownDensity;
   model3d_town_time: TownTime;
   model3d_town_favorites: TownFavorite[];
+  model3d_clock_enabled: boolean;
+  model3d_clock_position: Model3dClockPosition;
+  model3d_clock_show_date: boolean;
+  model3d_clock_show_seconds: boolean;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -243,6 +266,10 @@ export const DEFAULT_CONFIG: AppConfig = {
   model3d_town_density: DEFAULT_MODEL3D_TOWN_DENSITY,
   model3d_town_time: DEFAULT_MODEL3D_TOWN_TIME,
   model3d_town_favorites: [],
+  model3d_clock_enabled: false,
+  model3d_clock_position: DEFAULT_MODEL3D_CLOCK_POSITION,
+  model3d_clock_show_date: true,
+  model3d_clock_show_seconds: true,
 };
 
 export interface AudioDevice { id: string; name: string; is_default: boolean; }
