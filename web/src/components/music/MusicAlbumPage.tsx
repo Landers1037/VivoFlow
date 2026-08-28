@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
 import type { MusicAlbum } from "@/types";
 import { musicCoverUrl, musicTrackUrl } from "@/lib/music";
+import { useAppearance } from "@/hooks/useAppearance";
+import { MusicRecordEffects } from "@/components/music/MusicRecordEffects";
 
 function parseLrc(text: string) {
   return text
@@ -28,7 +30,10 @@ export function MusicAlbumPage({
   onOpenSettings: () => void;
 }) {
   const audio = useRef<HTMLAudioElement>(null);
+  const recordRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
+  const { config } = useAppearance();
+  const recordEffect = config.music_album_effect;
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(() => Boolean(album.loop_playback));
   const [time, setTime] = useState(0);
@@ -172,8 +177,16 @@ export function MusicAlbumPage({
           </div>
         </section>
 
-        <div className="music-record-stage flex items-center justify-center md:justify-start">
-          <div className={`music-record ${playing ? "music-record-playing" : ""}`}>
+        <div
+          className={`music-record-stage flex items-center${recordEffect === "off" ? " justify-center md:justify-start" : " justify-center"}${recordEffect !== "off" ? " music-record-stage-fx" : ""}${recordEffect === "turntable" ? " music-record-stage-turntable" : ""}`}
+        >
+          <MusicRecordEffects
+            effect={recordEffect}
+            playing={playing}
+            audioRef={audio}
+            recordRef={recordRef}
+          />
+          <div ref={recordRef} className={`music-record ${playing ? "music-record-playing" : ""}`}>
             <img src={musicCoverUrl(album.id)} alt={`${album.title} 封面`} />
             <span />
           </div>
@@ -182,6 +195,7 @@ export function MusicAlbumPage({
 
       <audio
         ref={audio}
+        crossOrigin="anonymous"
         muted={defaultMuted}
         onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
         onPlay={() => setPlaying(true)}

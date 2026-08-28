@@ -35,6 +35,10 @@ fn default_music_album_enabled() -> bool {
     false
 }
 
+fn default_music_album_effect() -> String {
+    "off".into()
+}
+
 fn default_illustration_enabled() -> bool {
     false
 }
@@ -173,6 +177,8 @@ pub struct AppConfig {
     pub photo_album_effect: String,
     #[serde(default = "default_music_album_enabled")]
     pub music_album_enabled: bool,
+    #[serde(default = "default_music_album_effect")]
+    pub music_album_effect: String,
     #[serde(default = "default_illustration_enabled")]
     pub illustration_enabled: bool,
     #[serde(default)]
@@ -301,6 +307,7 @@ impl Default for AppConfig {
             photo_album_enabled: false,
             photo_album_effect: default_photo_album_effect(),
             music_album_enabled: default_music_album_enabled(),
+            music_album_effect: default_music_album_effect(),
             illustration_enabled: default_illustration_enabled(),
             active_music_album_id: None,
             clock_enabled: false,
@@ -455,6 +462,11 @@ impl AppConfig {
         self.mobile_carousel_interval_s = self.mobile_carousel_interval_s.clamp(5, 60);
         if !["single", "time_machine", "cover_flow"].contains(&self.photo_album_effect.as_str()) {
             self.photo_album_effect = default_photo_album_effect();
+        }
+        if !["off", "ripple", "bars", "particles", "turntable"]
+            .contains(&self.music_album_effect.as_str())
+        {
+            self.music_album_effect = default_music_album_effect();
         }
         if ![
             "particles",
@@ -785,6 +797,7 @@ mod tests {
         assert_eq!(cfg.photo_album_effect, "single");
         assert!(!cfg.audio_visualizer_enabled);
         assert!(!cfg.music_album_enabled);
+        assert_eq!(cfg.music_album_effect, "off");
         assert!(!cfg.illustration_enabled);
         assert!(!cfg.clock_enabled);
         assert_eq!(cfg.clock_style, "lines");
@@ -837,6 +850,15 @@ mod tests {
             ..AppConfig::default()
         };
         assert_eq!(cfg.sanitize().photo_album_effect, "single");
+    }
+
+    #[test]
+    fn invalid_music_album_effect_uses_default() {
+        let cfg = AppConfig {
+            music_album_effect: "unknown".into(),
+            ..AppConfig::default()
+        };
+        assert_eq!(cfg.sanitize().music_album_effect, "off");
     }
 
     #[test]

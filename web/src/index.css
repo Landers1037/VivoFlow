@@ -1173,9 +1173,16 @@ textarea,
   overflow: hidden;
 }
 
+.music-record-stage {
+  position: relative;
+  min-width: 0;
+  --record-size: min(42vw, 360px);
+}
+
 .music-record {
   position: relative;
-  width: min(42vw, 360px);
+  z-index: 2;
+  width: var(--record-size);
   aspect-ratio: 1;
   flex: none;
   border-radius: 50%;
@@ -1204,6 +1211,68 @@ textarea,
 .music-record-playing { animation-play-state: running; }
 @keyframes music-spin { to { transform: rotate(360deg); } }
 
+.music-record-stage-fx {
+  width: calc(var(--record-size) * 1.55);
+  aspect-ratio: 1;
+  justify-content: center;
+  justify-self: start;
+  flex-shrink: 0;
+}
+
+.music-record-stage-turntable {
+  width: calc(var(--record-size) * 1.68);
+}
+
+.music-record-fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.music-record-platter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--record-size) * 1.18);
+  height: calc(var(--record-size) * 1.18);
+  transform: translate(-50%, -50%);
+  border-radius: 18%;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04) 55%, rgba(12, 12, 14, 0.35));
+  box-shadow: 0 24px 50px #0007, inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.music-tonearm {
+  position: absolute;
+  z-index: 4;
+  width: calc(var(--record-size) * 0.28);
+  height: calc(var(--record-size) * 0.78);
+  left: calc(50% + var(--record-size) * 0.34);
+  top: calc(50% - var(--record-size) * 0.55);
+  transform-origin: 50% 10%;
+  transform: rotate(-22deg);
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.music-tonearm.is-playing {
+  transform: rotate(16deg);
+}
+
+.music-tonearm-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.45));
+}
+
 .music-player-transport {
   display: flex;
   flex-direction: column;
@@ -1224,10 +1293,6 @@ textarea,
   align-items: center;
   justify-content: center;
   gap: 1rem;
-}
-
-.music-record-stage {
-  min-width: 0;
 }
 
 @media (orientation: landscape) and (max-height: 640px) {
@@ -1304,12 +1369,16 @@ textarea,
   }
 
   .music-record-stage {
+    --record-size: min(21vw, calc((100dvh - max(2rem, 10dvh)) / 2), 180px);
     min-width: 0;
     justify-content: flex-start;
   }
 
+  .music-record-stage-fx {
+    justify-content: center;
+  }
+
   .music-record {
-    width: min(21vw, calc((100dvh - max(2rem, 10dvh)) / 2), 180px);
     padding: clamp(4px, 0.75dvh, 5px);
   }
 
@@ -1329,6 +1398,10 @@ textarea,
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .music-tonearm {
+    transition: none;
   }
 }
 

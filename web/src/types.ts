@@ -26,6 +26,8 @@ export type AccentId = "teal" | "zinc" | "blue" | "violet" | "amber" | "custom";
 export type ThemeMode = "light" | "dark" | "system";
 export type Lang = "zh" | "en";
 export type PhotoAlbumEffect = "single" | "time_machine" | "cover_flow";
+export type MusicAlbumEffect = "off" | "ripple" | "bars" | "particles" | "turntable";
+export const MUSIC_ALBUM_EFFECTS: MusicAlbumEffect[] = ["off", "ripple", "bars", "particles", "turntable"];
 export type PixelArtPreset = "auto" | "balanced" | "detailed" | "retro" | "painting" | "8bit" | "custom";
 export type DitheringMode = "none" | "ordered" | "floyd_steinberg";
 export type ClockStyle = "lines" | "dial" | "pixel" | "flip" | "object" | "dots";
@@ -173,6 +175,7 @@ export interface AppConfig {
   photo_album_enabled: boolean;
   photo_album_effect: PhotoAlbumEffect;
   music_album_enabled: boolean;
+  music_album_effect: MusicAlbumEffect;
   illustration_enabled: boolean;
   active_music_album_id: string | null;
   clock_enabled: boolean;
@@ -235,6 +238,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   photo_album_enabled: false,
   photo_album_effect: "single",
   music_album_enabled: false,
+  music_album_effect: "off",
   illustration_enabled: false,
   active_music_album_id: null,
   clock_enabled: false,

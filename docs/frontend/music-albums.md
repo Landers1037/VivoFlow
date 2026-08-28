@@ -1,6 +1,6 @@
 # 音乐专辑
 
-音乐专辑是与照片相册、像素插画、音频可视化、时钟看板、黑洞互斥的首页模块。配置字段为 `music_album_enabled` 和 `active_music_album_id`，后端保存时会通过 `AppConfig::sanitize` 保证最多一个模块开启。
+音乐专辑是与照片相册、像素插画、音频可视化、时钟看板、黑洞互斥的首页模块。配置字段为 `music_album_enabled` 和 `active_music_album_id`，后端保存时会通过 `AppConfig::sanitize` 保证最多一个模块开启。`music_album_effect` 控制首页唱片周围的互斥特效：`off`、`ripple`、`bars`、`particles`、`turntable`，默认关闭。
 
 ## 本地存储
 

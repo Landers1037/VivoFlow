@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Music2, Plus, Trash2, Upload } from "lucide-react";
 import { musicApi, musicCoverUrl } from "@/lib/music";
-import type { MusicAlbum, MusicTrack } from "@/types";
+import { cn } from "@/lib/utils";
+import type { MusicAlbum, MusicAlbumEffect, MusicTrack } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,6 +16,13 @@ import { useAppearance } from "@/hooks/useAppearance";
 
 const MAX_COVER_BYTES = 25 * 1024 * 1024;
 const SUPPORTED_COVER_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+const RECORD_EFFECTS: { id: MusicAlbumEffect; key: "musicRecordEffectOff" | "musicRecordEffectRipple" | "musicRecordEffectBars" | "musicRecordEffectParticles" | "musicRecordEffectTurntable" }[] = [
+  { id: "off", key: "musicRecordEffectOff" },
+  { id: "ripple", key: "musicRecordEffectRipple" },
+  { id: "bars", key: "musicRecordEffectBars" },
+  { id: "particles", key: "musicRecordEffectParticles" },
+  { id: "turntable", key: "musicRecordEffectTurntable" },
+];
 
 type TrackDraft = { title: string; lyrics: string };
 
@@ -23,7 +31,7 @@ function draftsFromAlbum(album: MusicAlbum): Record<string, TrackDraft> {
 }
 
 export function MusicAlbumSettings() {
-  const { t, config, setMusicAlbumEnabled, activateMusicAlbum } = useAppearance();
+  const { t, config, synced, setMusicAlbumEnabled, setMusicAlbumEffect, activateMusicAlbum } = useAppearance();
   const [albums, setAlbums] = useState<MusicAlbum[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
@@ -164,6 +172,23 @@ export function MusicAlbumSettings() {
           checked={config.music_album_enabled}
           onCheckedChange={setMusicAlbumEnabled}
         />
+      </SettingsGroup>
+
+      <SettingsGroup label={t("musicRecordEffect")} footer={t("musicRecordEffectHint")}>
+        {RECORD_EFFECTS.map((effect) => (
+          <button
+            type="button"
+            key={effect.id}
+            disabled={!synced}
+            onClick={() => setMusicAlbumEffect(effect.id)}
+            className={cn("settings-row", config.music_album_effect === effect.id && "is-selected")}
+          >
+            <span className="settings-row-title">{t(effect.key)}</span>
+            {config.music_album_effect === effect.id ? (
+              <span className="settings-row-value text-primary">{t("settingsOn")}</span>
+            ) : null}
+          </button>
+        ))}
       </SettingsGroup>
 
       <SettingsGroup label={t("myMusicAlbums")} footer={t("myMusicAlbumsHint")}>

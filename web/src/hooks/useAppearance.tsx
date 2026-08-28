@@ -8,11 +8,12 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dClockPosition, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dClockPosition, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
   CLOCK_STYLES,
+  MUSIC_ALBUM_EFFECTS,
   DEFAULT_BACKGROUND_COLOR,
   DEFAULT_BLACKHOLE_COLOR,
   DEFAULT_BLACKHOLE_SPIN_SPEED,
@@ -156,6 +157,9 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
       ? (base.photo_album_effect as PhotoAlbumEffect)
       : "single",
     music_album_enabled: Boolean(base.music_album_enabled),
+    music_album_effect: MUSIC_ALBUM_EFFECTS.includes(base.music_album_effect as MusicAlbumEffect)
+      ? (base.music_album_effect as MusicAlbumEffect)
+      : "off",
     illustration_enabled: Boolean(base.illustration_enabled),
     clock_enabled: Boolean(base.clock_enabled),
     clock_style: CLOCK_STYLES.includes(base.clock_style as ClockStyle)
@@ -303,6 +307,7 @@ interface AppearanceContextValue {
   setPhotoAlbumEnabled: (v: boolean) => void;
   setPhotoAlbumEffect: (v: PhotoAlbumEffect) => void;
   setMusicAlbumEnabled: (v: boolean) => void;
+  setMusicAlbumEffect: (v: MusicAlbumEffect) => void;
   setIllustrationEnabled: (v: boolean) => void;
   activateMusicAlbum: (id: string) => void;
   setActiveMusicAlbumId: (v: string | null) => void;
@@ -442,6 +447,7 @@ export function AppearanceProvider({
       setPhotoAlbumEffect: (photo_album_effect) => patch({ photo_album_effect }),
       setMusicAlbumEnabled: (music_album_enabled) =>
         patch(music_album_enabled ? exclusiveFullscreen({ music_album_enabled: true }) : { music_album_enabled }),
+      setMusicAlbumEffect: (music_album_effect) => patch({ music_album_effect }),
       setIllustrationEnabled: (illustration_enabled) =>
         patch(illustration_enabled ? exclusiveFullscreen({ illustration_enabled: true }) : { illustration_enabled }),
       activateMusicAlbum: (active_music_album_id) =>
