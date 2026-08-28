@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dId, Model3dOrbitStyle, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
@@ -20,6 +20,8 @@ import {
   DEFAULT_GLASS_GRADIENT_START,
   DEFAULT_ACCENT_CUSTOM,
   DEFAULT_CONFIG,
+  MODEL3D_IDS,
+  MODEL3D_ORBIT_STYLES,
   UI_STYLES,
 } from "@/types";
 
@@ -134,6 +136,14 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     blackhole_spin_speed: Number.isFinite(Number(base.blackhole_spin_speed))
       ? Math.min(3, Math.max(0, Number(base.blackhole_spin_speed)))
       : DEFAULT_BLACKHOLE_SPIN_SPEED,
+    model3d_enabled: Boolean(base.model3d_enabled),
+    model3d_id: MODEL3D_IDS.includes(base.model3d_id as Model3dId)
+      ? (base.model3d_id as Model3dId)
+      : "solar_system",
+    model3d_orbit_style: MODEL3D_ORBIT_STYLES.includes(base.model3d_orbit_style as Model3dOrbitStyle)
+      ? (base.model3d_orbit_style as Model3dOrbitStyle)
+      : "solid",
+    model3d_textures_enabled: base.model3d_textures_enabled !== false,
   };
 }
 
@@ -220,11 +230,27 @@ interface AppearanceContextValue {
   setBlackholeColor: (hex: string) => void;
   setBlackholeInteractive: (v: boolean) => void;
   setBlackholeSpinSpeed: (v: number) => void;
+  setModel3dEnabled: (v: boolean) => void;
+  setModel3dId: (v: Model3dId) => void;
+  setModel3dOrbitStyle: (v: Model3dOrbitStyle) => void;
+  setModel3dTexturesEnabled: (v: boolean) => void;
   t: TFunction;
   lang: Lang;
 }
 
 const AppearanceContext = createContext<AppearanceContextValue | null>(null);
+
+function exclusiveFullscreen(enabled: Partial<AppConfig>): Partial<AppConfig> {
+  return {
+    photo_album_enabled: false,
+    music_album_enabled: false,
+    audio_visualizer_enabled: false,
+    clock_enabled: false,
+    blackhole_enabled: false,
+    model3d_enabled: false,
+    ...enabled,
+  };
+}
 
 export function AppearanceProvider({
   config,
@@ -300,35 +326,43 @@ export function AppearanceProvider({
       setMobileAutoCarousel: (mobile_auto_carousel) => patch({ mobile_auto_carousel }),
       setMobileCarouselInterval: (mobile_carousel_interval_s) =>
         patch({ mobile_carousel_interval_s }),
-      setPhotoAlbumEnabled: (photo_album_enabled) => patch({ photo_album_enabled, ...(photo_album_enabled ? { audio_visualizer_enabled: false, music_album_enabled: false, clock_enabled: false, blackhole_enabled: false } : {}) }),
+      setPhotoAlbumEnabled: (photo_album_enabled) =>
+        patch(photo_album_enabled ? exclusiveFullscreen({ photo_album_enabled: true }) : { photo_album_enabled }),
       setPhotoAlbumEffect: (photo_album_effect) => patch({ photo_album_effect }),
-      setMusicAlbumEnabled: (music_album_enabled) => patch({ music_album_enabled, ...(music_album_enabled ? { photo_album_enabled: false, audio_visualizer_enabled: false, clock_enabled: false, blackhole_enabled: false } : {}) }),
-      activateMusicAlbum: (active_music_album_id) => patch({
-        active_music_album_id,
-        music_album_enabled: true,
-        photo_album_enabled: false,
-        audio_visualizer_enabled: false,
-        clock_enabled: false,
-        blackhole_enabled: false,
-      }),
+      setMusicAlbumEnabled: (music_album_enabled) =>
+        patch(music_album_enabled ? exclusiveFullscreen({ music_album_enabled: true }) : { music_album_enabled }),
+      activateMusicAlbum: (active_music_album_id) =>
+        patch(exclusiveFullscreen({ active_music_album_id, music_album_enabled: true })),
       setActiveMusicAlbumId: (active_music_album_id) => patch({ active_music_album_id }),
-      setClockEnabled: (clock_enabled) => patch({ clock_enabled, ...(clock_enabled ? { photo_album_enabled: false, music_album_enabled: false, audio_visualizer_enabled: false, blackhole_enabled: false } : {}) }),
+      setClockEnabled: (clock_enabled) =>
+        patch(clock_enabled ? exclusiveFullscreen({ clock_enabled: true }) : { clock_enabled }),
       setClockStyle: (clock_style) => patch({ clock_style }),
       setClockShowWeek: (clock_show_week) => patch({ clock_show_week }),
       setClockShowDate: (clock_show_date) => patch({ clock_show_date }),
       setClockShowSeconds: (clock_show_seconds) => patch({ clock_show_seconds }),
       setClockDotShape: (clock_dot_shape) => patch({ clock_dot_shape }),
-      setAudioVisualizerEnabled: (audio_visualizer_enabled) => patch({ audio_visualizer_enabled, ...(audio_visualizer_enabled ? { photo_album_enabled: false, music_album_enabled: false, clock_enabled: false, blackhole_enabled: false } : {}) }),
+      setAudioVisualizerEnabled: (audio_visualizer_enabled) =>
+        patch(
+          audio_visualizer_enabled
+            ? exclusiveFullscreen({ audio_visualizer_enabled: true })
+            : { audio_visualizer_enabled },
+        ),
       setAudioDeviceId: (audio_device_id) => patch({ audio_device_id }),
       setAudioVisualizerMode: (audio_visualizer_mode) => patch({ audio_visualizer_mode }),
       setAudioColorMode: (audio_color_mode) => patch({ audio_color_mode }),
       setAudioColors: (audio_color_primary, audio_color_secondary) => patch({ audio_color_primary: normalizeHexColor(audio_color_primary), audio_color_secondary: normalizeHexColor(audio_color_secondary) }),
       setAudioAmplitude: (audio_amplitude) => patch({ audio_amplitude }),
       setAudioSmoothing: (audio_smoothing) => patch({ audio_smoothing }),
-      setBlackholeEnabled: (blackhole_enabled) => patch({ blackhole_enabled, ...(blackhole_enabled ? { photo_album_enabled: false, music_album_enabled: false, audio_visualizer_enabled: false, clock_enabled: false } : {}) }),
+      setBlackholeEnabled: (blackhole_enabled) =>
+        patch(blackhole_enabled ? exclusiveFullscreen({ blackhole_enabled: true }) : { blackhole_enabled }),
       setBlackholeColor: (hex) => patch({ blackhole_color: normalizeHexColor(hex, DEFAULT_BLACKHOLE_COLOR) }),
       setBlackholeInteractive: (blackhole_interactive) => patch({ blackhole_interactive }),
       setBlackholeSpinSpeed: (blackhole_spin_speed) => patch({ blackhole_spin_speed }),
+      setModel3dEnabled: (model3d_enabled) =>
+        patch(model3d_enabled ? exclusiveFullscreen({ model3d_enabled: true }) : { model3d_enabled }),
+      setModel3dId: (model3d_id) => patch({ model3d_id }),
+      setModel3dOrbitStyle: (model3d_orbit_style) => patch({ model3d_orbit_style }),
+      setModel3dTexturesEnabled: (model3d_textures_enabled) => patch({ model3d_textures_enabled }),
       t,
       lang: resolved.language,
     }),

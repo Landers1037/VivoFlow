@@ -1,8 +1,9 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, ChevronLeft, AudioLines, Clock, Images, Info, Music2, Orbit, Palette, Radio } from "lucide-react";
+import { Check, ChevronLeft, AudioLines, Clock, Globe, Images, Info, Music2, Orbit, Palette, Radio } from "lucide-react";
 import { ClockSettings } from "@/components/clock/ClockSettings";
 import { BlackholeSettings } from "@/components/blackhole/BlackholeSettings";
+import { Models3dSettings } from "@/components/models3d/Models3dSettings";
 import { AlbumSettings } from "@/components/albums/AlbumSettings";
 import { MusicAlbumSettings } from "@/components/music/MusicAlbumSettings";
 import { AudioSettings } from "@/components/audio/AudioSettings";
@@ -29,7 +30,7 @@ import { DEFAULT_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
 
-export type SettingsPane = "index" | "appearance" | "clock" | "blackhole" | "collection" | "albums" | "music" | "audio" | "about";
+export type SettingsPane = "index" | "appearance" | "clock" | "blackhole" | "models3d" | "collection" | "albums" | "music" | "audio" | "about";
 
 export function SettingsPage({
   config,
@@ -120,6 +121,13 @@ export function SettingsPage({
             value={synced.blackhole_enabled ? t("settingsOn") : t("settingsOff")}
             chevron
             onClick={() => open("blackhole")}
+          />
+          <SettingsRow
+            icon={Globe}
+            title={t("models3d")}
+            value={synced.model3d_enabled ? t("settingsOn") : t("settingsOff")}
+            chevron
+            onClick={() => open("models3d")}
           />
         </SettingsGroup>
 
@@ -227,6 +235,7 @@ export function SettingsPage({
 
               {pane === "clock" ? <ClockSettings /> : null}
               {pane === "blackhole" ? <BlackholeSettings /> : null}
+              {pane === "models3d" ? <Models3dSettings /> : null}
               {pane === "albums" ? <AlbumSettings /> : null}
               {pane === "music" ? <MusicAlbumSettings /> : null}
               {pane === "audio" ? (
@@ -253,6 +262,8 @@ function paneLabel(t: TFunction, pane: SettingsPane): string {
       return t("clock");
     case "blackhole":
       return t("blackhole");
+    case "models3d":
+      return t("models3d");
     case "collection":
       return t("collection");
     case "albums":

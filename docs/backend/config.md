@@ -26,12 +26,16 @@
   - `blackhole_color`：吸积盘 `#RRGGBB`（默认 `#e8c09a`）
   - `blackhole_interactive`：拖拽/缩放手势（默认 `false`）
   - `blackhole_spin_speed`：旋转倍率 `0..=3`（默认 `1`）
+  - `model3d_enabled`：全屏 3D 模型看板开关（默认 `false`）
+  - `model3d_id`：场景 id，现为 `solar_system`（非法回退）
+  - `model3d_orbit_style`：`solid` / `dashed` / `hidden`（默认 `solid`）
+  - `model3d_textures_enabled`：是否使用太阳系贴图（默认 `true`）
 - `EnabledModules`：`cpu` / `memory` / `gpu` / `disk` / `network`（默认全开）
 
 ## 行为
 
 - `Default` 提供开箱即用的默认值。
 - `sanitize()` 在 `set_config` 时调用，限制间隔、历史长度和轮播间隔，并校验风格 / 主题色 / 背景色 / 自定义 hex，防止极端配置拖垮系统。
-- `clock_enabled`、`music_album_enabled`、`photo_album_enabled`、`audio_visualizer_enabled`、`blackhole_enabled` 互斥，最多启用一个首页全屏模块。同时开启时优先保留时钟，其次音乐，再次音频，再次相册，最后黑洞。旧配置缺少字段时使用默认值。
+- `clock_enabled`、`music_album_enabled`、`photo_album_enabled`、`audio_visualizer_enabled`、`blackhole_enabled`、`model3d_enabled` 互斥，最多启用一个首页全屏模块。同时开启时优先保留时钟，其次音乐，再次音频，再次相册，再次黑洞，最后 3D 模型。旧配置缺少字段时使用默认值。
 
 配置由 `MetricsHub` 持有，采集循环与 IPC 读写同一把 `RwLock`。

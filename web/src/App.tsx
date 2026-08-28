@@ -8,6 +8,7 @@ import { AudioVisualizerPage } from "@/components/audio/AudioVisualizerPage";
 import { SettingsPage } from "@/components/SettingsPage";
 import { ClockPage } from "@/components/clock/ClockPage";
 import { BlackholePage } from "@/components/blackhole/BlackholePage";
+import { Models3dPage } from "@/components/models3d/Models3dPage";
 import { MusicAlbumPage } from "@/components/music/MusicAlbumPage";
 import { musicApi } from "@/lib/music";
 import { FullPageLoader } from "@/components/viz";
@@ -104,6 +105,15 @@ function AppShell({
     return (
       <div className="vf-shell overflow-hidden">
         <BlackholePage />
+        {titleBar()}
+      </div>
+    );
+  }
+
+  if (page === "dashboard" && appearanceConfig.model3d_enabled) {
+    return (
+      <div className="vf-shell overflow-hidden">
+        <Models3dPage />
         {titleBar()}
       </div>
     );

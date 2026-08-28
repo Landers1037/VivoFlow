@@ -15,6 +15,10 @@
 - `clock_enabled`、`clock_style`（`lines` / `dial` / `pixel` / `flip` / `object` / `dots`）、`clock_show_week` / `clock_show_date` / `clock_show_seconds`、`clock_dot_shape`（`circle` / `square` / `rounded` / `star`）
 - `blackhole_enabled`：全屏黑洞看板
 - `blackhole_color` / `blackhole_interactive` / `blackhole_spin_speed`
+- `model3d_enabled`：全屏 3D 模型看板
+- `model3d_id`：`solar_system`
+- `model3d_orbit_style`：`solid` / `dashed` / `hidden`
+- `model3d_textures_enabled`：是否加载太阳系贴图
 - `Snapshot` 及 `CpuMetrics`、`MemoryMetrics`、`GpuMetrics`、`DiskMetrics`、`NetworkMetrics`
 - `ConnState`：`"connecting" | "connected" | "disconnected"`
 

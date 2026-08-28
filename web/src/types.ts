@@ -50,6 +50,18 @@ export const THREE_AUDIO_MODES: ThreeAudioVisualizerMode[] = [
 export function isThreeAudioMode(mode: AudioVisualizerMode): mode is ThreeAudioVisualizerMode {
   return THREE_AUDIO_MODES.includes(mode as ThreeAudioVisualizerMode);
 }
+
+export type Model3dId = "solar_system";
+
+export const MODEL3D_IDS: Model3dId[] = ["solar_system"];
+
+export function isModel3dId(id: string): id is Model3dId {
+  return MODEL3D_IDS.includes(id as Model3dId);
+}
+
+export type Model3dOrbitStyle = "solid" | "dashed" | "hidden";
+
+export const MODEL3D_ORBIT_STYLES: Model3dOrbitStyle[] = ["solid", "dashed", "hidden"];
 export type AudioColorMode = "single" | "gradient";
 
 export const UI_STYLES: UiStyle[] = [
@@ -131,6 +143,10 @@ export interface AppConfig {
   blackhole_interactive: boolean;
   /** 旋转速度倍率，`1` 为当前默认慢旋 */
   blackhole_spin_speed: number;
+  model3d_enabled: boolean;
+  model3d_id: Model3dId;
+  model3d_orbit_style: Model3dOrbitStyle;
+  model3d_textures_enabled: boolean;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -171,6 +187,10 @@ export const DEFAULT_CONFIG: AppConfig = {
   blackhole_color: DEFAULT_BLACKHOLE_COLOR,
   blackhole_interactive: false,
   blackhole_spin_speed: DEFAULT_BLACKHOLE_SPIN_SPEED,
+  model3d_enabled: false,
+  model3d_id: "solar_system",
+  model3d_orbit_style: "solid",
+  model3d_textures_enabled: true,
 };
 
 export interface AudioDevice { id: string; name: string; is_default: boolean; }

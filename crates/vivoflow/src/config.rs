@@ -74,6 +74,18 @@ fn default_blackhole_spin_speed() -> f32 {
     1.0
 }
 
+fn default_model3d_id() -> String {
+    "solar_system".into()
+}
+
+fn default_model3d_orbit_style() -> String {
+    "solid".into()
+}
+
+fn default_model3d_textures_enabled() -> bool {
+    true
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub interval_ms: u64,
@@ -147,6 +159,14 @@ pub struct AppConfig {
     pub blackhole_interactive: bool,
     #[serde(default = "default_blackhole_spin_speed")]
     pub blackhole_spin_speed: f32,
+    #[serde(default)]
+    pub model3d_enabled: bool,
+    #[serde(default = "default_model3d_id")]
+    pub model3d_id: String,
+    #[serde(default = "default_model3d_orbit_style")]
+    pub model3d_orbit_style: String,
+    #[serde(default = "default_model3d_textures_enabled")]
+    pub model3d_textures_enabled: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -198,6 +218,10 @@ impl Default for AppConfig {
             blackhole_color: default_blackhole_color(),
             blackhole_interactive: false,
             blackhole_spin_speed: default_blackhole_spin_speed(),
+            model3d_enabled: false,
+            model3d_id: default_model3d_id(),
+            model3d_orbit_style: default_model3d_orbit_style(),
+            model3d_textures_enabled: default_model3d_textures_enabled(),
         }
     }
 }
@@ -344,20 +368,32 @@ impl AppConfig {
         if !["circle", "square", "rounded", "star"].contains(&self.clock_dot_shape.as_str()) {
             self.clock_dot_shape = default_clock_dot_shape();
         }
+        if !["solar_system"].contains(&self.model3d_id.as_str()) {
+            self.model3d_id = default_model3d_id();
+        }
+        if !["solid", "dashed", "hidden"].contains(&self.model3d_orbit_style.as_str()) {
+            self.model3d_orbit_style = default_model3d_orbit_style();
+        }
         if self.clock_enabled {
             self.photo_album_enabled = false;
             self.music_album_enabled = false;
             self.audio_visualizer_enabled = false;
             self.blackhole_enabled = false;
+            self.model3d_enabled = false;
         } else if self.music_album_enabled {
             self.photo_album_enabled = false;
             self.audio_visualizer_enabled = false;
             self.blackhole_enabled = false;
+            self.model3d_enabled = false;
         } else if self.audio_visualizer_enabled {
             self.photo_album_enabled = false;
             self.blackhole_enabled = false;
+            self.model3d_enabled = false;
         } else if self.photo_album_enabled {
             self.blackhole_enabled = false;
+            self.model3d_enabled = false;
+        } else if self.blackhole_enabled {
+            self.model3d_enabled = false;
         }
         self
     }
@@ -492,6 +528,10 @@ mod tests {
         assert_eq!(cfg.clock_dot_shape, "circle");
         assert_eq!(cfg.active_music_album_id, None);
         assert_eq!(cfg.audio_visualizer_mode, "particles");
+        assert!(!cfg.model3d_enabled);
+        assert_eq!(cfg.model3d_id, "solar_system");
+        assert_eq!(cfg.model3d_orbit_style, "solid");
+        assert!(cfg.model3d_textures_enabled);
     }
 
     #[test]
@@ -574,6 +614,7 @@ mod tests {
         assert!(!cfg.audio_visualizer_enabled);
         assert!(!cfg.music_album_enabled);
         assert!(!cfg.blackhole_enabled);
+        assert!(!cfg.model3d_enabled);
         assert_eq!(cfg.clock_style, "lines");
     }
 
@@ -634,6 +675,57 @@ mod tests {
         }
         .sanitize();
         assert!(only.blackhole_enabled);
+        assert!(!only.model3d_enabled);
+    }
+
+    #[test]
+    fn model3d_module_is_exclusive_and_lowest_priority() {
+        let clock_wins = AppConfig {
+            clock_enabled: true,
+            model3d_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(clock_wins.clock_enabled);
+        assert!(!clock_wins.model3d_enabled);
+
+        let blackhole_wins = AppConfig {
+            blackhole_enabled: true,
+            model3d_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(blackhole_wins.blackhole_enabled);
+        assert!(!blackhole_wins.model3d_enabled);
+
+        let only = AppConfig {
+            model3d_enabled: true,
+            model3d_id: "unknown".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(only.model3d_enabled);
+        assert_eq!(only.model3d_id, "solar_system");
+    }
+
+    #[test]
+    fn model3d_orbit_and_textures_are_sanitized() {
+        let ok = AppConfig {
+            model3d_orbit_style: "dashed".into(),
+            model3d_textures_enabled: false,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(ok.model3d_orbit_style, "dashed");
+        assert!(!ok.model3d_textures_enabled);
+
+        let bad = AppConfig {
+            model3d_orbit_style: "glow".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(bad.model3d_orbit_style, "solid");
+        assert!(bad.model3d_textures_enabled);
     }
 
     #[test]

@@ -1,0 +1,51 @@
+import { lazy, Suspense, useEffect, useState } from "react";
+import { useAppearance } from "@/hooks/useAppearance";
+import { cn } from "@/lib/utils";
+import type { Model3dId } from "@/types";
+
+const Models3dCanvas = lazy(() => import("@/components/models3d/Models3dCanvas"));
+
+export function Models3dRenderer({
+  modelId,
+  preview = false,
+  interactive = false,
+  className,
+}: {
+  modelId: Model3dId;
+  preview?: boolean;
+  interactive?: boolean;
+  className?: string;
+}) {
+  const { t, config } = useAppearance();
+  const [unsupported, setUnsupported] = useState(false);
+  const orbitStyle = config.model3d_orbit_style;
+  const texturesEnabled = config.model3d_textures_enabled;
+
+  useEffect(() => {
+    setUnsupported(false);
+  }, [modelId, orbitStyle, texturesEnabled]);
+
+  if (unsupported) {
+    return (
+      <div className={cn("models3d-fallback", className)}>
+        <p>{t("models3dUnsupported")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn("relative h-full w-full overflow-hidden", className)}>
+      <Suspense fallback={<div className="models3d-fallback">{t("models3dLoading")}</div>}>
+        <Models3dCanvas
+          modelId={modelId}
+          orbitStyle={orbitStyle}
+          texturesEnabled={texturesEnabled}
+          preview={preview}
+          interactive={interactive}
+          className="h-full w-full"
+          onUnavailable={() => setUnsupported(true)}
+        />
+      </Suspense>
+    </div>
+  );
+}
