@@ -51,9 +51,9 @@ export function isThreeAudioMode(mode: AudioVisualizerMode): mode is ThreeAudioV
   return THREE_AUDIO_MODES.includes(mode as ThreeAudioVisualizerMode);
 }
 
-export type Model3dId = "solar_system" | "tree";
+export type Model3dId = "solar_system" | "tree" | "town";
 
-export const MODEL3D_IDS: Model3dId[] = ["solar_system", "tree"];
+export const MODEL3D_IDS: Model3dId[] = ["solar_system", "tree", "town"];
 
 export function isModel3dId(id: string): id is Model3dId {
   return MODEL3D_IDS.includes(id as Model3dId);
@@ -72,6 +72,26 @@ export const MODEL3D_TREE_BASE_SHAPES: Model3dTreeBaseShape[] = ["square", "circ
 export const DEFAULT_MODEL3D_TREE_CANOPY_COLOR = "#e07a28";
 export const DEFAULT_MODEL3D_TREE_BASE_COLOR = "#8f98a3";
 export const DEFAULT_MODEL3D_TREE_TRUNK_COLOR = "#4a301c";
+
+export type TownPopulation = "low" | "medium" | "high";
+export type TownDensity = "low" | "medium" | "high";
+export type TownTime = "day" | "night";
+
+export const MODEL3D_TOWN_GENERATOR_VERSION = 1;
+export const DEFAULT_MODEL3D_TOWN_SEED = "6f3a9c21";
+export const DEFAULT_MODEL3D_TOWN_POPULATION: TownPopulation = "medium";
+export const DEFAULT_MODEL3D_TOWN_DENSITY: TownDensity = "medium";
+export const DEFAULT_MODEL3D_TOWN_TIME: TownTime = "day";
+
+export interface TownFavorite {
+  id: string;
+  name: string;
+  seed: string;
+  generator_version: number;
+  population: TownPopulation;
+  density: TownDensity;
+  time: TownTime;
+}
 export type AudioColorMode = "single" | "gradient";
 
 export const UI_STYLES: UiStyle[] = [
@@ -162,6 +182,12 @@ export interface AppConfig {
   model3d_tree_base_shape: Model3dTreeBaseShape;
   model3d_tree_base_color: string;
   model3d_tree_trunk_color: string;
+  model3d_town_seed: string;
+  model3d_town_generator_version: number;
+  model3d_town_population: TownPopulation;
+  model3d_town_density: TownDensity;
+  model3d_town_time: TownTime;
+  model3d_town_favorites: TownFavorite[];
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -211,6 +237,12 @@ export const DEFAULT_CONFIG: AppConfig = {
   model3d_tree_base_shape: "square",
   model3d_tree_base_color: DEFAULT_MODEL3D_TREE_BASE_COLOR,
   model3d_tree_trunk_color: DEFAULT_MODEL3D_TREE_TRUNK_COLOR,
+  model3d_town_seed: DEFAULT_MODEL3D_TOWN_SEED,
+  model3d_town_generator_version: MODEL3D_TOWN_GENERATOR_VERSION,
+  model3d_town_population: DEFAULT_MODEL3D_TOWN_POPULATION,
+  model3d_town_density: DEFAULT_MODEL3D_TOWN_DENSITY,
+  model3d_town_time: DEFAULT_MODEL3D_TOWN_TIME,
+  model3d_town_favorites: [],
 };
 
 export interface AudioDevice { id: string; name: string; is_default: boolean; }

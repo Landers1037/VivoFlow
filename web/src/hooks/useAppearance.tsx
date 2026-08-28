@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
@@ -23,6 +23,11 @@ import {
   DEFAULT_MODEL3D_TREE_BASE_COLOR,
   DEFAULT_MODEL3D_TREE_CANOPY_COLOR,
   DEFAULT_MODEL3D_TREE_TRUNK_COLOR,
+  DEFAULT_MODEL3D_TOWN_DENSITY,
+  DEFAULT_MODEL3D_TOWN_POPULATION,
+  DEFAULT_MODEL3D_TOWN_SEED,
+  DEFAULT_MODEL3D_TOWN_TIME,
+  MODEL3D_TOWN_GENERATOR_VERSION,
   MODEL3D_IDS,
   MODEL3D_ORBIT_STYLES,
   MODEL3D_TREE_BASE_SHAPES,
@@ -78,6 +83,38 @@ export function normalizeHexColor(
   if (/^#[0-9A-Fa-f]{6}$/.test(s)) return s.toLowerCase();
   if (/^[0-9A-Fa-f]{6}$/.test(s)) return `#${s.toLowerCase()}`;
   return fallback;
+}
+
+function normalizeTownSeed(raw: string | null | undefined): string {
+  const value = (raw ?? "").trim();
+  return /^[0-9a-fA-F]{8}$/.test(value) ? value.toLowerCase() : DEFAULT_MODEL3D_TOWN_SEED;
+}
+
+function normalizeTownFavorite(raw: Partial<TownFavorite> | null | undefined): TownFavorite | null {
+  if (!raw) return null;
+  const id = typeof raw.id === "string" ? raw.id.trim().slice(0, 128) : "";
+  const name = typeof raw.name === "string" ? raw.name.trim().slice(0, 40) : "";
+  if (!id || !name) return null;
+  const population = (['low', 'medium', 'high'] as const).includes(raw.population as TownPopulation)
+    ? raw.population as TownPopulation
+    : DEFAULT_MODEL3D_TOWN_POPULATION;
+  const density = (['low', 'medium', 'high'] as const).includes(raw.density as TownDensity)
+    ? raw.density as TownDensity
+    : DEFAULT_MODEL3D_TOWN_DENSITY;
+  const time = (['day', 'night'] as const).includes(raw.time as TownTime)
+    ? raw.time as TownTime
+    : DEFAULT_MODEL3D_TOWN_TIME;
+  return {
+    id,
+    name,
+    seed: normalizeTownSeed(raw.seed),
+    generator_version: Number.isFinite(Number(raw.generator_version)) && Number(raw.generator_version) > 0
+      ? Math.floor(Number(raw.generator_version))
+      : MODEL3D_TOWN_GENERATOR_VERSION,
+    population,
+    density,
+    time,
+  };
 }
 
 function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
@@ -158,7 +195,39 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
       : "square",
     model3d_tree_base_color: normalizeHexColor(base.model3d_tree_base_color, DEFAULT_MODEL3D_TREE_BASE_COLOR),
     model3d_tree_trunk_color: normalizeHexColor(base.model3d_tree_trunk_color, DEFAULT_MODEL3D_TREE_TRUNK_COLOR),
+    model3d_town_seed: normalizeTownSeed(base.model3d_town_seed),
+    model3d_town_generator_version:
+      Number.isFinite(Number(base.model3d_town_generator_version)) && Number(base.model3d_town_generator_version) > 0
+        ? Math.floor(Number(base.model3d_town_generator_version))
+        : MODEL3D_TOWN_GENERATOR_VERSION,
+    model3d_town_population: (['low', 'medium', 'high'] as const).includes(base.model3d_town_population as TownPopulation)
+      ? base.model3d_town_population as TownPopulation
+      : DEFAULT_MODEL3D_TOWN_POPULATION,
+    model3d_town_density: (['low', 'medium', 'high'] as const).includes(base.model3d_town_density as TownDensity)
+      ? base.model3d_town_density as TownDensity
+      : DEFAULT_MODEL3D_TOWN_DENSITY,
+    model3d_town_time: (['day', 'night'] as const).includes(base.model3d_town_time as TownTime)
+      ? base.model3d_town_time as TownTime
+      : DEFAULT_MODEL3D_TOWN_TIME,
+    model3d_town_favorites: (Array.isArray(base.model3d_town_favorites) ? base.model3d_town_favorites : [])
+      .map((favorite) => normalizeTownFavorite(favorite))
+      .filter((favorite): favorite is TownFavorite => favorite != null)
+      .slice(0, 50),
   };
+}
+
+function randomTownSeed(): string {
+  const values = new Uint32Array(1);
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    crypto.getRandomValues(values);
+    return values[0].toString(16).padStart(8, "0");
+  }
+  return ((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0).toString(16).padStart(8, "0");
+}
+
+function townFavoriteId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  return `${Date.now().toString(36)}-${Math.floor(Math.random() * 0xffffffff).toString(16)}`;
 }
 
 function applyAccent(accent: AccentId, customHex: string) {
@@ -253,6 +322,14 @@ interface AppearanceContextValue {
   setModel3dTreeBaseShape: (v: Model3dTreeBaseShape) => void;
   setModel3dTreeBaseColor: (hex: string) => void;
   setModel3dTreeTrunkColor: (hex: string) => void;
+  setModel3dTownSeed: (seed: string) => void;
+  randomizeModel3dTown: () => void;
+  setModel3dTownPopulation: (v: TownPopulation) => void;
+  setModel3dTownDensity: (v: TownDensity) => void;
+  setModel3dTownTime: (v: TownTime) => void;
+  saveModel3dTownFavorite: (name: string) => void;
+  loadModel3dTownFavorite: (favorite: TownFavorite) => void;
+  removeModel3dTownFavorite: (id: string) => void;
   t: TFunction;
   lang: Lang;
 }
@@ -390,6 +467,42 @@ export function AppearanceProvider({
         patch({ model3d_tree_base_color: normalizeHexColor(hex, DEFAULT_MODEL3D_TREE_BASE_COLOR) }),
       setModel3dTreeTrunkColor: (hex) =>
         patch({ model3d_tree_trunk_color: normalizeHexColor(hex, DEFAULT_MODEL3D_TREE_TRUNK_COLOR) }),
+      setModel3dTownSeed: (model3d_town_seed) =>
+        patch({ model3d_town_seed: normalizeTownSeed(model3d_town_seed) }),
+      randomizeModel3dTown: () =>
+        patch({
+          model3d_town_seed: randomTownSeed(),
+          model3d_town_generator_version: MODEL3D_TOWN_GENERATOR_VERSION,
+        }),
+      setModel3dTownPopulation: (model3d_town_population) => patch({ model3d_town_population }),
+      setModel3dTownDensity: (model3d_town_density) => patch({ model3d_town_density }),
+      setModel3dTownTime: (model3d_town_time) => patch({ model3d_town_time }),
+      saveModel3dTownFavorite: (name) => {
+        const normalized = name.trim().slice(0, 40);
+        if (!normalized || resolved.model3d_town_favorites.length >= 50) return;
+        if (resolved.model3d_town_favorites.some((favorite) => favorite.name.toLocaleLowerCase() === normalized.toLocaleLowerCase())) return;
+        const favorite: TownFavorite = {
+          id: townFavoriteId(),
+          name: normalized,
+          seed: resolved.model3d_town_seed,
+          generator_version: resolved.model3d_town_generator_version,
+          population: resolved.model3d_town_population,
+          density: resolved.model3d_town_density,
+          time: resolved.model3d_town_time,
+        };
+        patch({ model3d_town_favorites: [...resolved.model3d_town_favorites, favorite] });
+      },
+      loadModel3dTownFavorite: (favorite) =>
+        patch({
+          model3d_id: "town",
+          model3d_town_seed: normalizeTownSeed(favorite.seed),
+          model3d_town_generator_version: favorite.generator_version,
+          model3d_town_population: favorite.population,
+          model3d_town_density: favorite.density,
+          model3d_town_time: favorite.time,
+        }),
+      removeModel3dTownFavorite: (id) =>
+        patch({ model3d_town_favorites: resolved.model3d_town_favorites.filter((favorite) => favorite.id !== id) }),
       t,
       lang: resolved.language,
     }),

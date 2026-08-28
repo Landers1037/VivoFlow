@@ -3281,6 +3281,49 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   text-align: center;
 }
 
+.settings-town-seed-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+}
+
+.settings-town-seed-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.settings-town-seed {
+  overflow: hidden;
+  color: var(--primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86rem;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+}
+
+.settings-town-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+@media (max-width: 480px) {
+  .settings-town-seed-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .settings-town-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
 .clock-meta {
   margin: 0 0 0.85rem;
   color: color-mix(in oklch, var(--clock-fg) 62%, transparent);

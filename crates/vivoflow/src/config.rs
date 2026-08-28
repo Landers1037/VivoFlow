@@ -106,6 +106,26 @@ fn default_model3d_tree_trunk_color() -> String {
     "#4a301c".into()
 }
 
+fn default_model3d_town_seed() -> String {
+    "6f3a9c21".into()
+}
+
+fn default_model3d_town_generator_version() -> u16 {
+    1
+}
+
+fn default_model3d_town_population() -> String {
+    "medium".into()
+}
+
+fn default_model3d_town_density() -> String {
+    "medium".into()
+}
+
+fn default_model3d_town_time() -> String {
+    "day".into()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub interval_ms: u64,
@@ -197,6 +217,36 @@ pub struct AppConfig {
     pub model3d_tree_base_color: String,
     #[serde(default = "default_model3d_tree_trunk_color")]
     pub model3d_tree_trunk_color: String,
+    #[serde(default = "default_model3d_town_seed")]
+    pub model3d_town_seed: String,
+    #[serde(default = "default_model3d_town_generator_version")]
+    pub model3d_town_generator_version: u16,
+    #[serde(default = "default_model3d_town_population")]
+    pub model3d_town_population: String,
+    #[serde(default = "default_model3d_town_density")]
+    pub model3d_town_density: String,
+    #[serde(default = "default_model3d_town_time")]
+    pub model3d_town_time: String,
+    #[serde(default)]
+    pub model3d_town_favorites: Vec<TownFavorite>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TownFavorite {
+    #[serde(default)]
+    pub id: String,
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub seed: String,
+    #[serde(default = "default_model3d_town_generator_version")]
+    pub generator_version: u16,
+    #[serde(default = "default_model3d_town_population")]
+    pub population: String,
+    #[serde(default = "default_model3d_town_density")]
+    pub density: String,
+    #[serde(default = "default_model3d_town_time")]
+    pub time: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -257,6 +307,12 @@ impl Default for AppConfig {
             model3d_tree_base_shape: default_model3d_tree_base_shape(),
             model3d_tree_base_color: default_model3d_tree_base_color(),
             model3d_tree_trunk_color: default_model3d_tree_trunk_color(),
+            model3d_town_seed: default_model3d_town_seed(),
+            model3d_town_generator_version: default_model3d_town_generator_version(),
+            model3d_town_population: default_model3d_town_population(),
+            model3d_town_density: default_model3d_town_density(),
+            model3d_town_time: default_model3d_town_time(),
+            model3d_town_favorites: Vec::new(),
         }
     }
 }
@@ -299,6 +355,37 @@ fn is_hex_color(s: &str) -> bool {
         return false;
     }
     b[1..].iter().all(|c| c.is_ascii_hexdigit())
+}
+
+fn normalize_town_seed(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if trimmed.len() == 8 && trimmed.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        trimmed.to_ascii_lowercase()
+    } else {
+        default_model3d_town_seed()
+    }
+}
+
+fn sanitize_town_favorite(mut favorite: TownFavorite) -> Option<TownFavorite> {
+    favorite.id = favorite.id.trim().chars().take(128).collect();
+    favorite.name = favorite.name.trim().chars().take(40).collect();
+    if favorite.id.is_empty() || favorite.name.is_empty() {
+        return None;
+    }
+    favorite.seed = normalize_town_seed(&favorite.seed);
+    if favorite.generator_version == 0 {
+        favorite.generator_version = default_model3d_town_generator_version();
+    }
+    if !["low", "medium", "high"].contains(&favorite.population.as_str()) {
+        favorite.population = default_model3d_town_population();
+    }
+    if !["low", "medium", "high"].contains(&favorite.density.as_str()) {
+        favorite.density = default_model3d_town_density();
+    }
+    if !["day", "night"].contains(&favorite.time.as_str()) {
+        favorite.time = default_model3d_town_time();
+    }
+    Some(favorite)
 }
 
 impl AppConfig {
@@ -397,13 +484,15 @@ impl AppConfig {
             let id = id.trim();
             (!id.is_empty() && id.len() <= 128).then(|| id.to_owned())
         });
-        if !["lines", "dial", "pixel", "flip", "object", "dots"].contains(&self.clock_style.as_str()) {
+        if !["lines", "dial", "pixel", "flip", "object", "dots"]
+            .contains(&self.clock_style.as_str())
+        {
             self.clock_style = default_clock_style();
         }
         if !["circle", "square", "rounded", "star"].contains(&self.clock_dot_shape.as_str()) {
             self.clock_dot_shape = default_clock_dot_shape();
         }
-        if !["solar_system", "tree"].contains(&self.model3d_id.as_str()) {
+        if !["solar_system", "tree", "town"].contains(&self.model3d_id.as_str()) {
             self.model3d_id = default_model3d_id();
         }
         if !["solid", "dashed", "hidden"].contains(&self.model3d_orbit_style.as_str()) {
@@ -430,6 +519,34 @@ impl AppConfig {
         } else {
             self.model3d_tree_trunk_color = self.model3d_tree_trunk_color.to_ascii_lowercase();
         }
+        self.model3d_town_seed = normalize_town_seed(&self.model3d_town_seed);
+        if self.model3d_town_generator_version == 0 {
+            self.model3d_town_generator_version = default_model3d_town_generator_version();
+        }
+        if !["low", "medium", "high"].contains(&self.model3d_town_population.as_str()) {
+            self.model3d_town_population = default_model3d_town_population();
+        }
+        if !["low", "medium", "high"].contains(&self.model3d_town_density.as_str()) {
+            self.model3d_town_density = default_model3d_town_density();
+        }
+        if !["day", "night"].contains(&self.model3d_town_time.as_str()) {
+            self.model3d_town_time = default_model3d_town_time();
+        }
+        let mut favorite_names = Vec::new();
+        self.model3d_town_favorites = self
+            .model3d_town_favorites
+            .drain(..)
+            .filter_map(|favorite| sanitize_town_favorite(favorite))
+            .filter(|favorite| {
+                let key = favorite.name.to_lowercase();
+                if favorite_names.iter().any(|name| name == &key) {
+                    return false;
+                }
+                favorite_names.push(key);
+                true
+            })
+            .take(50)
+            .collect();
         if self.clock_enabled {
             self.photo_album_enabled = false;
             self.music_album_enabled = false;
@@ -593,6 +710,12 @@ mod tests {
         assert_eq!(cfg.model3d_tree_base_shape, "square");
         assert_eq!(cfg.model3d_tree_base_color, "#8f98a3");
         assert_eq!(cfg.model3d_tree_trunk_color, "#4a301c");
+        assert_eq!(cfg.model3d_town_seed, "6f3a9c21");
+        assert_eq!(cfg.model3d_town_generator_version, 1);
+        assert_eq!(cfg.model3d_town_population, "medium");
+        assert_eq!(cfg.model3d_town_density, "medium");
+        assert_eq!(cfg.model3d_town_time, "day");
+        assert!(cfg.model3d_town_favorites.is_empty());
     }
 
     #[test]
@@ -776,6 +899,15 @@ mod tests {
         .sanitize();
         assert!(tree.model3d_enabled);
         assert_eq!(tree.model3d_id, "tree");
+
+        let town = AppConfig {
+            model3d_enabled: true,
+            model3d_id: "town".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(town.model3d_enabled);
+        assert_eq!(town.model3d_id, "town");
     }
 
     #[test]
@@ -830,6 +962,102 @@ mod tests {
         assert_eq!(bad.model3d_tree_canopy_color, "#e07a28");
         assert_eq!(bad.model3d_tree_base_color, "#8f98a3");
         assert_eq!(bad.model3d_tree_trunk_color, "#4a301c");
+    }
+
+    #[test]
+    fn model3d_town_config_and_favorites_are_sanitized() {
+        let cfg = AppConfig {
+            model3d_id: "town".into(),
+            model3d_town_seed: "  A1B2C3D4  ".into(),
+            model3d_town_generator_version: 0,
+            model3d_town_population: "crowded".into(),
+            model3d_town_density: "thin".into(),
+            model3d_town_time: "sunset".into(),
+            model3d_town_favorites: vec![
+                TownFavorite {
+                    id: " fav-1 ".into(),
+                    name: "  Riverside  ".into(),
+                    seed: "BAD".into(),
+                    generator_version: 0,
+                    population: "high".into(),
+                    density: "low".into(),
+                    time: "night".into(),
+                },
+                TownFavorite {
+                    id: "".into(),
+                    name: "ignored".into(),
+                    seed: "ffffffff".into(),
+                    generator_version: 1,
+                    population: "low".into(),
+                    density: "medium".into(),
+                    time: "day".into(),
+                },
+            ],
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(cfg.model3d_id, "town");
+        assert_eq!(cfg.model3d_town_seed, "a1b2c3d4");
+        assert_eq!(cfg.model3d_town_generator_version, 1);
+        assert_eq!(cfg.model3d_town_population, "medium");
+        assert_eq!(cfg.model3d_town_density, "medium");
+        assert_eq!(cfg.model3d_town_time, "day");
+        assert_eq!(cfg.model3d_town_favorites.len(), 1);
+        assert_eq!(cfg.model3d_town_favorites[0].id, "fav-1");
+        assert_eq!(cfg.model3d_town_favorites[0].name, "Riverside");
+        assert_eq!(cfg.model3d_town_favorites[0].seed, "6f3a9c21");
+    }
+
+    #[test]
+    fn model3d_town_favorites_are_limited_to_fifty() {
+        let favorites = (0..55)
+            .map(|index| TownFavorite {
+                id: format!("id-{index}"),
+                name: format!("Town {index}"),
+                seed: "ffffffff".into(),
+                generator_version: 1,
+                population: "medium".into(),
+                density: "medium".into(),
+                time: "day".into(),
+            })
+            .collect();
+        let cfg = AppConfig {
+            model3d_town_favorites: favorites,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(cfg.model3d_town_favorites.len(), 50);
+        assert_eq!(cfg.model3d_town_favorites[49].id, "id-49");
+    }
+
+    #[test]
+    fn model3d_town_favorites_drop_duplicate_names_case_insensitively() {
+        let cfg = AppConfig {
+            model3d_town_favorites: vec![
+                TownFavorite {
+                    id: "one".into(),
+                    name: "Harbor".into(),
+                    seed: "11111111".into(),
+                    generator_version: 1,
+                    population: "low".into(),
+                    density: "low".into(),
+                    time: "day".into(),
+                },
+                TownFavorite {
+                    id: "two".into(),
+                    name: " harbor ".into(),
+                    seed: "22222222".into(),
+                    generator_version: 1,
+                    population: "high".into(),
+                    density: "high".into(),
+                    time: "night".into(),
+                },
+            ],
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(cfg.model3d_town_favorites.len(), 1);
+        assert_eq!(cfg.model3d_town_favorites[0].id, "one");
     }
 
     #[test]

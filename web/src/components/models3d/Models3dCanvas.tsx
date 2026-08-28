@@ -8,7 +8,7 @@ import {
 import { shouldForceWebGL, withTimeout } from "@/components/models3d/compat";
 import { attachOrbit } from "@/components/models3d/orbit";
 import { createModel3dScene } from "@/components/models3d/solarSystem";
-import type { Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape } from "@/types";
+import type { Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, TownDensity, TownPopulation, TownTime } from "@/types";
 
 export interface Models3dCanvasProps {
   modelId: Model3dId;
@@ -20,6 +20,11 @@ export interface Models3dCanvasProps {
   treeBaseColor: string;
   treeTrunkColor: string;
   treeVariation: number;
+  townSeed: string;
+  townGeneratorVersion: number;
+  townPopulation: TownPopulation;
+  townDensity: TownDensity;
+  townTime: TownTime;
   preview?: boolean;
   interactive?: boolean;
   className?: string;
@@ -38,6 +43,11 @@ export default function Models3dCanvas({
   treeBaseColor,
   treeTrunkColor,
   treeVariation,
+  townSeed,
+  townGeneratorVersion,
+  townPopulation,
+  townDensity,
+  townTime,
   preview = false,
   interactive = false,
   className,
@@ -89,6 +99,13 @@ export default function Models3dCanvas({
             baseColor: treeBaseColor,
             trunkColor: treeTrunkColor,
             variation: treeVariation,
+          },
+          town: {
+            seed: townSeed,
+            generatorVersion: townGeneratorVersion,
+            population: townPopulation,
+            density: townDensity,
+            time: townTime,
           },
         });
       } catch (error) {
@@ -192,6 +209,11 @@ export default function Models3dCanvas({
     treeCanopyShape,
     treeTrunkColor,
     treeVariation,
+    townSeed,
+    townGeneratorVersion,
+    townPopulation,
+    townDensity,
+    townTime,
   ]);
 
   return (

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Copy, Dice5, Heart, Trash2 } from "lucide-react";
 import { Models3dRenderer } from "@/components/models3d/Models3dRenderer";
-import { SettingsGroup, SettingsSegmented, SettingsSwitchRow } from "@/components/settings/SettingsList";
+import { SettingsGroup, SettingsSegmented, SettingsSheetBar, SettingsSwitchRow } from "@/components/settings/SettingsList";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   DEFAULT_MODEL3D_TREE_BASE_COLOR,
   DEFAULT_MODEL3D_TREE_CANOPY_COLOR,
@@ -10,11 +12,11 @@ import {
   useAppearance,
 } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
-import type { Model3dId } from "@/types";
+import type { Model3dId, TownFavorite, TownPopulation, TownDensity, TownTime } from "@/types";
 
 const MODEL_CARDS: {
   id: Model3dId;
-  titleKey: "models3dSolarSystem" | "models3dTree";
+  titleKey: "models3dSolarSystem" | "models3dTree" | "models3dTown";
   placeholder: string;
 }[] = [
   {
@@ -28,6 +30,12 @@ const MODEL_CARDS: {
     titleKey: "models3dTree",
     placeholder:
       "bg-[radial-gradient(circle_at_50%_42%,#e07a28,transparent_34%),radial-gradient(circle_at_48%_78%,#8f98a3,transparent_36%),#efe8d8]",
+  },
+  {
+    id: "town",
+    titleKey: "models3dTown",
+    placeholder:
+      "bg-[radial-gradient(circle_at_54%_42%,#6e9f64,transparent_30%),radial-gradient(circle_at_25%_72%,#d6b76b,transparent_24%),radial-gradient(circle_at_78%_66%,#3a8ca7,transparent_24%),#17313a]",
   },
 ];
 
@@ -109,6 +117,8 @@ export function Models3dSettings() {
         </div>
         {selected === "solar_system" ? (
           <p className="settings-group-footer">{t("models3dCredit")}</p>
+        ) : selected === "town" ? (
+          <p className="settings-group-footer">{t("models3dTownHint")}</p>
         ) : (
           <p className="settings-group-footer">{t("models3dTreeHint")}</p>
         )}
@@ -218,8 +228,189 @@ export function Models3dSettings() {
           </SettingsGroup>
         </>
       ) : null}
+
+      {selected === "town" ? <TownSettings /> : null}
     </div>
   );
+}
+
+function TownSettings() {
+  const {
+    t,
+    config,
+    synced,
+    randomizeModel3dTown,
+    setModel3dTownPopulation,
+    setModel3dTownDensity,
+    setModel3dTownTime,
+    saveModel3dTownFavorite,
+    loadModel3dTownFavorite,
+    removeModel3dTownFavorite,
+  } = useAppearance();
+  const [favoriteOpen, setFavoriteOpen] = useState(false);
+  const [favoriteName, setFavoriteName] = useState("");
+  const [favoriteError, setFavoriteError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const copySeed = async () => {
+    try {
+      await navigator.clipboard.writeText(config.model3d_town_seed);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1300);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  const saveFavorite = () => {
+    const name = favoriteName.trim();
+    if (!name) {
+      setFavoriteError(t("models3dTownFavoriteNameRequired"));
+      return;
+    }
+    if (config.model3d_town_favorites.some((favorite) => favorite.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+      setFavoriteError(t("models3dTownFavoriteDuplicate"));
+      return;
+    }
+    if (config.model3d_town_favorites.length >= 50) {
+      setFavoriteError(t("models3dTownFavoriteLimit"));
+      return;
+    }
+    saveModel3dTownFavorite(name);
+    setFavoriteOpen(false);
+    setFavoriteName("");
+    setFavoriteError(null);
+  };
+
+  return (
+    <>
+      <SettingsGroup label={t("models3dTownCurrent")} footer={t("models3dTownCurrentHint")}>
+        <div className="settings-town-seed-row">
+          <div className="settings-town-seed-copy">
+            <span className="settings-row-title">{t("models3dTownSeed")}</span>
+            <code className="settings-town-seed">{config.model3d_town_seed}</code>
+          </div>
+          <div className="settings-town-actions">
+            <Button type="button" variant="ghost" size="icon" disabled={!synced} onClick={() => void copySeed()} aria-label={t("models3dTownCopySeed")} title={copied ? t("models3dTownCopied") : t("models3dTownCopySeed")}>
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button type="button" variant="outline" size="sm" disabled={!synced} onClick={randomizeModel3dTown}>
+              <Dice5 className="h-4 w-4" />
+              {t("models3dTownRandomize")}
+            </Button>
+          </div>
+        </div>
+        <button type="button" className="settings-row" disabled={!synced || config.model3d_town_favorites.length >= 50} onClick={() => { setFavoriteOpen(true); setFavoriteError(null); }}>
+          <span className="settings-row-icon"><Heart className="h-4 w-4" /></span>
+          <span className="settings-row-copy"><span className="settings-row-title">{t("models3dTownFavorite")}</span><span className="settings-row-subtitle">{t("models3dTownFavoriteHint")}</span></span>
+          <span className="settings-row-value">{config.model3d_town_favorites.length}/50</span>
+        </button>
+      </SettingsGroup>
+
+      <SettingsGroup label={t("models3dTownPopulation")} footer={t("models3dTownPopulationHint")}>
+        <div className="settings-row settings-row-flush">
+          <SettingsSegmented<TownPopulation>
+            value={config.model3d_town_population}
+            disabled={!synced}
+            onChange={setModel3dTownPopulation}
+            options={[
+              { id: "low", label: t("models3dTownLow") },
+              { id: "medium", label: t("models3dTownMedium") },
+              { id: "high", label: t("models3dTownHigh") },
+            ]}
+          />
+        </div>
+      </SettingsGroup>
+
+      <SettingsGroup label={t("models3dTownDensity")} footer={t("models3dTownDensityHint")}>
+        <div className="settings-row settings-row-flush">
+          <SettingsSegmented<TownDensity>
+            value={config.model3d_town_density}
+            disabled={!synced}
+            onChange={setModel3dTownDensity}
+            options={[
+              { id: "low", label: t("models3dTownSparse") },
+              { id: "medium", label: t("models3dTownMedium") },
+              { id: "high", label: t("models3dTownDense") },
+            ]}
+          />
+        </div>
+      </SettingsGroup>
+
+      <SettingsGroup label={t("models3dTownTime")} footer={t("models3dTownTimeHint")}>
+        <div className="settings-row settings-row-flush">
+          <SettingsSegmented<TownTime>
+            value={config.model3d_town_time}
+            disabled={!synced}
+            onChange={setModel3dTownTime}
+            options={[
+              { id: "day", label: t("models3dTownDay") },
+              { id: "night", label: t("models3dTownNight") },
+            ]}
+          />
+        </div>
+      </SettingsGroup>
+
+      {config.model3d_town_favorites.length > 0 ? (
+        <SettingsGroup label={t("models3dTownFavorites")} footer={t("models3dTownFavoritesHint")}>
+          {config.model3d_town_favorites.map((favorite) => (
+            <TownFavoriteRow key={favorite.id} favorite={favorite} onLoad={() => loadModel3dTownFavorite(favorite)} onRemove={() => { if (window.confirm(t("models3dTownFavoriteDeleteConfirm"))) removeModel3dTownFavorite(favorite.id); }} />
+          ))}
+        </SettingsGroup>
+      ) : null}
+
+      <Dialog open={favoriteOpen} onOpenChange={(open) => { setFavoriteOpen(open); if (!open) setFavoriteName(""); }}>
+        <DialogContent>
+          <SettingsSheetBar
+            title={<DialogTitle>{t("models3dTownFavorite")}</DialogTitle>}
+            cancelLabel={t("settingsCancel")}
+            doneLabel={t("settingsDone")}
+            doneDisabled={!favoriteName.trim()}
+            onCancel={() => setFavoriteOpen(false)}
+            onDone={saveFavorite}
+          />
+          <div className="settings-sheet-body">
+            <SettingsGroup footer={t("models3dTownFavoriteDialogHint")}>
+              <label className="settings-row">
+                <span className="settings-row-title">{t("models3dTownFavoriteName")}</span>
+                <input
+                  id="town-favorite-name"
+                  autoFocus
+                  autoComplete="off"
+                  maxLength={40}
+                  value={favoriteName}
+                  onChange={(event) => { setFavoriteName(event.target.value); setFavoriteError(null); }}
+                  onKeyDown={(event) => { if (event.key === "Enter") saveFavorite(); }}
+                  className="settings-field-input"
+                />
+              </label>
+              {favoriteError ? <p className="settings-group-footer text-destructive">{favoriteError}</p> : null}
+            </SettingsGroup>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function TownFavoriteRow({ favorite, onLoad, onRemove }: { favorite: TownFavorite; onLoad: () => void; onRemove: () => void }) {
+  const { t } = useAppearance();
+  return (
+    <article className="settings-list-card">
+      <span className="settings-row-icon"><Heart className="h-4 w-4" /></span>
+      <button type="button" className="min-w-0 flex-1 text-left" onClick={onLoad}>
+        <span className="block truncate font-medium">{favorite.name}</span>
+        <span className="mt-0.5 block truncate text-xs text-muted-foreground">{favorite.seed} · {t(`models3dTown${capitalize(favorite.population)}` as "models3dTownLow" | "models3dTownMedium" | "models3dTownHigh")}</span>
+      </button>
+      <Button type="button" variant="ghost" size="icon" aria-label={t("models3dTownFavoriteDelete")} onClick={onRemove}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </article>
+  );
+}
+
+function capitalize(value: string) {
+  return value.slice(0, 1).toUpperCase() + value.slice(1);
 }
 
 const INPUT =

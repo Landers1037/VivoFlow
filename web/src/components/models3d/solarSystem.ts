@@ -21,7 +21,7 @@ import {
   Texture,
   Vector3,
 } from "three/webgpu";
-import type { Model3dId, Model3dOrbitStyle } from "@/types";
+import type { Model3dId, Model3dOrbitStyle, TownDensity, TownPopulation, TownTime } from "@/types";
 import { createVoxelTree, type TreeLook } from "@/components/models3d/tree";
 
 const ASSET = "/models/solar-system";
@@ -35,6 +35,15 @@ export interface SolarSystemOptions {
   orbitStyle: Model3dOrbitStyle;
   texturesEnabled: boolean;
   tree: TreeLook;
+  town: TownLook;
+}
+
+export interface TownLook {
+  seed: string;
+  generatorVersion: number;
+  population: TownPopulation;
+  density: TownDensity;
+  time: TownTime;
 }
 
 export interface SolarSystemHandle {
@@ -53,6 +62,10 @@ export async function createModel3dScene(
   options: SolarSystemOptions,
 ): Promise<SolarSystemHandle> {
   if (id === "tree") return createVoxelTree(preview, options.tree);
+  if (id === "town") {
+    const { createVoxelTown } = await import("@/components/models3d/town");
+    return createVoxelTown(preview, options.town);
+  }
   return createSolarSystem(preview, options);
 }
 

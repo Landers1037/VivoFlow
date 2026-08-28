@@ -25,6 +25,11 @@ export function Models3dRenderer({
   const treeBaseShape = config.model3d_tree_base_shape;
   const treeBaseColor = config.model3d_tree_base_color;
   const treeTrunkColor = config.model3d_tree_trunk_color;
+  const townSeed = config.model3d_town_seed;
+  const townGeneratorVersion = config.model3d_town_generator_version;
+  const townPopulation = config.model3d_town_population;
+  const townDensity = config.model3d_town_density;
+  const townTime = config.model3d_town_time;
   const treeVariation = useMemo(
     () => (Math.random() * 0xffffffff) >>> 0,
     [modelId, treeCanopyShape],
@@ -41,6 +46,11 @@ export function Models3dRenderer({
     treeBaseShape,
     treeBaseColor,
     treeTrunkColor,
+    townSeed,
+    townGeneratorVersion,
+    townPopulation,
+    townDensity,
+    townTime,
     treeVariation,
   ]);
 
@@ -65,6 +75,11 @@ export function Models3dRenderer({
           treeBaseColor={treeBaseColor}
           treeTrunkColor={treeTrunkColor}
           treeVariation={treeVariation}
+          townSeed={townSeed}
+          townGeneratorVersion={townGeneratorVersion}
+          townPopulation={townPopulation}
+          townDensity={townDensity}
+          townTime={townTime}
           preview={preview}
           interactive={interactive}
           className="h-full w-full"
