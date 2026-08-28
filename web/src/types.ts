@@ -352,7 +352,15 @@ export interface Album {
 }
 
 export interface MusicTrack { id: string; title: string; file_name: string; original_name: string; mime_type: string; size_bytes: number; lyrics: string; }
-export interface MusicAlbum { id: string; title: string; cover_file: string | null; cover_mime: string | null; tracks: MusicTrack[]; }
+export interface MusicAlbum {
+  id: string;
+  title: string;
+  cover_file: string | null;
+  cover_mime: string | null;
+  loop_playback: boolean;
+  default_muted: boolean;
+  tracks: MusicTrack[];
+}
 
 export interface CpuMetrics {
   cores: number;

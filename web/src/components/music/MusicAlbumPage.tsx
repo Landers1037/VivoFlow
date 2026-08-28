@@ -30,18 +30,31 @@ export function MusicAlbumPage({
   const audio = useRef<HTMLAudioElement>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(() => Boolean(album.loop_playback));
   const [time, setTime] = useState(0);
   const [progressWidth, setProgressWidth] = useState<number>();
   const track = album.tracks[index];
   const lines = useMemo(() => parseLrc(track?.lyrics ?? ""), [track?.lyrics]);
   const current = lines.reduce((active, line, lineIndex) => (line.time <= time ? lineIndex : active), -1);
+  const loopPlayback = Boolean(album.loop_playback);
+  const defaultMuted = Boolean(album.default_muted);
 
   useEffect(() => {
-    if (!audio.current) return;
-    audio.current.src = track ? musicTrackUrl(album.id, track.id) : "";
-    audio.current.load();
-    if (playing) audio.current.play().catch(() => {});
+    const el = audio.current;
+    if (!el) return;
+    el.muted = defaultMuted;
+  }, [defaultMuted]);
+
+  useEffect(() => {
+    const el = audio.current;
+    if (!el) return;
+    el.src = track ? musicTrackUrl(album.id, track.id) : "";
+    el.load();
+    if (playing) {
+      void el.play().catch(() => setPlaying(false));
+    }
+    // Reload only when the track changes; play/pause is handled by controls.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [album.id, track?.id]);
 
   useLayoutEffect(() => {
@@ -53,6 +66,28 @@ export function MusicAlbumPage({
     observer.observe(el);
     return () => observer.disconnect();
   }, [track?.id]);
+
+  const previous = () => setIndex((currentIndex) => (currentIndex - 1 + album.tracks.length) % album.tracks.length);
+  const next = () => setIndex((currentIndex) => (currentIndex + 1) % album.tracks.length);
+
+  const onEnded = () => {
+    const last = index >= album.tracks.length - 1;
+    if (last && !loopPlayback) {
+      setPlaying(false);
+      return;
+    }
+    if (album.tracks.length <= 1) {
+      const el = audio.current;
+      if (el) {
+        el.currentTime = 0;
+        void el.play().catch(() => setPlaying(false));
+      }
+      setPlaying(true);
+      return;
+    }
+    setPlaying(true);
+    next();
+  };
 
   if (!track) {
     return (
@@ -67,9 +102,6 @@ export function MusicAlbumPage({
       </main>
     );
   }
-
-  const previous = () => setIndex((index - 1 + album.tracks.length) % album.tracks.length);
-  const next = () => setIndex((index + 1) % album.tracks.length);
 
   return (
     <main className="music-player-page relative h-[100dvh] overflow-hidden bg-zinc-950 text-white">
@@ -150,10 +182,14 @@ export function MusicAlbumPage({
 
       <audio
         ref={audio}
+        muted={defaultMuted}
         onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
         onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={next}
+        onPause={() => {
+          if (audio.current?.ended) return;
+          setPlaying(false);
+        }}
+        onEnded={onEnded}
       />
     </main>
   );

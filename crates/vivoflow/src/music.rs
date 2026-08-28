@@ -34,6 +34,10 @@ pub struct MusicAlbum {
     pub title: String,
     pub cover_file: Option<String>,
     pub cover_mime: Option<String>,
+    #[serde(default)]
+    pub loop_playback: bool,
+    #[serde(default)]
+    pub default_muted: bool,
     pub tracks: Vec<MusicTrack>,
 }
 
@@ -108,6 +112,10 @@ impl MusicStore {
 #[derive(Deserialize)]
 struct AlbumInput {
     title: String,
+    #[serde(default)]
+    loop_playback: Option<bool>,
+    #[serde(default)]
+    default_muted: Option<bool>,
 }
 #[derive(Deserialize)]
 struct TrackInput {
@@ -162,6 +170,8 @@ async fn create(
         title: title.into(),
         cover_file: None,
         cover_mime: None,
+        loop_playback: i.loop_playback.unwrap_or(false),
+        default_muted: i.default_muted.unwrap_or(false),
         tracks: vec![],
     };
     let mut xs = s.albums.write();
@@ -184,6 +194,12 @@ async fn update(
         .position(|a| a.id == id)
         .ok_or_else(|| MusicError::not_found("album not found"))?;
     xs[n].title = title.into();
+    if let Some(loop_playback) = i.loop_playback {
+        xs[n].loop_playback = loop_playback;
+    }
+    if let Some(default_muted) = i.default_muted {
+        xs[n].default_muted = default_muted;
+    }
     let a = xs[n].clone();
     s.save(&xs)?;
     Ok(Json(a))

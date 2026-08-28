@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SettingsGroup, SettingsSheetBar, SettingsSwitchRow } from "@/components/settings/SettingsList";
@@ -26,8 +27,12 @@ export function MusicAlbumSettings() {
   const [albums, setAlbums] = useState<MusicAlbum[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
+  const [draftLoop, setDraftLoop] = useState(false);
+  const [draftMuted, setDraftMuted] = useState(false);
   const [trackDrafts, setTrackDrafts] = useState<Record<string, TrackDraft>>({});
   const [saving, setSaving] = useState(false);
+  const [deletingAlbum, setDeletingAlbum] = useState<MusicAlbum | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const editingAlbum = useMemo(
@@ -66,6 +71,8 @@ export function MusicAlbumSettings() {
   const openNew = () => {
     resetFeedback();
     setDraftTitle("");
+    setDraftLoop(false);
+    setDraftMuted(false);
     setTrackDrafts({});
     setEditingId("new");
   };
@@ -73,6 +80,8 @@ export function MusicAlbumSettings() {
   const openEdit = (album: MusicAlbum) => {
     resetFeedback();
     setDraftTitle(album.title);
+    setDraftLoop(Boolean(album.loop_playback));
+    setDraftMuted(Boolean(album.default_muted));
     setTrackDrafts(draftsFromAlbum(album));
     setEditingId(album.id);
   };
@@ -93,17 +102,24 @@ export function MusicAlbumSettings() {
     setError("");
     setMessage("");
     try {
+      const playback = { loop_playback: draftLoop, default_muted: draftMuted };
       if (editingId === "new") {
-        const album = await musicApi.create(title);
+        const album = await musicApi.create(title, playback);
         await load();
         setEditingId(album.id);
         setDraftTitle(album.title);
+        setDraftLoop(Boolean(album.loop_playback));
+        setDraftMuted(Boolean(album.default_muted));
         setMessage(t("musicAlbumCreated"));
         return;
       }
       if (!editingAlbum) return;
-      if (title !== editingAlbum.title) {
-        await musicApi.update(editingAlbum.id, title);
+      if (
+        title !== editingAlbum.title ||
+        draftLoop !== Boolean(editingAlbum.loop_playback) ||
+        draftMuted !== Boolean(editingAlbum.default_muted)
+      ) {
+        await musicApi.update(editingAlbum.id, title, playback);
       }
       for (const track of editingAlbum.tracks) {
         const draft = trackDrafts[track.id];
@@ -125,6 +141,18 @@ export function MusicAlbumSettings() {
     await musicApi.enable(album.id);
     activateMusicAlbum(album.id);
     await load();
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingAlbum) return;
+    setDeleting(true);
+    try {
+      await musicApi.remove(deletingAlbum.id);
+      setDeletingAlbum(null);
+      await load();
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -164,25 +192,24 @@ export function MusicAlbumSettings() {
                   {t("musicAlbumTracks", { count: album.tracks.length })}
                 </span>
               </button>
-              <Button
-                size="sm"
-                variant={config.active_music_album_id === album.id ? "default" : "ghost"}
-                className="h-9 shrink-0 px-2"
-                onClick={() => void enable(album)}
-              >
-                {config.active_music_album_id === album.id ? t("musicAlbumEnabled") : t("musicAlbumEnable")}
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-9 w-9 shrink-0 text-destructive"
-                onClick={async () => {
-                  await musicApi.remove(album.id);
-                  await load();
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="settings-list-card-actions">
+                <Button
+                  size="sm"
+                  variant={config.active_music_album_id === album.id ? "default" : "ghost"}
+                  className="h-9 shrink-0 px-2"
+                  onClick={() => void enable(album)}
+                >
+                  {config.active_music_album_id === album.id ? t("musicAlbumEnabled") : t("musicAlbumEnable")}
+                </Button>
+                <button
+                  type="button"
+                  className="settings-list-card-control text-destructive"
+                  aria-label={t("musicAlbumDelete")}
+                  onClick={() => setDeletingAlbum(album)}
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
             </div>
           ))}
         </SettingsGroup>
@@ -218,6 +245,22 @@ export function MusicAlbumSettings() {
                 />
               </label>
             </SettingsGroup>
+            <SettingsGroup>
+              <SettingsSwitchRow
+                id="music-album-loop"
+                title={t("musicAlbumLoop")}
+                subtitle={t("musicAlbumLoopHint")}
+                checked={draftLoop}
+                onCheckedChange={setDraftLoop}
+              />
+              <SettingsSwitchRow
+                id="music-album-mute"
+                title={t("musicAlbumMute")}
+                subtitle={t("musicAlbumMuteHint")}
+                checked={draftMuted}
+                onCheckedChange={setDraftMuted}
+              />
+            </SettingsGroup>
             {editingAlbum ? (
               <AlbumEditor
                 album={editingAlbum}
@@ -245,6 +288,33 @@ export function MusicAlbumSettings() {
                 {error}
               </p>
             ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deletingAlbum !== null} onOpenChange={(open) => !open && !deleting && setDeletingAlbum(null)}>
+        <DialogContent variant="alert">
+          <DialogTitle className="settings-alert-title">{t("musicAlbumDelete")}</DialogTitle>
+          <DialogDescription className="settings-alert-copy">
+            {t("musicAlbumDeleteConfirm", { name: deletingAlbum?.title ?? "" })}
+          </DialogDescription>
+          <div className="settings-alert-actions">
+            <button
+              type="button"
+              className="settings-alert-cancel"
+              disabled={deleting}
+              onClick={() => setDeletingAlbum(null)}
+            >
+              {t("settingsCancel")}
+            </button>
+            <button
+              type="button"
+              className="settings-alert-confirm"
+              disabled={deleting}
+              onClick={() => void confirmDelete()}
+            >
+              {t("musicAlbumDelete")}
+            </button>
           </div>
         </DialogContent>
       </Dialog>

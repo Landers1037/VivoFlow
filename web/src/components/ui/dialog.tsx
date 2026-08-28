@@ -23,16 +23,18 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 export const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+    variant?: "sheet" | "alert";
+  }
+>(({ className, children, variant = "sheet", ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay />
+    <DialogOverlay className={variant === "alert" ? "z-[90]" : undefined} />
     <DialogPrimitive.Content
       ref={ref}
-      className={cn("settings-sheet", className)}
+      className={cn(variant === "alert" ? "settings-alert" : "settings-sheet", className)}
       {...props}
     >
-      <div className="settings-sheet-handle" aria-hidden="true" />
+      {variant === "sheet" ? <div className="settings-sheet-handle" aria-hidden="true" /> : null}
       {children}
     </DialogPrimitive.Content>
   </DialogPortal>
@@ -50,4 +52,11 @@ export function DialogTitle({
   return (
     <DialogPrimitive.Title className={cn("settings-sheet-title", className)} {...props} />
   );
+}
+
+export function DialogDescription({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>) {
+  return <DialogPrimitive.Description className={className} {...props} />;
 }

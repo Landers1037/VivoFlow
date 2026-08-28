@@ -52,7 +52,14 @@ function AppShell({
   const hideTitleBar = appearanceConfig.hide_title_bar && page === "dashboard";
   const mobileCardModeActive = appearanceConfig.mobile_card_mode;
   const [musicAlbum, setMusicAlbum] = useState<import("@/types").MusicAlbum | null>(null);
-  useEffect(() => { if (appearanceConfig.music_album_enabled && appearanceConfig.active_music_album_id) musicApi.list().then(xs => setMusicAlbum(xs.find(x => x.id === appearanceConfig.active_music_album_id) ?? null)).catch(() => setMusicAlbum(null)); }, [appearanceConfig.music_album_enabled, appearanceConfig.active_music_album_id]);
+  useEffect(() => {
+    if (page !== "dashboard") return;
+    if (appearanceConfig.music_album_enabled && appearanceConfig.active_music_album_id) {
+      musicApi.list()
+        .then((xs) => setMusicAlbum(xs.find((x) => x.id === appearanceConfig.active_music_album_id) ?? null))
+        .catch(() => setMusicAlbum(null));
+    }
+  }, [page, appearanceConfig.music_album_enabled, appearanceConfig.active_music_album_id]);
 
   const revealHeader = useCallback(() => {
     setHeaderRevealed(true);
