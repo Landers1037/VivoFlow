@@ -69,9 +69,9 @@
 | `mobile_carousel_interval_s` | `[5, 60]`，默认 `10` |
 | `clock_style` | `lines` / `dial` / `pixel` / `flip` / `object` / `dots` |
 | `clock_dot_shape` | `circle` / `square` / `rounded` / `star` |
-| `audio_visualizer_mode` | `particles` / `grid` / `aurora` / `radial` / `city3d` / `nebula3d` / `terrain3d` / `crystal3d` |
+| `audio_visualizer_mode` | `particles` / `grid` / `aurora` / `radial` / `bars` / `city3d` / `nebula3d` / `terrain3d` / `crystal3d` |
 | `audio_color_mode` | `single` / `gradient` |
-| `audio_amplitude` | `[0.5, 2.0]` |
+| `audio_amplitude` | `[0.5, 5.0]` |
 | `audio_smoothing` | `[0, 0.9]` |
 
 配置变更会广播给所有已连接的 WebSocket 客户端，前端以服务端回传为准同步 UI。

@@ -37,6 +37,7 @@ export type AudioVisualizerMode =
   | "grid"
   | "aurora"
   | "radial"
+  | "bars"
   | "city3d"
   | "nebula3d"
   | "terrain3d"

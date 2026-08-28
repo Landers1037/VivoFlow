@@ -473,6 +473,7 @@ impl AppConfig {
             "grid",
             "aurora",
             "radial",
+            "bars",
             "city3d",
             "nebula3d",
             "terrain3d",
@@ -496,7 +497,7 @@ impl AppConfig {
             self.audio_color_secondary = self.audio_color_secondary.to_ascii_lowercase();
         }
         self.audio_amplitude = if self.audio_amplitude.is_finite() {
-            self.audio_amplitude.clamp(0.5, 2.0)
+            self.audio_amplitude.clamp(0.5, 5.0)
         } else {
             default_audio_amplitude()
         };
@@ -897,7 +898,7 @@ mod tests {
         assert!(!cfg.photo_album_enabled);
         assert_eq!(cfg.audio_visualizer_mode, "particles");
         assert_eq!(cfg.audio_color_primary, "#22d3ee");
-        assert_eq!(cfg.audio_amplitude, 2.0);
+        assert_eq!(cfg.audio_amplitude, 5.0);
         assert_eq!(cfg.audio_smoothing, 0.0);
     }
 
@@ -1233,5 +1234,15 @@ mod tests {
             .sanitize();
             assert_eq!(cfg.audio_visualizer_mode, mode);
         }
+    }
+
+    #[test]
+    fn bars_audio_mode_is_accepted() {
+        let cfg = AppConfig {
+            audio_visualizer_mode: "bars".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(cfg.audio_visualizer_mode, "bars");
     }
 }

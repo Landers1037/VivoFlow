@@ -8,9 +8,10 @@ import { normalizeHexColor, useAppearance } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
 import { isThreeAudioMode, type AudioDevice, type AudioFrame, type AudioStatus, type AudioVisualizerMode, type ThreeAudioVisualizerMode } from "@/types";
 
-const TWO_D_MODES: { id: AudioVisualizerMode; key: "audioModeParticles" | "audioModeGrid" | "audioModeAurora" | "audioModeRadial" }[] = [
+const TWO_D_MODES: { id: AudioVisualizerMode; key: "audioModeParticles" | "audioModeGrid" | "audioModeAurora" | "audioModeRadial" | "audioModeBars" }[] = [
   { id: "particles", key: "audioModeParticles" }, { id: "grid", key: "audioModeGrid" },
   { id: "aurora", key: "audioModeAurora" }, { id: "radial", key: "audioModeRadial" },
+  { id: "bars", key: "audioModeBars" },
 ];
 const THREE_D_MODES: { id: ThreeAudioVisualizerMode; key: "audioModeCity3d" | "audioModeNebula3d" | "audioModeTerrain3d" | "audioModeCrystal3d" }[] = [
   { id: "city3d", key: "audioModeCity3d" }, { id: "nebula3d", key: "audioModeNebula3d" },
@@ -109,7 +110,7 @@ export function AudioSettings({ frame, status, onSubscribe }: { frame: AudioFram
     </SettingsGroup>
 
     <SettingsGroup>
-      <SettingsSliderRow id="audio-amplitude" title={t("audioAmplitude")} valueLabel={`${Math.round(config.audio_amplitude * 100)}%`} min={0.5} max={2} step={0.05} value={config.audio_amplitude} onChange={setAudioAmplitude} />
+      <SettingsSliderRow id="audio-amplitude" title={t("audioAmplitude")} valueLabel={`${Math.round(config.audio_amplitude * 100)}%`} min={0.5} max={5} step={0.05} value={config.audio_amplitude} onChange={setAudioAmplitude} />
       <SettingsSliderRow id="audio-smoothing" title={t("audioSmoothing")} valueLabel={`${Math.round(config.audio_smoothing * 100)}%`} min={0} max={0.9} step={0.05} value={config.audio_smoothing} onChange={setAudioSmoothing} />
     </SettingsGroup>
   </div>;

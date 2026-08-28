@@ -1159,6 +1159,18 @@ textarea,
 }
 
 .audio-stage canvas { z-index: 1; }
+.audio-stage-hud {
+  padding-left: max(1.5rem, env(safe-area-inset-left));
+  padding-right: max(1.5rem, env(safe-area-inset-right));
+}
+.audio-stage-hud-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+.audio-stage-viz {
+  left: max(1.5rem, env(safe-area-inset-left));
+  right: max(1.5rem, env(safe-area-inset-right));
+  width: auto;
+}
 .audio-stage-badge,
 .audio-stage-control {
   border-color: color-mix(in oklch, var(--foreground) 12%, transparent);

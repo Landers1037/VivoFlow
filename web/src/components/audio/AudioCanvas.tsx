@@ -72,8 +72,24 @@ function drawMode(ctx: CanvasRenderingContext2D, w: number, h: number, bins: num
   if (mode === "grid") drawGrid(ctx, w, h, bins, a, b);
   else if (mode === "aurora") drawAurora(ctx, w, h, bins, a, b, reduced);
   else if (mode === "radial") drawRadial(ctx, w, h, bins, time, a, b, reduced);
+  else if (mode === "bars") drawBars(ctx, w, h, bins, a, b);
   else drawParticles(ctx, w, h, bins, time, a, b, reduced, beat);
   ctx.restore();
+}
+
+function drawBars(ctx: CanvasRenderingContext2D, w: number, h: number, bins: number[], a: string, b: string) {
+  const count = Math.min(64, bins.length);
+  const gap = Math.max(2, w * 0.007);
+  const barW = Math.max(2, (w - gap * (count - 1)) / count);
+  const baseY = h * 0.78;
+  const maxH = h * 0.56;
+  const minH = Math.max(2, barW * 0.45);
+  for (let i = 0; i < count; i++) {
+    const value = bins[i] ?? 0;
+    const barH = minH + value * maxH;
+    ctx.fillStyle = colorAt(a, b, count <= 1 ? 0 : i / (count - 1), 0.92);
+    ctx.fillRect(i * (barW + gap), baseY - barH, barW, barH);
+  }
 }
 
 function drawGrid(ctx: CanvasRenderingContext2D, w: number, h: number, bins: number[], a: string, b: string) {
