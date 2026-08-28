@@ -52,8 +52,9 @@
 
 - 独立子页，入口在「显示」分组、黑洞下面。
 - `model3d_enabled` 开启后首页进入全屏 3D 场景，并关闭时钟、黑洞、相册、音乐、音频。
-- `model3d_id`：当前场景，现为 `solar_system`。设置页用卡片预览，点击切换；未选中的卡片不创建 GPU 上下文。
+- `model3d_id`：当前场景，`solar_system` 或 `tree`。设置页用卡片预览，点击切换；未选中的卡片不创建 GPU 上下文。
 - 选中太阳系时可配 `model3d_orbit_style`：`solid` / `dashed` / `hidden`，轨道线为白色；以及 `model3d_textures_enabled`（默认开）关闭后用纯色球体。
+- 选中树时可配树冠形状 `round` / `cone` / `layered` 与颜色、底座形状 `square` / `circle` / `heart` 与颜色、树干颜色。树冠大小分小/中/大，刷新或重选形状时随机（原先尺寸为小）。`layered` 为从下往上、从大到小的方板层叠（约 3–4 层，层与层紧贴、中间不露树干）。树为 Minecraft 风格方块，首页可拖拽旋转、滚轮或双指缩放。
 - 太阳系：太阳、地球、月球，压缩轨道比例；地球绕日、月球绕地、自转。首页可拖拽旋转、滚轮或双指缩放。
 - 渲染用 Three.js `WebGPURenderer`：桌面 Chrome / Edge 优先 WebGPU；iPhone / iPad / Safari 强制 WebGL2（这些环境的 WebGPU 常能拿到 adapter 却画出黑屏，Three 不会自动回退）。两者都不可用时显示提示。
 - 贴图放在 `web/public/models/solar-system/`（`sun.jpg`、`earth.jpg`、`moon.jpg` 等）。缺失时用程序化球体，不阻断渲染。太阳系贴图署名 Solar System Scope（CC BY 4.0）。

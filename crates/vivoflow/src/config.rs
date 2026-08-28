@@ -86,6 +86,26 @@ fn default_model3d_textures_enabled() -> bool {
     true
 }
 
+fn default_model3d_tree_canopy_shape() -> String {
+    "layered".into()
+}
+
+fn default_model3d_tree_canopy_color() -> String {
+    "#e07a28".into()
+}
+
+fn default_model3d_tree_base_shape() -> String {
+    "square".into()
+}
+
+fn default_model3d_tree_base_color() -> String {
+    "#8f98a3".into()
+}
+
+fn default_model3d_tree_trunk_color() -> String {
+    "#4a301c".into()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub interval_ms: u64,
@@ -167,6 +187,16 @@ pub struct AppConfig {
     pub model3d_orbit_style: String,
     #[serde(default = "default_model3d_textures_enabled")]
     pub model3d_textures_enabled: bool,
+    #[serde(default = "default_model3d_tree_canopy_shape")]
+    pub model3d_tree_canopy_shape: String,
+    #[serde(default = "default_model3d_tree_canopy_color")]
+    pub model3d_tree_canopy_color: String,
+    #[serde(default = "default_model3d_tree_base_shape")]
+    pub model3d_tree_base_shape: String,
+    #[serde(default = "default_model3d_tree_base_color")]
+    pub model3d_tree_base_color: String,
+    #[serde(default = "default_model3d_tree_trunk_color")]
+    pub model3d_tree_trunk_color: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -222,6 +252,11 @@ impl Default for AppConfig {
             model3d_id: default_model3d_id(),
             model3d_orbit_style: default_model3d_orbit_style(),
             model3d_textures_enabled: default_model3d_textures_enabled(),
+            model3d_tree_canopy_shape: default_model3d_tree_canopy_shape(),
+            model3d_tree_canopy_color: default_model3d_tree_canopy_color(),
+            model3d_tree_base_shape: default_model3d_tree_base_shape(),
+            model3d_tree_base_color: default_model3d_tree_base_color(),
+            model3d_tree_trunk_color: default_model3d_tree_trunk_color(),
         }
     }
 }
@@ -368,11 +403,32 @@ impl AppConfig {
         if !["circle", "square", "rounded", "star"].contains(&self.clock_dot_shape.as_str()) {
             self.clock_dot_shape = default_clock_dot_shape();
         }
-        if !["solar_system"].contains(&self.model3d_id.as_str()) {
+        if !["solar_system", "tree"].contains(&self.model3d_id.as_str()) {
             self.model3d_id = default_model3d_id();
         }
         if !["solid", "dashed", "hidden"].contains(&self.model3d_orbit_style.as_str()) {
             self.model3d_orbit_style = default_model3d_orbit_style();
+        }
+        if !["round", "cone", "layered"].contains(&self.model3d_tree_canopy_shape.as_str()) {
+            self.model3d_tree_canopy_shape = default_model3d_tree_canopy_shape();
+        }
+        if !["square", "circle", "heart"].contains(&self.model3d_tree_base_shape.as_str()) {
+            self.model3d_tree_base_shape = default_model3d_tree_base_shape();
+        }
+        if !is_hex_color(&self.model3d_tree_canopy_color) {
+            self.model3d_tree_canopy_color = default_model3d_tree_canopy_color();
+        } else {
+            self.model3d_tree_canopy_color = self.model3d_tree_canopy_color.to_ascii_lowercase();
+        }
+        if !is_hex_color(&self.model3d_tree_base_color) {
+            self.model3d_tree_base_color = default_model3d_tree_base_color();
+        } else {
+            self.model3d_tree_base_color = self.model3d_tree_base_color.to_ascii_lowercase();
+        }
+        if !is_hex_color(&self.model3d_tree_trunk_color) {
+            self.model3d_tree_trunk_color = default_model3d_tree_trunk_color();
+        } else {
+            self.model3d_tree_trunk_color = self.model3d_tree_trunk_color.to_ascii_lowercase();
         }
         if self.clock_enabled {
             self.photo_album_enabled = false;
@@ -532,6 +588,11 @@ mod tests {
         assert_eq!(cfg.model3d_id, "solar_system");
         assert_eq!(cfg.model3d_orbit_style, "solid");
         assert!(cfg.model3d_textures_enabled);
+        assert_eq!(cfg.model3d_tree_canopy_shape, "layered");
+        assert_eq!(cfg.model3d_tree_canopy_color, "#e07a28");
+        assert_eq!(cfg.model3d_tree_base_shape, "square");
+        assert_eq!(cfg.model3d_tree_base_color, "#8f98a3");
+        assert_eq!(cfg.model3d_tree_trunk_color, "#4a301c");
     }
 
     #[test]
@@ -706,6 +767,15 @@ mod tests {
         .sanitize();
         assert!(only.model3d_enabled);
         assert_eq!(only.model3d_id, "solar_system");
+
+        let tree = AppConfig {
+            model3d_enabled: true,
+            model3d_id: "tree".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(tree.model3d_enabled);
+        assert_eq!(tree.model3d_id, "tree");
     }
 
     #[test]
@@ -726,6 +796,40 @@ mod tests {
         .sanitize();
         assert_eq!(bad.model3d_orbit_style, "solid");
         assert!(bad.model3d_textures_enabled);
+    }
+
+    #[test]
+    fn model3d_tree_look_is_sanitized() {
+        let ok = AppConfig {
+            model3d_id: "tree".into(),
+            model3d_tree_canopy_shape: "cone".into(),
+            model3d_tree_base_shape: "heart".into(),
+            model3d_tree_canopy_color: "#FF8800".into(),
+            model3d_tree_base_color: "#aabbcc".into(),
+            model3d_tree_trunk_color: "#332211".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(ok.model3d_tree_canopy_shape, "cone");
+        assert_eq!(ok.model3d_tree_base_shape, "heart");
+        assert_eq!(ok.model3d_tree_canopy_color, "#ff8800");
+        assert_eq!(ok.model3d_tree_base_color, "#aabbcc");
+        assert_eq!(ok.model3d_tree_trunk_color, "#332211");
+
+        let bad = AppConfig {
+            model3d_tree_canopy_shape: "blob".into(),
+            model3d_tree_base_shape: "star".into(),
+            model3d_tree_canopy_color: "orange".into(),
+            model3d_tree_base_color: "nope".into(),
+            model3d_tree_trunk_color: "#fff".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(bad.model3d_tree_canopy_shape, "layered");
+        assert_eq!(bad.model3d_tree_base_shape, "square");
+        assert_eq!(bad.model3d_tree_canopy_color, "#e07a28");
+        assert_eq!(bad.model3d_tree_base_color, "#8f98a3");
+        assert_eq!(bad.model3d_tree_trunk_color, "#4a301c");
     }
 
     #[test]

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useAppearance } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
 import type { Model3dId } from "@/types";
@@ -20,10 +20,29 @@ export function Models3dRenderer({
   const [unsupported, setUnsupported] = useState(false);
   const orbitStyle = config.model3d_orbit_style;
   const texturesEnabled = config.model3d_textures_enabled;
+  const treeCanopyShape = config.model3d_tree_canopy_shape;
+  const treeCanopyColor = config.model3d_tree_canopy_color;
+  const treeBaseShape = config.model3d_tree_base_shape;
+  const treeBaseColor = config.model3d_tree_base_color;
+  const treeTrunkColor = config.model3d_tree_trunk_color;
+  const treeVariation = useMemo(
+    () => (Math.random() * 0xffffffff) >>> 0,
+    [modelId, treeCanopyShape],
+  );
 
   useEffect(() => {
     setUnsupported(false);
-  }, [modelId, orbitStyle, texturesEnabled]);
+  }, [
+    modelId,
+    orbitStyle,
+    texturesEnabled,
+    treeCanopyShape,
+    treeCanopyColor,
+    treeBaseShape,
+    treeBaseColor,
+    treeTrunkColor,
+    treeVariation,
+  ]);
 
   if (unsupported) {
     return (
@@ -40,6 +59,12 @@ export function Models3dRenderer({
           modelId={modelId}
           orbitStyle={orbitStyle}
           texturesEnabled={texturesEnabled}
+          treeCanopyShape={treeCanopyShape}
+          treeCanopyColor={treeCanopyColor}
+          treeBaseShape={treeBaseShape}
+          treeBaseColor={treeBaseColor}
+          treeTrunkColor={treeTrunkColor}
+          treeVariation={treeVariation}
           preview={preview}
           interactive={interactive}
           className="h-full w-full"

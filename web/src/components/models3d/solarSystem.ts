@@ -22,6 +22,7 @@ import {
   Vector3,
 } from "three/webgpu";
 import type { Model3dId, Model3dOrbitStyle } from "@/types";
+import { createVoxelTree, type TreeLook } from "@/components/models3d/tree";
 
 const ASSET = "/models/solar-system";
 const SUN_RADIUS = 2.4;
@@ -33,11 +34,15 @@ const MOON_ORBIT = 1.4;
 export interface SolarSystemOptions {
   orbitStyle: Model3dOrbitStyle;
   texturesEnabled: boolean;
+  tree: TreeLook;
 }
 
 export interface SolarSystemHandle {
   scene: Scene;
   camera: PerspectiveCamera;
+  orbitTarget: Vector3;
+  minDistance: number;
+  maxDistance: number;
   update: (time: number, reduced: boolean) => void;
   dispose: () => void;
 }
@@ -47,7 +52,7 @@ export async function createModel3dScene(
   preview: boolean,
   options: SolarSystemOptions,
 ): Promise<SolarSystemHandle> {
-  if (id === "solar_system") return createSolarSystem(preview, options);
+  if (id === "tree") return createVoxelTree(preview, options.tree);
   return createSolarSystem(preview, options);
 }
 
@@ -182,7 +187,15 @@ async function createSolarSystem(preview: boolean, options: SolarSystemOptions):
     for (const texture of Object.values(textures)) texture?.dispose();
   };
 
-  return { scene, camera, update, dispose };
+  return {
+    scene,
+    camera,
+    orbitTarget: new Vector3(0, 0, 0),
+    minDistance: preview ? 10 : 7,
+    maxDistance: preview ? 22 : 42,
+    update,
+    dispose,
+  };
 }
 
 function makeOrbitRing(radius: number, style: Model3dOrbitStyle, opacity: number) {

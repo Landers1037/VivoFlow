@@ -16,9 +16,12 @@
 - `blackhole_enabled`：全屏黑洞看板
 - `blackhole_color` / `blackhole_interactive` / `blackhole_spin_speed`
 - `model3d_enabled`：全屏 3D 模型看板
-- `model3d_id`：`solar_system`
+- `model3d_id`：`solar_system` / `tree`
 - `model3d_orbit_style`：`solid` / `dashed` / `hidden`
 - `model3d_textures_enabled`：是否加载太阳系贴图
+- `model3d_tree_canopy_shape`：`round` / `cone` / `layered`
+- `model3d_tree_canopy_color` / `model3d_tree_base_color` / `model3d_tree_trunk_color`
+- `model3d_tree_base_shape`：`square` / `circle` / `heart`
 - `Snapshot` 及 `CpuMetrics`、`MemoryMetrics`、`GpuMetrics`、`DiskMetrics`、`NetworkMetrics`
 - `ConnState`：`"connecting" | "connected" | "disconnected"`
 

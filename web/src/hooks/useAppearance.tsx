@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dId, Model3dOrbitStyle, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, PhotoAlbumEffect, ThemeMode, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
@@ -20,13 +20,18 @@ import {
   DEFAULT_GLASS_GRADIENT_START,
   DEFAULT_ACCENT_CUSTOM,
   DEFAULT_CONFIG,
+  DEFAULT_MODEL3D_TREE_BASE_COLOR,
+  DEFAULT_MODEL3D_TREE_CANOPY_COLOR,
+  DEFAULT_MODEL3D_TREE_TRUNK_COLOR,
   MODEL3D_IDS,
   MODEL3D_ORBIT_STYLES,
+  MODEL3D_TREE_BASE_SHAPES,
+  MODEL3D_TREE_CANOPY_SHAPES,
   UI_STYLES,
 } from "@/types";
 
 export type { AccentId, Lang, UiStyle };
-export { DEFAULT_BLACKHOLE_COLOR, DEFAULT_BLACKHOLE_SPIN_SPEED };
+export { DEFAULT_BLACKHOLE_COLOR, DEFAULT_BLACKHOLE_SPIN_SPEED, DEFAULT_MODEL3D_TREE_BASE_COLOR, DEFAULT_MODEL3D_TREE_CANOPY_COLOR, DEFAULT_MODEL3D_TREE_TRUNK_COLOR };
 export type TFunction = (key: MessageKey, vars?: TranslateVars) => string;
 
 const ACCENT_HUES: Record<
@@ -144,6 +149,15 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
       ? (base.model3d_orbit_style as Model3dOrbitStyle)
       : "solid",
     model3d_textures_enabled: base.model3d_textures_enabled !== false,
+    model3d_tree_canopy_shape: MODEL3D_TREE_CANOPY_SHAPES.includes(base.model3d_tree_canopy_shape as Model3dTreeCanopyShape)
+      ? (base.model3d_tree_canopy_shape as Model3dTreeCanopyShape)
+      : "layered",
+    model3d_tree_canopy_color: normalizeHexColor(base.model3d_tree_canopy_color, DEFAULT_MODEL3D_TREE_CANOPY_COLOR),
+    model3d_tree_base_shape: MODEL3D_TREE_BASE_SHAPES.includes(base.model3d_tree_base_shape as Model3dTreeBaseShape)
+      ? (base.model3d_tree_base_shape as Model3dTreeBaseShape)
+      : "square",
+    model3d_tree_base_color: normalizeHexColor(base.model3d_tree_base_color, DEFAULT_MODEL3D_TREE_BASE_COLOR),
+    model3d_tree_trunk_color: normalizeHexColor(base.model3d_tree_trunk_color, DEFAULT_MODEL3D_TREE_TRUNK_COLOR),
   };
 }
 
@@ -234,6 +248,11 @@ interface AppearanceContextValue {
   setModel3dId: (v: Model3dId) => void;
   setModel3dOrbitStyle: (v: Model3dOrbitStyle) => void;
   setModel3dTexturesEnabled: (v: boolean) => void;
+  setModel3dTreeCanopyShape: (v: Model3dTreeCanopyShape) => void;
+  setModel3dTreeCanopyColor: (hex: string) => void;
+  setModel3dTreeBaseShape: (v: Model3dTreeBaseShape) => void;
+  setModel3dTreeBaseColor: (hex: string) => void;
+  setModel3dTreeTrunkColor: (hex: string) => void;
   t: TFunction;
   lang: Lang;
 }
@@ -363,6 +382,14 @@ export function AppearanceProvider({
       setModel3dId: (model3d_id) => patch({ model3d_id }),
       setModel3dOrbitStyle: (model3d_orbit_style) => patch({ model3d_orbit_style }),
       setModel3dTexturesEnabled: (model3d_textures_enabled) => patch({ model3d_textures_enabled }),
+      setModel3dTreeCanopyShape: (model3d_tree_canopy_shape) => patch({ model3d_tree_canopy_shape }),
+      setModel3dTreeCanopyColor: (hex) =>
+        patch({ model3d_tree_canopy_color: normalizeHexColor(hex, DEFAULT_MODEL3D_TREE_CANOPY_COLOR) }),
+      setModel3dTreeBaseShape: (model3d_tree_base_shape) => patch({ model3d_tree_base_shape }),
+      setModel3dTreeBaseColor: (hex) =>
+        patch({ model3d_tree_base_color: normalizeHexColor(hex, DEFAULT_MODEL3D_TREE_BASE_COLOR) }),
+      setModel3dTreeTrunkColor: (hex) =>
+        patch({ model3d_tree_trunk_color: normalizeHexColor(hex, DEFAULT_MODEL3D_TREE_TRUNK_COLOR) }),
       t,
       lang: resolved.language,
     }),

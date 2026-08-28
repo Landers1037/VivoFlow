@@ -8,12 +8,18 @@ import {
 import { shouldForceWebGL, withTimeout } from "@/components/models3d/compat";
 import { attachOrbit } from "@/components/models3d/orbit";
 import { createModel3dScene } from "@/components/models3d/solarSystem";
-import type { Model3dId, Model3dOrbitStyle } from "@/types";
+import type { Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape } from "@/types";
 
 export interface Models3dCanvasProps {
   modelId: Model3dId;
   orbitStyle: Model3dOrbitStyle;
   texturesEnabled: boolean;
+  treeCanopyShape: Model3dTreeCanopyShape;
+  treeCanopyColor: string;
+  treeBaseShape: Model3dTreeBaseShape;
+  treeBaseColor: string;
+  treeTrunkColor: string;
+  treeVariation: number;
   preview?: boolean;
   interactive?: boolean;
   className?: string;
@@ -26,6 +32,12 @@ export default function Models3dCanvas({
   modelId,
   orbitStyle,
   texturesEnabled,
+  treeCanopyShape,
+  treeCanopyColor,
+  treeBaseShape,
+  treeBaseColor,
+  treeTrunkColor,
+  treeVariation,
   preview = false,
   interactive = false,
   className,
@@ -67,7 +79,18 @@ export default function Models3dCanvas({
 
       let world: Awaited<ReturnType<typeof createModel3dScene>>;
       try {
-        world = await createModel3dScene(modelId, preview, { orbitStyle, texturesEnabled });
+        world = await createModel3dScene(modelId, preview, {
+          orbitStyle,
+          texturesEnabled,
+          tree: {
+            canopyShape: treeCanopyShape,
+            canopyColor: treeCanopyColor,
+            baseShape: treeBaseShape,
+            baseColor: treeBaseColor,
+            trunkColor: treeTrunkColor,
+            variation: treeVariation,
+          },
+        });
       } catch (error) {
         console.warn("3D model scene failed", error);
         renderer.dispose();
@@ -82,8 +105,9 @@ export default function Models3dCanvas({
 
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const orbit = attachOrbit(canvas, world.camera, {
-        minDistance: preview ? 10 : 7,
-        maxDistance: preview ? 22 : 42,
+        target: world.orbitTarget,
+        minDistance: world.minDistance,
+        maxDistance: world.maxDistance,
         enableRotate: interactive && !preview,
         enableZoom: interactive && !preview,
         autoRotate: preview || !interactive,
@@ -156,7 +180,19 @@ export default function Models3dCanvas({
       cancelled = true;
       dispose?.();
     };
-  }, [interactive, modelId, orbitStyle, preview, texturesEnabled]);
+  }, [
+    interactive,
+    modelId,
+    orbitStyle,
+    preview,
+    texturesEnabled,
+    treeBaseColor,
+    treeBaseShape,
+    treeCanopyColor,
+    treeCanopyShape,
+    treeTrunkColor,
+    treeVariation,
+  ]);
 
   return (
     <canvas
