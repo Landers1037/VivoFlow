@@ -114,6 +114,34 @@ fn default_model3d_tree_trunk_color() -> String {
     "#4a301c".into()
 }
 
+fn default_model3d_flower_type() -> String {
+    "rose".into()
+}
+
+fn default_model3d_flower_petal_color() -> String {
+    "#d94a64".into()
+}
+
+fn default_model3d_flower_foliage_color() -> String {
+    "#3f7d4a".into()
+}
+
+fn default_model3d_flower_pot_shape() -> String {
+    "round".into()
+}
+
+fn default_model3d_flower_pot_color() -> String {
+    "#b86f47".into()
+}
+
+fn default_model3d_flower_seed() -> String {
+    "7c4a2f91".into()
+}
+
+fn default_model3d_flower_generator_version() -> u16 {
+    1
+}
+
 fn default_model3d_town_seed() -> String {
     "6f3a9c21".into()
 }
@@ -237,6 +265,20 @@ pub struct AppConfig {
     pub model3d_tree_base_color: String,
     #[serde(default = "default_model3d_tree_trunk_color")]
     pub model3d_tree_trunk_color: String,
+    #[serde(default = "default_model3d_flower_type")]
+    pub model3d_flower_type: String,
+    #[serde(default = "default_model3d_flower_petal_color")]
+    pub model3d_flower_petal_color: String,
+    #[serde(default = "default_model3d_flower_foliage_color")]
+    pub model3d_flower_foliage_color: String,
+    #[serde(default = "default_model3d_flower_pot_shape")]
+    pub model3d_flower_pot_shape: String,
+    #[serde(default = "default_model3d_flower_pot_color")]
+    pub model3d_flower_pot_color: String,
+    #[serde(default = "default_model3d_flower_seed")]
+    pub model3d_flower_seed: String,
+    #[serde(default = "default_model3d_flower_generator_version")]
+    pub model3d_flower_generator_version: u16,
     #[serde(default = "default_model3d_town_seed")]
     pub model3d_town_seed: String,
     #[serde(default = "default_model3d_town_generator_version")]
@@ -337,6 +379,13 @@ impl Default for AppConfig {
             model3d_tree_base_shape: default_model3d_tree_base_shape(),
             model3d_tree_base_color: default_model3d_tree_base_color(),
             model3d_tree_trunk_color: default_model3d_tree_trunk_color(),
+            model3d_flower_type: default_model3d_flower_type(),
+            model3d_flower_petal_color: default_model3d_flower_petal_color(),
+            model3d_flower_foliage_color: default_model3d_flower_foliage_color(),
+            model3d_flower_pot_shape: default_model3d_flower_pot_shape(),
+            model3d_flower_pot_color: default_model3d_flower_pot_color(),
+            model3d_flower_seed: default_model3d_flower_seed(),
+            model3d_flower_generator_version: default_model3d_flower_generator_version(),
             model3d_town_seed: default_model3d_town_seed(),
             model3d_town_generator_version: default_model3d_town_generator_version(),
             model3d_town_population: default_model3d_town_population(),
@@ -397,6 +446,15 @@ fn normalize_town_seed(raw: &str) -> String {
         trimmed.to_ascii_lowercase()
     } else {
         default_model3d_town_seed()
+    }
+}
+
+fn normalize_flower_seed(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if trimmed.len() == 8 && trimmed.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        trimmed.to_ascii_lowercase()
+    } else {
+        default_model3d_flower_seed()
     }
 }
 
@@ -532,7 +590,7 @@ impl AppConfig {
         if !["circle", "square", "rounded", "star"].contains(&self.clock_dot_shape.as_str()) {
             self.clock_dot_shape = default_clock_dot_shape();
         }
-        if !["solar_system", "tree", "town"].contains(&self.model3d_id.as_str()) {
+        if !["solar_system", "tree", "town", "flower"].contains(&self.model3d_id.as_str()) {
             self.model3d_id = default_model3d_id();
         }
         if !["solid", "dashed", "hidden"].contains(&self.model3d_orbit_style.as_str()) {
@@ -558,6 +616,45 @@ impl AppConfig {
             self.model3d_tree_trunk_color = default_model3d_tree_trunk_color();
         } else {
             self.model3d_tree_trunk_color = self.model3d_tree_trunk_color.to_ascii_lowercase();
+        }
+        if ![
+            "rose",
+            "tulip",
+            "sunflower",
+            "daisy",
+            "lily",
+            "orchid",
+            "carnation",
+            "peony",
+            "lavender",
+            "hydrangea",
+        ]
+        .contains(&self.model3d_flower_type.as_str())
+        {
+            self.model3d_flower_type = default_model3d_flower_type();
+        }
+        if !["round", "square", "pedestal"].contains(&self.model3d_flower_pot_shape.as_str()) {
+            self.model3d_flower_pot_shape = default_model3d_flower_pot_shape();
+        }
+        if !is_hex_color(&self.model3d_flower_petal_color) {
+            self.model3d_flower_petal_color = default_model3d_flower_petal_color();
+        } else {
+            self.model3d_flower_petal_color = self.model3d_flower_petal_color.to_ascii_lowercase();
+        }
+        if !is_hex_color(&self.model3d_flower_foliage_color) {
+            self.model3d_flower_foliage_color = default_model3d_flower_foliage_color();
+        } else {
+            self.model3d_flower_foliage_color =
+                self.model3d_flower_foliage_color.to_ascii_lowercase();
+        }
+        if !is_hex_color(&self.model3d_flower_pot_color) {
+            self.model3d_flower_pot_color = default_model3d_flower_pot_color();
+        } else {
+            self.model3d_flower_pot_color = self.model3d_flower_pot_color.to_ascii_lowercase();
+        }
+        self.model3d_flower_seed = normalize_flower_seed(&self.model3d_flower_seed);
+        if self.model3d_flower_generator_version == 0 {
+            self.model3d_flower_generator_version = default_model3d_flower_generator_version();
         }
         self.model3d_town_seed = normalize_town_seed(&self.model3d_town_seed);
         if self.model3d_town_generator_version == 0 {
@@ -817,6 +914,13 @@ mod tests {
         assert_eq!(cfg.model3d_tree_base_shape, "square");
         assert_eq!(cfg.model3d_tree_base_color, "#8f98a3");
         assert_eq!(cfg.model3d_tree_trunk_color, "#4a301c");
+        assert_eq!(cfg.model3d_flower_type, "rose");
+        assert_eq!(cfg.model3d_flower_petal_color, "#d94a64");
+        assert_eq!(cfg.model3d_flower_foliage_color, "#3f7d4a");
+        assert_eq!(cfg.model3d_flower_pot_shape, "round");
+        assert_eq!(cfg.model3d_flower_pot_color, "#b86f47");
+        assert_eq!(cfg.model3d_flower_seed, "7c4a2f91");
+        assert_eq!(cfg.model3d_flower_generator_version, 1);
         assert_eq!(cfg.model3d_town_seed, "6f3a9c21");
         assert_eq!(cfg.model3d_town_generator_version, 1);
         assert_eq!(cfg.model3d_town_population, "medium");
@@ -1028,6 +1132,15 @@ mod tests {
         .sanitize();
         assert!(town.model3d_enabled);
         assert_eq!(town.model3d_id, "town");
+
+        let flower = AppConfig {
+            model3d_enabled: true,
+            model3d_id: "flower".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(flower.model3d_enabled);
+        assert_eq!(flower.model3d_id, "flower");
     }
 
     #[test]
@@ -1082,6 +1195,48 @@ mod tests {
         assert_eq!(bad.model3d_tree_canopy_color, "#e07a28");
         assert_eq!(bad.model3d_tree_base_color, "#8f98a3");
         assert_eq!(bad.model3d_tree_trunk_color, "#4a301c");
+    }
+
+    #[test]
+    fn model3d_flower_look_is_sanitized() {
+        let ok = AppConfig {
+            model3d_id: "flower".into(),
+            model3d_flower_type: "hydrangea".into(),
+            model3d_flower_petal_color: "#FF88AA".into(),
+            model3d_flower_foliage_color: "#aabbcc".into(),
+            model3d_flower_pot_shape: "pedestal".into(),
+            model3d_flower_pot_color: "#332211".into(),
+            model3d_flower_seed: " A1B2C3D4 ".into(),
+            model3d_flower_generator_version: 3,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(ok.model3d_flower_type, "hydrangea");
+        assert_eq!(ok.model3d_flower_petal_color, "#ff88aa");
+        assert_eq!(ok.model3d_flower_foliage_color, "#aabbcc");
+        assert_eq!(ok.model3d_flower_pot_shape, "pedestal");
+        assert_eq!(ok.model3d_flower_pot_color, "#332211");
+        assert_eq!(ok.model3d_flower_seed, "a1b2c3d4");
+        assert_eq!(ok.model3d_flower_generator_version, 3);
+
+        let bad = AppConfig {
+            model3d_flower_type: "unknown".into(),
+            model3d_flower_petal_color: "pink".into(),
+            model3d_flower_foliage_color: "#fff".into(),
+            model3d_flower_pot_shape: "hexagon".into(),
+            model3d_flower_pot_color: "nope".into(),
+            model3d_flower_seed: "invalid".into(),
+            model3d_flower_generator_version: 0,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(bad.model3d_flower_type, "rose");
+        assert_eq!(bad.model3d_flower_petal_color, "#d94a64");
+        assert_eq!(bad.model3d_flower_foliage_color, "#3f7d4a");
+        assert_eq!(bad.model3d_flower_pot_shape, "round");
+        assert_eq!(bad.model3d_flower_pot_color, "#b86f47");
+        assert_eq!(bad.model3d_flower_seed, "7c4a2f91");
+        assert_eq!(bad.model3d_flower_generator_version, 1);
     }
 
     #[test]

@@ -3734,6 +3734,11 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   --models3d-clock-base: #333333;
 }
 
+.models3d-clock.is-flower {
+  --models3d-clock-accent: #d94a64;
+  --models3d-clock-base: #b86f47;
+}
+
 .models3d-clock.is-night {
   color: #ffe08b;
   border-color: #8eaee6;
@@ -3843,6 +3848,56 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.75rem 0.85rem;
+}
+
+.settings-flower-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem 0.2rem;
+}
+
+.settings-flower-actions .settings-row-subtitle {
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.settings-flower-type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem 0.75rem;
+}
+
+.settings-flower-type-item {
+  min-height: 2.35rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.58rem;
+  padding: 0.35rem 0.5rem;
+  color: var(--muted-foreground);
+  background: var(--card);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-flower-type-item.is-active {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.settings-flower-type-item:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.settings-flower-type-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .settings-town-seed-copy {

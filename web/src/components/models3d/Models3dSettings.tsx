@@ -8,15 +8,19 @@ import {
   DEFAULT_MODEL3D_TREE_BASE_COLOR,
   DEFAULT_MODEL3D_TREE_CANOPY_COLOR,
   DEFAULT_MODEL3D_TREE_TRUNK_COLOR,
+  DEFAULT_MODEL3D_FLOWER_FOLIAGE_COLOR,
+  DEFAULT_MODEL3D_FLOWER_PETAL_COLOR,
+  DEFAULT_MODEL3D_FLOWER_POT_COLOR,
   normalizeHexColor,
   useAppearance,
 } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
-import type { Model3dClockPosition, Model3dId, TownFavorite, TownPopulation, TownDensity, TownTime } from "@/types";
+import type { Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, TownFavorite, TownPopulation, TownDensity, TownTime } from "@/types";
+import { MODEL3D_FLOWER_TYPES } from "@/types";
 
 const MODEL_CARDS: {
   id: Model3dId;
-  titleKey: "models3dSolarSystem" | "models3dTree" | "models3dTown";
+  titleKey: "models3dSolarSystem" | "models3dTree" | "models3dTown" | "models3dFlower";
   placeholder: string;
 }[] = [
   {
@@ -37,6 +41,12 @@ const MODEL_CARDS: {
     placeholder:
       "bg-[radial-gradient(circle_at_54%_42%,#6e9f64,transparent_30%),radial-gradient(circle_at_25%_72%,#d6b76b,transparent_24%),radial-gradient(circle_at_78%_66%,#3a8ca7,transparent_24%),#17313a]",
   },
+  {
+    id: "flower",
+    titleKey: "models3dFlower",
+    placeholder:
+      "bg-[radial-gradient(circle_at_50%_38%,#d94a64,transparent_26%),radial-gradient(circle_at_50%_72%,#b86f47,transparent_27%),radial-gradient(circle_at_35%_58%,#3f7d4a,transparent_18%),#f3eee4]",
+  },
 ];
 
 export function Models3dSettings() {
@@ -53,20 +63,35 @@ export function Models3dSettings() {
     setModel3dTreeBaseShape,
     setModel3dTreeBaseColor,
     setModel3dTreeTrunkColor,
+    setModel3dFlowerType,
+    setModel3dFlowerPetalColor,
+    setModel3dFlowerFoliageColor,
+    setModel3dFlowerPotShape,
+    setModel3dFlowerPotColor,
+    randomizeModel3dFlower,
   } = useAppearance();
   const selected = config.model3d_id;
   const [canopyDraft, setCanopyDraft] = useState(config.model3d_tree_canopy_color);
   const [baseDraft, setBaseDraft] = useState(config.model3d_tree_base_color);
   const [trunkDraft, setTrunkDraft] = useState(config.model3d_tree_trunk_color);
+  const [flowerPetalDraft, setFlowerPetalDraft] = useState(config.model3d_flower_petal_color);
+  const [flowerFoliageDraft, setFlowerFoliageDraft] = useState(config.model3d_flower_foliage_color);
+  const [flowerPotDraft, setFlowerPotDraft] = useState(config.model3d_flower_pot_color);
 
   useEffect(() => {
     setCanopyDraft(config.model3d_tree_canopy_color);
     setBaseDraft(config.model3d_tree_base_color);
     setTrunkDraft(config.model3d_tree_trunk_color);
+    setFlowerPetalDraft(config.model3d_flower_petal_color);
+    setFlowerFoliageDraft(config.model3d_flower_foliage_color);
+    setFlowerPotDraft(config.model3d_flower_pot_color);
   }, [
     config.model3d_tree_canopy_color,
     config.model3d_tree_base_color,
     config.model3d_tree_trunk_color,
+    config.model3d_flower_petal_color,
+    config.model3d_flower_foliage_color,
+    config.model3d_flower_pot_color,
   ]);
 
   return (
@@ -119,6 +144,8 @@ export function Models3dSettings() {
           <p className="settings-group-footer">{t("models3dCredit")}</p>
         ) : selected === "town" ? (
           <p className="settings-group-footer">{t("models3dTownHint")}</p>
+        ) : selected === "flower" ? (
+          <p className="settings-group-footer">{t("models3dFlowerHint")}</p>
         ) : (
           <p className="settings-group-footer">{t("models3dTreeHint")}</p>
         )}
@@ -230,6 +257,26 @@ export function Models3dSettings() {
         </>
       ) : null}
 
+      {selected === "flower" ? (
+        <FlowerSettings
+          flowerPetalDraft={flowerPetalDraft}
+          flowerFoliageDraft={flowerFoliageDraft}
+          flowerPotDraft={flowerPotDraft}
+          setFlowerPetalDraft={setFlowerPetalDraft}
+          setFlowerFoliageDraft={setFlowerFoliageDraft}
+          setFlowerPotDraft={setFlowerPotDraft}
+          setModel3dFlowerType={setModel3dFlowerType}
+          setModel3dFlowerPetalColor={setModel3dFlowerPetalColor}
+          setModel3dFlowerFoliageColor={setModel3dFlowerFoliageColor}
+          setModel3dFlowerPotShape={setModel3dFlowerPotShape}
+          setModel3dFlowerPotColor={setModel3dFlowerPotColor}
+          randomizeModel3dFlower={randomizeModel3dFlower}
+          config={config}
+          synced={synced}
+          t={t}
+        />
+      ) : null}
+
       {selected === "town" ? <TownSettings /> : null}
     </div>
   );
@@ -318,6 +365,168 @@ function Models3dClockSettings() {
           disabled={!synced}
           onCheckedChange={setModel3dClockShowSeconds}
         />
+      </SettingsGroup>
+    </>
+  );
+}
+
+const FLOWER_TYPE_LABEL_KEYS: Record<
+  Model3dFlowerType,
+  | "models3dFlowerRose"
+  | "models3dFlowerTulip"
+  | "models3dFlowerSunflower"
+  | "models3dFlowerDaisy"
+  | "models3dFlowerLily"
+  | "models3dFlowerOrchid"
+  | "models3dFlowerCarnation"
+  | "models3dFlowerPeony"
+  | "models3dFlowerLavender"
+  | "models3dFlowerHydrangea"
+> = {
+  rose: "models3dFlowerRose",
+  tulip: "models3dFlowerTulip",
+  sunflower: "models3dFlowerSunflower",
+  daisy: "models3dFlowerDaisy",
+  lily: "models3dFlowerLily",
+  orchid: "models3dFlowerOrchid",
+  carnation: "models3dFlowerCarnation",
+  peony: "models3dFlowerPeony",
+  lavender: "models3dFlowerLavender",
+  hydrangea: "models3dFlowerHydrangea",
+};
+
+function FlowerSettings({
+  config,
+  synced,
+  t,
+  flowerPetalDraft,
+  flowerFoliageDraft,
+  flowerPotDraft,
+  setFlowerPetalDraft,
+  setFlowerFoliageDraft,
+  setFlowerPotDraft,
+  setModel3dFlowerType,
+  setModel3dFlowerPetalColor,
+  setModel3dFlowerFoliageColor,
+  setModel3dFlowerPotShape,
+  setModel3dFlowerPotColor,
+  randomizeModel3dFlower,
+}: {
+  config: ReturnType<typeof useAppearance>["config"];
+  synced: boolean;
+  t: ReturnType<typeof useAppearance>["t"];
+  flowerPetalDraft: string;
+  flowerFoliageDraft: string;
+  flowerPotDraft: string;
+  setFlowerPetalDraft: (value: string) => void;
+  setFlowerFoliageDraft: (value: string) => void;
+  setFlowerPotDraft: (value: string) => void;
+  setModel3dFlowerType: (value: Model3dFlowerType) => void;
+  setModel3dFlowerPetalColor: (value: string) => void;
+  setModel3dFlowerFoliageColor: (value: string) => void;
+  setModel3dFlowerPotShape: (value: Model3dFlowerPotShape) => void;
+  setModel3dFlowerPotColor: (value: string) => void;
+  randomizeModel3dFlower: () => void;
+}) {
+  return (
+    <>
+      <SettingsGroup label={t("models3dFlowerType")} footer={t("models3dFlowerTypeHint")}>
+        <div className="settings-flower-actions">
+          <span className="settings-row-subtitle">{t("models3dFlowerRandomHint")}</span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!synced}
+            onClick={randomizeModel3dFlower}
+            aria-label={t("models3dFlowerRandomize")}
+          >
+            <Dice5 className="h-4 w-4" />
+            {t("models3dFlowerRandomize")}
+          </Button>
+        </div>
+        <div
+          className="settings-flower-type-grid"
+          role="radiogroup"
+          aria-label={t("models3dFlowerType")}
+        >
+          {MODEL3D_FLOWER_TYPES.map((flowerType) => (
+            <button
+              key={flowerType}
+              type="button"
+              role="radio"
+              aria-checked={config.model3d_flower_type === flowerType}
+              disabled={!synced}
+              className={cn(
+                "settings-flower-type-item",
+                config.model3d_flower_type === flowerType && "is-active",
+              )}
+              onClick={() => setModel3dFlowerType(flowerType)}
+            >
+              {t(FLOWER_TYPE_LABEL_KEYS[flowerType])}
+            </button>
+          ))}
+        </div>
+      </SettingsGroup>
+
+      <SettingsGroup label={t("models3dFlowerPot")} footer={t("models3dFlowerPotHint")}>
+        <div className="settings-row settings-row-flush">
+          <SettingsSegmented<Model3dFlowerPotShape>
+            value={config.model3d_flower_pot_shape}
+            disabled={!synced}
+            onChange={setModel3dFlowerPotShape}
+            options={[
+              { id: "round", label: t("models3dFlowerPotRound") },
+              { id: "square", label: t("models3dFlowerPotSquare") },
+              { id: "pedestal", label: t("models3dFlowerPotPedestal") },
+            ]}
+          />
+        </div>
+        <div className="px-3 pb-3">
+          <ColorField
+            id="flower-pot-color"
+            label={t("models3dFlowerPotColor")}
+            value={flowerPotDraft}
+            fallback={DEFAULT_MODEL3D_FLOWER_POT_COLOR}
+            disabled={!synced}
+            onChange={(value) => {
+              setFlowerPotDraft(value);
+              if (/^#[0-9a-fA-F]{6}$/.test(value)) setModel3dFlowerPotColor(value);
+            }}
+            onBlur={() => setModel3dFlowerPotColor(flowerPotDraft)}
+          />
+        </div>
+      </SettingsGroup>
+
+      <SettingsGroup label={t("models3dFlowerColors")} footer={t("models3dFlowerColorsHint")}>
+        <div className="px-3 pt-3">
+          <ColorField
+            id="flower-petal-color"
+            label={t("models3dFlowerPetalColor")}
+            value={flowerPetalDraft}
+            fallback={DEFAULT_MODEL3D_FLOWER_PETAL_COLOR}
+            disabled={!synced}
+            onChange={(value) => {
+              setFlowerPetalDraft(value);
+              if (/^#[0-9a-fA-F]{6}$/.test(value)) setModel3dFlowerPetalColor(value);
+            }}
+            onBlur={() => setModel3dFlowerPetalColor(flowerPetalDraft)}
+          />
+        </div>
+        <div className="px-3 py-3">
+          <ColorField
+            id="flower-foliage-color"
+            label={t("models3dFlowerFoliageColor")}
+            value={flowerFoliageDraft}
+            fallback={DEFAULT_MODEL3D_FLOWER_FOLIAGE_COLOR}
+            disabled={!synced}
+            onChange={(value) => {
+              setFlowerFoliageDraft(value);
+              if (/^#[0-9a-fA-F]{6}$/.test(value)) setModel3dFlowerFoliageColor(value);
+            }}
+            onBlur={() => setModel3dFlowerFoliageColor(flowerFoliageDraft)}
+          />
+        </div>
       </SettingsGroup>
     </>
   );

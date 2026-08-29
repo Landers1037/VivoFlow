@@ -8,7 +8,7 @@ import {
 import { shouldForceWebGL, withTimeout } from "@/components/models3d/compat";
 import { attachOrbit } from "@/components/models3d/orbit";
 import { createModel3dScene } from "@/components/models3d/solarSystem";
-import type { Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, TownDensity, TownPopulation, TownTime } from "@/types";
+import type { Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, TownDensity, TownPopulation, TownTime } from "@/types";
 
 export interface Models3dCanvasProps {
   modelId: Model3dId;
@@ -20,6 +20,13 @@ export interface Models3dCanvasProps {
   treeBaseColor: string;
   treeTrunkColor: string;
   treeVariation: number;
+  flowerType: Model3dFlowerType;
+  flowerPetalColor: string;
+  flowerFoliageColor: string;
+  flowerPotShape: Model3dFlowerPotShape;
+  flowerPotColor: string;
+  flowerSeed: string;
+  flowerGeneratorVersion: number;
   townSeed: string;
   townGeneratorVersion: number;
   townPopulation: TownPopulation;
@@ -43,6 +50,13 @@ export default function Models3dCanvas({
   treeBaseColor,
   treeTrunkColor,
   treeVariation,
+  flowerType,
+  flowerPetalColor,
+  flowerFoliageColor,
+  flowerPotShape,
+  flowerPotColor,
+  flowerSeed,
+  flowerGeneratorVersion,
   townSeed,
   townGeneratorVersion,
   townPopulation,
@@ -99,6 +113,15 @@ export default function Models3dCanvas({
             baseColor: treeBaseColor,
             trunkColor: treeTrunkColor,
             variation: treeVariation,
+          },
+          flower: {
+            flowerType,
+            petalColor: flowerPetalColor,
+            foliageColor: flowerFoliageColor,
+            potShape: flowerPotShape,
+            potColor: flowerPotColor,
+            seed: flowerSeed,
+            generatorVersion: flowerGeneratorVersion,
           },
           town: {
             seed: townSeed,
@@ -209,6 +232,13 @@ export default function Models3dCanvas({
     treeCanopyShape,
     treeTrunkColor,
     treeVariation,
+    flowerType,
+    flowerPetalColor,
+    flowerFoliageColor,
+    flowerPotShape,
+    flowerPotColor,
+    flowerSeed,
+    flowerGeneratorVersion,
     townSeed,
     townGeneratorVersion,
     townPopulation,

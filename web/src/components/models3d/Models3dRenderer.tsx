@@ -25,6 +25,13 @@ export function Models3dRenderer({
   const treeBaseShape = config.model3d_tree_base_shape;
   const treeBaseColor = config.model3d_tree_base_color;
   const treeTrunkColor = config.model3d_tree_trunk_color;
+  const flowerType = config.model3d_flower_type;
+  const flowerPetalColor = config.model3d_flower_petal_color;
+  const flowerFoliageColor = config.model3d_flower_foliage_color;
+  const flowerPotShape = config.model3d_flower_pot_shape;
+  const flowerPotColor = config.model3d_flower_pot_color;
+  const flowerSeed = config.model3d_flower_seed;
+  const flowerGeneratorVersion = config.model3d_flower_generator_version;
   const townSeed = config.model3d_town_seed;
   const townGeneratorVersion = config.model3d_town_generator_version;
   const townPopulation = config.model3d_town_population;
@@ -52,6 +59,13 @@ export function Models3dRenderer({
     townDensity,
     townTime,
     treeVariation,
+    flowerType,
+    flowerPetalColor,
+    flowerFoliageColor,
+    flowerPotShape,
+    flowerPotColor,
+    flowerSeed,
+    flowerGeneratorVersion,
   ]);
 
   if (unsupported) {
@@ -75,6 +89,13 @@ export function Models3dRenderer({
           treeBaseColor={treeBaseColor}
           treeTrunkColor={treeTrunkColor}
           treeVariation={treeVariation}
+          flowerType={flowerType}
+          flowerPetalColor={flowerPetalColor}
+          flowerFoliageColor={flowerFoliageColor}
+          flowerPotShape={flowerPotShape}
+          flowerPotColor={flowerPotColor}
+          flowerSeed={flowerSeed}
+          flowerGeneratorVersion={flowerGeneratorVersion}
           townSeed={townSeed}
           townGeneratorVersion={townGeneratorVersion}
           townPopulation={townPopulation}

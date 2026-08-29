@@ -40,11 +40,19 @@ export function Models3dClock({ modelId, position, showDate, showSeconds }: Mode
     month: "2-digit",
     day: "2-digit",
   }).format(now);
-  const voxel = modelId === "tree" || modelId === "town";
+  const voxel = modelId === "tree" || modelId === "town" || modelId === "flower";
   const night = modelId === "town" && config.model3d_town_time === "night";
   const style = {
-    "--models3d-clock-accent": modelId === "tree" ? config.model3d_tree_canopy_color : "#ffd36a",
-    "--models3d-clock-base": modelId === "tree" ? config.model3d_tree_base_color : "#234c3b",
+    "--models3d-clock-accent": modelId === "tree"
+      ? config.model3d_tree_canopy_color
+      : modelId === "flower"
+        ? config.model3d_flower_petal_color
+        : "#ffd36a",
+    "--models3d-clock-base": modelId === "tree"
+      ? config.model3d_tree_base_color
+      : modelId === "flower"
+        ? config.model3d_flower_pot_color
+        : "#234c3b",
   } as CSSProperties;
   const label = `${hours}:${minutes}${showSeconds ? `:${seconds}` : ""}${showDate ? ` · ${date}` : ""}`;
 

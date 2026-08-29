@@ -56,9 +56,9 @@ export function isThreeAudioMode(mode: AudioVisualizerMode): mode is ThreeAudioV
   return THREE_AUDIO_MODES.includes(mode as ThreeAudioVisualizerMode);
 }
 
-export type Model3dId = "solar_system" | "tree" | "town";
+export type Model3dId = "solar_system" | "tree" | "town" | "flower";
 
-export const MODEL3D_IDS: Model3dId[] = ["solar_system", "tree", "town"];
+export const MODEL3D_IDS: Model3dId[] = ["solar_system", "tree", "town", "flower"];
 
 export function isModel3dId(id: string): id is Model3dId {
   return MODEL3D_IDS.includes(id as Model3dId);
@@ -96,6 +96,40 @@ export const MODEL3D_TREE_BASE_SHAPES: Model3dTreeBaseShape[] = ["square", "circ
 export const DEFAULT_MODEL3D_TREE_CANOPY_COLOR = "#e07a28";
 export const DEFAULT_MODEL3D_TREE_BASE_COLOR = "#8f98a3";
 export const DEFAULT_MODEL3D_TREE_TRUNK_COLOR = "#4a301c";
+
+export type Model3dFlowerType =
+  | "rose"
+  | "tulip"
+  | "sunflower"
+  | "daisy"
+  | "lily"
+  | "orchid"
+  | "carnation"
+  | "peony"
+  | "lavender"
+  | "hydrangea";
+export type Model3dFlowerPotShape = "round" | "square" | "pedestal";
+
+export const MODEL3D_FLOWER_TYPES: Model3dFlowerType[] = [
+  "rose",
+  "tulip",
+  "sunflower",
+  "daisy",
+  "lily",
+  "orchid",
+  "carnation",
+  "peony",
+  "lavender",
+  "hydrangea",
+];
+export const MODEL3D_FLOWER_POT_SHAPES: Model3dFlowerPotShape[] = ["round", "square", "pedestal"];
+export const MODEL3D_FLOWER_GENERATOR_VERSION = 1;
+export const DEFAULT_MODEL3D_FLOWER_TYPE: Model3dFlowerType = "rose";
+export const DEFAULT_MODEL3D_FLOWER_PETAL_COLOR = "#d94a64";
+export const DEFAULT_MODEL3D_FLOWER_FOLIAGE_COLOR = "#3f7d4a";
+export const DEFAULT_MODEL3D_FLOWER_POT_SHAPE: Model3dFlowerPotShape = "round";
+export const DEFAULT_MODEL3D_FLOWER_POT_COLOR = "#b86f47";
+export const DEFAULT_MODEL3D_FLOWER_SEED = "7c4a2f91";
 
 export type TownPopulation = "low" | "medium" | "high";
 export type TownDensity = "low" | "medium" | "high";
@@ -208,6 +242,13 @@ export interface AppConfig {
   model3d_tree_base_shape: Model3dTreeBaseShape;
   model3d_tree_base_color: string;
   model3d_tree_trunk_color: string;
+  model3d_flower_type: Model3dFlowerType;
+  model3d_flower_petal_color: string;
+  model3d_flower_foliage_color: string;
+  model3d_flower_pot_shape: Model3dFlowerPotShape;
+  model3d_flower_pot_color: string;
+  model3d_flower_seed: string;
+  model3d_flower_generator_version: number;
   model3d_town_seed: string;
   model3d_town_generator_version: number;
   model3d_town_population: TownPopulation;
@@ -269,6 +310,13 @@ export const DEFAULT_CONFIG: AppConfig = {
   model3d_tree_base_shape: "square",
   model3d_tree_base_color: DEFAULT_MODEL3D_TREE_BASE_COLOR,
   model3d_tree_trunk_color: DEFAULT_MODEL3D_TREE_TRUNK_COLOR,
+  model3d_flower_type: DEFAULT_MODEL3D_FLOWER_TYPE,
+  model3d_flower_petal_color: DEFAULT_MODEL3D_FLOWER_PETAL_COLOR,
+  model3d_flower_foliage_color: DEFAULT_MODEL3D_FLOWER_FOLIAGE_COLOR,
+  model3d_flower_pot_shape: DEFAULT_MODEL3D_FLOWER_POT_SHAPE,
+  model3d_flower_pot_color: DEFAULT_MODEL3D_FLOWER_POT_COLOR,
+  model3d_flower_seed: DEFAULT_MODEL3D_FLOWER_SEED,
+  model3d_flower_generator_version: MODEL3D_FLOWER_GENERATOR_VERSION,
   model3d_town_seed: DEFAULT_MODEL3D_TOWN_SEED,
   model3d_town_generator_version: MODEL3D_TOWN_GENERATOR_VERSION,
   model3d_town_population: DEFAULT_MODEL3D_TOWN_POPULATION,

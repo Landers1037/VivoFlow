@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dClockPosition, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
@@ -22,6 +22,12 @@ import {
   DEFAULT_ACCENT_CUSTOM,
   DEFAULT_CONFIG,
   DEFAULT_MODEL3D_CLOCK_POSITION,
+  DEFAULT_MODEL3D_FLOWER_FOLIAGE_COLOR,
+  DEFAULT_MODEL3D_FLOWER_PETAL_COLOR,
+  DEFAULT_MODEL3D_FLOWER_POT_COLOR,
+  DEFAULT_MODEL3D_FLOWER_POT_SHAPE,
+  DEFAULT_MODEL3D_FLOWER_SEED,
+  DEFAULT_MODEL3D_FLOWER_TYPE,
   DEFAULT_MODEL3D_TREE_BASE_COLOR,
   DEFAULT_MODEL3D_TREE_CANOPY_COLOR,
   DEFAULT_MODEL3D_TREE_TRUNK_COLOR,
@@ -31,6 +37,9 @@ import {
   DEFAULT_MODEL3D_TOWN_TIME,
   MODEL3D_TOWN_GENERATOR_VERSION,
   MODEL3D_CLOCK_POSITIONS,
+  MODEL3D_FLOWER_GENERATOR_VERSION,
+  MODEL3D_FLOWER_POT_SHAPES,
+  MODEL3D_FLOWER_TYPES,
   MODEL3D_IDS,
   MODEL3D_ORBIT_STYLES,
   MODEL3D_TREE_BASE_SHAPES,
@@ -39,7 +48,16 @@ import {
 } from "@/types";
 
 export type { AccentId, Lang, UiStyle };
-export { DEFAULT_BLACKHOLE_COLOR, DEFAULT_BLACKHOLE_SPIN_SPEED, DEFAULT_MODEL3D_TREE_BASE_COLOR, DEFAULT_MODEL3D_TREE_CANOPY_COLOR, DEFAULT_MODEL3D_TREE_TRUNK_COLOR };
+export {
+  DEFAULT_BLACKHOLE_COLOR,
+  DEFAULT_BLACKHOLE_SPIN_SPEED,
+  DEFAULT_MODEL3D_FLOWER_FOLIAGE_COLOR,
+  DEFAULT_MODEL3D_FLOWER_PETAL_COLOR,
+  DEFAULT_MODEL3D_FLOWER_POT_COLOR,
+  DEFAULT_MODEL3D_TREE_BASE_COLOR,
+  DEFAULT_MODEL3D_TREE_CANOPY_COLOR,
+  DEFAULT_MODEL3D_TREE_TRUNK_COLOR,
+};
 export type TFunction = (key: MessageKey, vars?: TranslateVars) => string;
 
 const ACCENT_HUES: Record<
@@ -91,6 +109,11 @@ export function normalizeHexColor(
 function normalizeTownSeed(raw: string | null | undefined): string {
   const value = (raw ?? "").trim();
   return /^[0-9a-fA-F]{8}$/.test(value) ? value.toLowerCase() : DEFAULT_MODEL3D_TOWN_SEED;
+}
+
+function normalizeFlowerSeed(raw: string | null | undefined): string {
+  const value = (raw ?? "").trim();
+  return /^[0-9a-fA-F]{8}$/.test(value) ? value.toLowerCase() : DEFAULT_MODEL3D_FLOWER_SEED;
 }
 
 function normalizeTownFavorite(raw: Partial<TownFavorite> | null | undefined): TownFavorite | null {
@@ -202,6 +225,31 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
       : "square",
     model3d_tree_base_color: normalizeHexColor(base.model3d_tree_base_color, DEFAULT_MODEL3D_TREE_BASE_COLOR),
     model3d_tree_trunk_color: normalizeHexColor(base.model3d_tree_trunk_color, DEFAULT_MODEL3D_TREE_TRUNK_COLOR),
+    model3d_flower_type: MODEL3D_FLOWER_TYPES.includes(base.model3d_flower_type as Model3dFlowerType)
+      ? (base.model3d_flower_type as Model3dFlowerType)
+      : DEFAULT_MODEL3D_FLOWER_TYPE,
+    model3d_flower_petal_color: normalizeHexColor(
+      base.model3d_flower_petal_color,
+      DEFAULT_MODEL3D_FLOWER_PETAL_COLOR,
+    ),
+    model3d_flower_foliage_color: normalizeHexColor(
+      base.model3d_flower_foliage_color,
+      DEFAULT_MODEL3D_FLOWER_FOLIAGE_COLOR,
+    ),
+    model3d_flower_pot_shape: MODEL3D_FLOWER_POT_SHAPES.includes(
+      base.model3d_flower_pot_shape as Model3dFlowerPotShape,
+    )
+      ? (base.model3d_flower_pot_shape as Model3dFlowerPotShape)
+      : DEFAULT_MODEL3D_FLOWER_POT_SHAPE,
+    model3d_flower_pot_color: normalizeHexColor(
+      base.model3d_flower_pot_color,
+      DEFAULT_MODEL3D_FLOWER_POT_COLOR,
+    ),
+    model3d_flower_seed: normalizeFlowerSeed(base.model3d_flower_seed),
+    model3d_flower_generator_version:
+      Number.isFinite(Number(base.model3d_flower_generator_version)) && Number(base.model3d_flower_generator_version) > 0
+        ? Math.floor(Number(base.model3d_flower_generator_version))
+        : MODEL3D_FLOWER_GENERATOR_VERSION,
     model3d_town_seed: normalizeTownSeed(base.model3d_town_seed),
     model3d_town_generator_version:
       Number.isFinite(Number(base.model3d_town_generator_version)) && Number(base.model3d_town_generator_version) > 0
@@ -337,6 +385,12 @@ interface AppearanceContextValue {
   setModel3dTreeBaseShape: (v: Model3dTreeBaseShape) => void;
   setModel3dTreeBaseColor: (hex: string) => void;
   setModel3dTreeTrunkColor: (hex: string) => void;
+  setModel3dFlowerType: (v: Model3dFlowerType) => void;
+  setModel3dFlowerPetalColor: (hex: string) => void;
+  setModel3dFlowerFoliageColor: (hex: string) => void;
+  setModel3dFlowerPotShape: (v: Model3dFlowerPotShape) => void;
+  setModel3dFlowerPotColor: (hex: string) => void;
+  randomizeModel3dFlower: () => void;
   setModel3dTownSeed: (seed: string) => void;
   randomizeModel3dTown: () => void;
   setModel3dTownPopulation: (v: TownPopulation) => void;
@@ -490,6 +544,19 @@ export function AppearanceProvider({
         patch({ model3d_tree_base_color: normalizeHexColor(hex, DEFAULT_MODEL3D_TREE_BASE_COLOR) }),
       setModel3dTreeTrunkColor: (hex) =>
         patch({ model3d_tree_trunk_color: normalizeHexColor(hex, DEFAULT_MODEL3D_TREE_TRUNK_COLOR) }),
+      setModel3dFlowerType: (model3d_flower_type) => patch({ model3d_flower_type }),
+      setModel3dFlowerPetalColor: (hex) =>
+        patch({ model3d_flower_petal_color: normalizeHexColor(hex, DEFAULT_MODEL3D_FLOWER_PETAL_COLOR) }),
+      setModel3dFlowerFoliageColor: (hex) =>
+        patch({ model3d_flower_foliage_color: normalizeHexColor(hex, DEFAULT_MODEL3D_FLOWER_FOLIAGE_COLOR) }),
+      setModel3dFlowerPotShape: (model3d_flower_pot_shape) => patch({ model3d_flower_pot_shape }),
+      setModel3dFlowerPotColor: (hex) =>
+        patch({ model3d_flower_pot_color: normalizeHexColor(hex, DEFAULT_MODEL3D_FLOWER_POT_COLOR) }),
+      randomizeModel3dFlower: () =>
+        patch({
+          model3d_flower_seed: randomTownSeed(),
+          model3d_flower_generator_version: MODEL3D_FLOWER_GENERATOR_VERSION,
+        }),
       setModel3dTownSeed: (model3d_town_seed) =>
         patch({ model3d_town_seed: normalizeTownSeed(model3d_town_seed) }),
       randomizeModel3dTown: () =>
