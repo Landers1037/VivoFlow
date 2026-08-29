@@ -2584,6 +2584,23 @@ html.dark[data-ui-style="amicro"] {
   white-space: nowrap;
 }
 
+.settings-select {
+  min-height: 2.2rem;
+  max-width: 52%;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid color-mix(in oklch, var(--border) 80%, var(--primary) 20%);
+  border-radius: 0.65rem;
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--muted) 65%, var(--card));
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.settings-select:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--ring) 45%, transparent);
+}
+
 .settings-row-chevron {
   width: 1.15rem;
   height: 1.15rem;

@@ -12,7 +12,7 @@
 - `glass_gradient_start` / `glass_gradient_end`：毛玻璃背景渐变两端色（`#RRGGBB`）
 - `ThemeMode` / `Lang`
 - `hide_title_bar`、`mobile_card_mode`、`mobile_auto_carousel`、`mobile_carousel_interval_s`
-- `clock_enabled`、`clock_style`（`lines` / `dial` / `pixel` / `flip` / `object` / `dots`）、`clock_show_week` / `clock_show_date` / `clock_show_seconds`、`clock_dot_shape`（`circle` / `square` / `rounded` / `star`）
+- `clock_enabled`、`clock_style`（`lines` / `dial` / `pixel` / `flip` / `object` / `dots`）、`clock_timezone_offset_minutes`（固定 UTC 偏移分钟数，默认 `480`，即东八区）、`clock_show_week` / `clock_show_date` / `clock_show_seconds`、`clock_dot_shape`（`circle` / `square` / `rounded` / `star`）
 - `illustration_enabled`：全屏像素插画轮播开关；`IllustrationImage`（含用于缓存失效的 `version`）、`PixelArtSettings`、`IllustrationsResponse` 和 `StorageStatus` 描述插画与存储 API 数据。
 - `blackhole_enabled`：全屏黑洞看板
 - `blackhole_color` / `blackhole_interactive` / `blackhole_spin_speed`

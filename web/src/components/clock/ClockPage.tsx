@@ -1,64 +1,23 @@
 import { useEffect, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { useAppearance } from "@/hooks/useAppearance";
+import { useClockNow } from "@/hooks/useClockNow";
 import { cn } from "@/lib/utils";
-import type { ClockDotShape, ClockStyle, Lang } from "@/types";
+import { formatClockDate, formatClockWeek, getClockParts } from "@/lib/clock";
+import type { ClockDotShape, ClockStyle, ClockTimezoneOffsetMinutes, Lang } from "@/types";
 
-const WEEKDAYS_LCD = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
 const DIAL_MARKS = [12, 3, 6, 9] as const;
-
-function pad2(n: number) {
-  return String(n).padStart(2, "0");
-}
-
-function useClockNow(showSeconds: boolean) {
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    let timer = 0;
-    const schedule = () => {
-      const ms = Date.now();
-      const delay = showSeconds ? 1000 - (ms % 1000) : 60_000 - (ms % 60_000);
-      timer = window.setTimeout(() => {
-        setNow(new Date());
-        schedule();
-      }, Math.max(40, delay + 8));
-    };
-    setNow(new Date());
-    schedule();
-    return () => window.clearTimeout(timer);
-  }, [showSeconds]);
-
-  return now;
-}
-
-function formatWeek(now: Date, lang: Lang) {
-  return new Intl.DateTimeFormat(lang === "en" ? "en-US" : "zh-CN", { weekday: "short" }).format(now);
-}
-
-function formatDate(now: Date, lang: Lang) {
-  return new Intl.DateTimeFormat(lang === "en" ? "en-US" : "zh-CN", {
-    month: "short",
-    day: "numeric",
-  }).format(now);
-}
-
-function parts(now: Date) {
-  return {
-    h: pad2(now.getHours()),
-    m: pad2(now.getMinutes()),
-    s: pad2(now.getSeconds()),
-    day: pad2(now.getDate()),
-    month: pad2(now.getMonth() + 1),
-    weekdayLcd: WEEKDAYS_LCD[now.getDay()] ?? "SUN",
-  };
-}
 
 export function ClockPage() {
   const { config, lang } = useAppearance();
   const now = useClockNow(config.clock_show_seconds);
   const style = config.clock_style;
-  const meta = { week: config.clock_show_week, date: config.clock_show_date, seconds: config.clock_show_seconds };
+  const meta = {
+    week: config.clock_show_week,
+    date: config.clock_show_date,
+    seconds: config.clock_show_seconds,
+    timezoneOffsetMinutes: config.clock_timezone_offset_minutes,
+  };
 
   return (
     <div className="clock-page" data-clock-style={style}>
@@ -77,20 +36,22 @@ function MetaLine({
   lang,
   week,
   date,
+  timezoneOffsetMinutes,
   className,
 }: {
   now: Date;
   lang: Lang;
   week: boolean;
   date: boolean;
+  timezoneOffsetMinutes: ClockTimezoneOffsetMinutes;
   className?: string;
 }) {
   if (!week && !date) return null;
   return (
     <p className={cn("clock-meta", className)}>
-      {week ? <span>{formatWeek(now, lang)}</span> : null}
+      {week ? <span>{formatClockWeek(now, lang, timezoneOffsetMinutes)}</span> : null}
       {week && date ? <span className="clock-meta-gap" /> : null}
-      {date ? <span>{formatDate(now, lang)}</span> : null}
+      {date ? <span>{formatClockDate(now, lang, timezoneOffsetMinutes)}</span> : null}
     </p>
   );
 }
@@ -101,17 +62,19 @@ function LinesFace({
   week,
   date,
   seconds,
+  timezoneOffsetMinutes,
 }: {
   now: Date;
   lang: Lang;
   week: boolean;
   date: boolean;
   seconds: boolean;
+  timezoneOffsetMinutes: ClockTimezoneOffsetMinutes;
 }) {
-  const { h, m, s } = parts(now);
+  const { h, m, s } = getClockParts(now, timezoneOffsetMinutes);
   return (
     <div className="clock-lines">
-      <MetaLine now={now} lang={lang} week={week} date={date} />
+      <MetaLine now={now} lang={lang} week={week} date={date} timezoneOffsetMinutes={timezoneOffsetMinutes} />
       <p className="clock-lines-time" aria-hidden="true">
         <span>{h}</span>
         <span>{m}</span>
@@ -131,24 +94,27 @@ function DialFace({
   week,
   date,
   seconds,
+  timezoneOffsetMinutes,
 }: {
   now: Date;
   lang: Lang;
   week: boolean;
   date: boolean;
   seconds: boolean;
+  timezoneOffsetMinutes: ClockTimezoneOffsetMinutes;
 }) {
-  const hours = now.getHours() % 12;
-  const minutes = now.getMinutes();
-  const secs = now.getSeconds();
+  const { h, m, s, day } = getClockParts(now, timezoneOffsetMinutes);
+  const hours = Number(h) % 12;
+  const minutes = Number(m);
+  const secs = Number(s);
   const hourDeg = hours * 30 + minutes * 0.5;
   const minuteDeg = minutes * 6 + (seconds ? secs * 0.1 : 0);
   const secondDeg = secs * 6;
 
   return (
     <div className="clock-dial-wrap">
-      {week ? <p className="clock-dial-week">{formatWeek(now, lang)}</p> : null}
-      <div className="clock-dial" role="img" aria-label={`${pad2(now.getHours())}:${pad2(minutes)}${seconds ? `:${pad2(secs)}` : ""}`}>
+      {week ? <p className="clock-dial-week">{formatClockWeek(now, lang, timezoneOffsetMinutes)}</p> : null}
+      <div className="clock-dial" role="img" aria-label={`${h}:${m}${seconds ? `:${s}` : ""}`}>
         {Array.from({ length: 60 }, (_, index) => (
           <span
             key={index}
@@ -170,7 +136,7 @@ function DialFace({
             </span>
           </span>
         ))}
-        {date ? <span className="clock-dial-window">{pad2(now.getDate())}</span> : null}
+        {date ? <span className="clock-dial-window">{day}</span> : null}
         <span className="clock-dial-hand is-hour" style={{ transform: `translateX(-50%) rotate(${hourDeg}deg)` }} />
         <span className="clock-dial-hand is-minute" style={{ transform: `translateX(-50%) rotate(${minuteDeg}deg)` }} />
         {seconds ? (
@@ -188,19 +154,21 @@ function PixelFace({
   week,
   date,
   seconds,
+  timezoneOffsetMinutes,
 }: {
   now: Date;
   lang: Lang;
   week: boolean;
   date: boolean;
   seconds: boolean;
+  timezoneOffsetMinutes: ClockTimezoneOffsetMinutes;
 }) {
-  const { h, m, s, day, month } = parts(now);
+  const { h, m, s, day, month } = getClockParts(now, timezoneOffsetMinutes);
   return (
     <div className="clock-pixel">
       {week || date ? (
         <p className="clock-pixel-meta">
-          {week ? formatWeek(now, lang) : null}
+          {week ? formatClockWeek(now, lang, timezoneOffsetMinutes) : null}
           {week && date ? "  " : null}
           {date ? `${month}.${day}` : null}
         </p>
@@ -219,17 +187,19 @@ function FlipFace({
   week,
   date,
   seconds,
+  timezoneOffsetMinutes,
 }: {
   now: Date;
   lang: Lang;
   week: boolean;
   date: boolean;
   seconds: boolean;
+  timezoneOffsetMinutes: ClockTimezoneOffsetMinutes;
 }) {
-  const { h, m, s } = parts(now);
+  const { h, m, s } = getClockParts(now, timezoneOffsetMinutes);
   return (
     <div className="clock-flip">
-      <MetaLine now={now} lang={lang} week={week} date={date} />
+      <MetaLine now={now} lang={lang} week={week} date={date} timezoneOffsetMinutes={timezoneOffsetMinutes} />
       <div className="clock-flip-row">
         <FlipUnit label="HOUR" value={h} />
         <FlipUnit label="MIN" value={m} />
@@ -293,13 +263,15 @@ function ObjectFace({
   week,
   date,
   seconds,
+  timezoneOffsetMinutes,
 }: {
   now: Date;
   week: boolean;
   date: boolean;
   seconds: boolean;
+  timezoneOffsetMinutes: ClockTimezoneOffsetMinutes;
 }) {
-  const { h, m, s, day, month, weekdayLcd } = parts(now);
+  const { h, m, s, day, month, weekdayLcd } = getClockParts(now, timezoneOffsetMinutes);
   const time = seconds ? `${h}:${m}:${s}` : `${h}:${m}`;
   const ghost = seconds ? "88:88:88" : "88:88";
 
@@ -347,6 +319,7 @@ function DotsFace({
   date,
   seconds,
   shape,
+  timezoneOffsetMinutes,
 }: {
   now: Date;
   lang: Lang;
@@ -354,16 +327,17 @@ function DotsFace({
   date: boolean;
   seconds: boolean;
   shape: ClockDotShape;
+  timezoneOffsetMinutes: ClockTimezoneOffsetMinutes;
 }) {
   const { t } = useAppearance();
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const secs = now.getSeconds();
-  const { h, m, s } = parts(now);
+  const { h, m, s } = getClockParts(now, timezoneOffsetMinutes);
+  const hours = Number(h);
+  const minutes = Number(m);
+  const secs = Number(s);
 
   return (
     <div className="clock-dots" data-dot-shape={shape}>
-      <MetaLine now={now} lang={lang} week={week} date={date} />
+      <MetaLine now={now} lang={lang} week={week} date={date} timezoneOffsetMinutes={timezoneOffsetMinutes} />
       <span className="sr-only">
         {h}:{m}
         {seconds ? `:${s}` : ""}

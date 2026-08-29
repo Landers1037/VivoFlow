@@ -47,6 +47,10 @@ fn default_clock_style() -> String {
     "lines".into()
 }
 
+fn default_clock_timezone_offset_minutes() -> i32 {
+    480
+}
+
 fn default_clock_dot_shape() -> String {
     "circle".into()
 }
@@ -187,6 +191,8 @@ pub struct AppConfig {
     pub clock_enabled: bool,
     #[serde(default = "default_clock_style")]
     pub clock_style: String,
+    #[serde(default = "default_clock_timezone_offset_minutes")]
+    pub clock_timezone_offset_minutes: i32,
     #[serde(default = "default_clock_show")]
     pub clock_show_week: bool,
     #[serde(default = "default_clock_show")]
@@ -312,6 +318,7 @@ impl Default for AppConfig {
             active_music_album_id: None,
             clock_enabled: false,
             clock_style: default_clock_style(),
+            clock_timezone_offset_minutes: default_clock_timezone_offset_minutes(),
             clock_show_week: true,
             clock_show_date: true,
             clock_show_seconds: true,
@@ -382,6 +389,11 @@ const UI_STYLES: &[&str] = &[
 const ACCENTS: &[&str] = &["teal", "zinc", "blue", "violet", "amber", "custom"];
 const THEMES: &[&str] = &["light", "dark", "system"];
 const LANGS: &[&str] = &["zh", "en"];
+const CLOCK_TIMEZONE_OFFSETS_MINUTES: &[i32] = &[
+    -720, -660, -600, -570, -540, -480, -420, -360, -300, -240, -210, -180, -120, -60, 0, 60, 120,
+    180, 210, 240, 270, 300, 330, 345, 360, 390, 420, 480, 525, 540, 570, 600, 630, 660, 720, 765,
+    780, 840,
+];
 
 fn is_hex_color(s: &str) -> bool {
     let b = s.as_bytes();
@@ -528,6 +540,9 @@ impl AppConfig {
             .contains(&self.clock_style.as_str())
         {
             self.clock_style = default_clock_style();
+        }
+        if !CLOCK_TIMEZONE_OFFSETS_MINUTES.contains(&self.clock_timezone_offset_minutes) {
+            self.clock_timezone_offset_minutes = default_clock_timezone_offset_minutes();
         }
         if !["circle", "square", "rounded", "star"].contains(&self.clock_dot_shape.as_str()) {
             self.clock_dot_shape = default_clock_dot_shape();
@@ -802,6 +817,7 @@ mod tests {
         assert!(!cfg.illustration_enabled);
         assert!(!cfg.clock_enabled);
         assert_eq!(cfg.clock_style, "lines");
+        assert_eq!(cfg.clock_timezone_offset_minutes, 480);
         assert!(cfg.clock_show_week);
         assert!(cfg.clock_show_date);
         assert!(cfg.clock_show_seconds);
@@ -910,6 +926,7 @@ mod tests {
             audio_visualizer_enabled: true,
             music_album_enabled: true,
             clock_style: "unknown".into(),
+            clock_timezone_offset_minutes: 9999,
             ..AppConfig::default()
         }
         .sanitize();
@@ -920,6 +937,7 @@ mod tests {
         assert!(!cfg.blackhole_enabled);
         assert!(!cfg.model3d_enabled);
         assert_eq!(cfg.clock_style, "lines");
+        assert_eq!(cfg.clock_timezone_offset_minutes, 480);
     }
 
     #[test]

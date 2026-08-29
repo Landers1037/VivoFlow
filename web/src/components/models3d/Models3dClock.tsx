@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { useAppearance } from "@/hooks/useAppearance";
+import { useClockNow } from "@/hooks/useClockNow";
+import { formatClockFullDate, getClockParts } from "@/lib/clock";
 import { cn } from "@/lib/utils";
 import type { Model3dClockPosition, Model3dId } from "@/types";
 
@@ -13,33 +14,9 @@ export interface Models3dClockProps {
 
 export function Models3dClock({ modelId, position, showDate, showSeconds }: Models3dClockProps) {
   const { config, lang } = useAppearance();
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    let timer = 0;
-    const schedule = () => {
-      const current = Date.now();
-      const interval = showSeconds ? 1000 : 60_000;
-      const delay = interval - (current % interval);
-      timer = window.setTimeout(() => {
-        setNow(new Date());
-        schedule();
-      }, Math.max(40, delay + 8));
-    };
-
-    setNow(new Date());
-    schedule();
-    return () => window.clearTimeout(timer);
-  }, [showSeconds]);
-
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  const seconds = String(now.getSeconds()).padStart(2, "0");
-  const date = new Intl.DateTimeFormat(lang === "en" ? "en-US" : "zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(now);
+  const now = useClockNow(showSeconds);
+  const { h: hours, m: minutes, s: seconds } = getClockParts(now, config.clock_timezone_offset_minutes);
+  const date = formatClockFullDate(now, lang, config.clock_timezone_offset_minutes);
   const voxel = modelId === "tree" || modelId === "town";
   const night = modelId === "town" && config.model3d_town_time === "night";
   const style = {

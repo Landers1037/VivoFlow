@@ -21,6 +21,7 @@
   - `active_music_album_id`：当前启用的音乐专辑 ID，可在关闭模块时保留
   - `clock_enabled`：全屏时钟看板开关（默认 `false`）
   - `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object` / `dots`（默认 `lines`）
+  - `clock_timezone_offset_minutes`：时钟使用的固定 UTC 偏移分钟数（默认 `480`，即东八区；仅接受内置的全球常用偏移）
   - `clock_show_week` / `clock_show_date` / `clock_show_seconds`：钟面信息开关（默认 `true`）
   - `clock_dot_shape`：点阵点形状 `circle` / `square` / `rounded` / `star`（默认 `circle`，仅点阵钟面使用）
   - `blackhole_enabled`：全屏黑洞看板开关（默认 `false`）

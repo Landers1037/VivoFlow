@@ -8,10 +8,11 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, Lang, Model3dClockPosition, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model3dClockPosition, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
+  CLOCK_TIMEZONE_OFFSETS_MINUTES,
   CLOCK_STYLES,
   MUSIC_ALBUM_EFFECTS,
   DEFAULT_BACKGROUND_COLOR,
@@ -21,6 +22,7 @@ import {
   DEFAULT_GLASS_GRADIENT_START,
   DEFAULT_ACCENT_CUSTOM,
   DEFAULT_CONFIG,
+  DEFAULT_CLOCK_TIMEZONE_OFFSET_MINUTES,
   DEFAULT_MODEL3D_CLOCK_POSITION,
   DEFAULT_MODEL3D_TREE_BASE_COLOR,
   DEFAULT_MODEL3D_TREE_CANOPY_COLOR,
@@ -165,6 +167,10 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     clock_style: CLOCK_STYLES.includes(base.clock_style as ClockStyle)
       ? (base.clock_style as ClockStyle)
       : "lines",
+    clock_timezone_offset_minutes: Number.isInteger(Number(base.clock_timezone_offset_minutes)) &&
+      CLOCK_TIMEZONE_OFFSETS_MINUTES.includes(Number(base.clock_timezone_offset_minutes) as ClockTimezoneOffsetMinutes)
+      ? Number(base.clock_timezone_offset_minutes) as ClockTimezoneOffsetMinutes
+      : DEFAULT_CLOCK_TIMEZONE_OFFSET_MINUTES,
     clock_show_week: base.clock_show_week !== false,
     clock_show_date: base.clock_show_date !== false,
     clock_show_seconds: base.clock_show_seconds !== false,
@@ -313,6 +319,7 @@ interface AppearanceContextValue {
   setActiveMusicAlbumId: (v: string | null) => void;
   setClockEnabled: (v: boolean) => void;
   setClockStyle: (v: ClockStyle) => void;
+  setClockTimezoneOffsetMinutes: (v: ClockTimezoneOffsetMinutes) => void;
   setClockShowWeek: (v: boolean) => void;
   setClockShowDate: (v: boolean) => void;
   setClockShowSeconds: (v: boolean) => void;
@@ -456,6 +463,7 @@ export function AppearanceProvider({
       setClockEnabled: (clock_enabled) =>
         patch(clock_enabled ? exclusiveFullscreen({ clock_enabled: true }) : { clock_enabled }),
       setClockStyle: (clock_style) => patch({ clock_style }),
+      setClockTimezoneOffsetMinutes: (clock_timezone_offset_minutes) => patch({ clock_timezone_offset_minutes }),
       setClockShowWeek: (clock_show_week) => patch({ clock_show_week }),
       setClockShowDate: (clock_show_date) => patch({ clock_show_date }),
       setClockShowSeconds: (clock_show_seconds) => patch({ clock_show_seconds }),

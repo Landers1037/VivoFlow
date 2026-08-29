@@ -39,6 +39,7 @@
   "mobile_carousel_interval_s": 10,
   "clock_enabled": false,
   "clock_style": "lines",
+  "clock_timezone_offset_minutes": 480,
   "clock_show_week": true,
   "clock_show_date": true,
   "clock_show_seconds": true,
@@ -68,6 +69,7 @@
 | `mobile_auto_carousel` | `true` / `false`；仅移动卡片模式生效 |
 | `mobile_carousel_interval_s` | `[5, 60]`，默认 `10` |
 | `clock_style` | `lines` / `dial` / `pixel` / `flip` / `object` / `dots` |
+| `clock_timezone_offset_minutes` | 内置固定 UTC 偏移分钟数，默认 `480`（`UTC+08:00`） |
 | `clock_dot_shape` | `circle` / `square` / `rounded` / `star` |
 | `audio_visualizer_mode` | `particles` / `grid` / `aurora` / `radial` / `bars` / `city3d` / `nebula3d` / `terrain3d` / `crystal3d` |
 | `audio_color_mode` | `single` / `gradient` |

@@ -32,6 +32,22 @@ export type PixelArtPreset = "auto" | "balanced" | "detailed" | "retro" | "paint
 export type DitheringMode = "none" | "ordered" | "floyd_steinberg";
 export type ClockStyle = "lines" | "dial" | "pixel" | "flip" | "object" | "dots";
 export type ClockDotShape = "circle" | "square" | "rounded" | "star";
+export const CLOCK_TIMEZONE_OFFSETS_MINUTES = [
+  -720, -660, -600, -570, -540, -480, -420, -360, -300, -240, -210, -180, -120, -60,
+  0, 60, 120, 180, 210, 240, 270, 300, 330, 345, 360, 390, 420, 480, 525, 540, 570,
+  600, 630, 660, 720, 765, 780, 840,
+] as const;
+export type ClockTimezoneOffsetMinutes = (typeof CLOCK_TIMEZONE_OFFSETS_MINUTES)[number];
+export const DEFAULT_CLOCK_TIMEZONE_OFFSET_MINUTES: ClockTimezoneOffsetMinutes = 480;
+
+export function formatClockTimezoneOffset(offsetMinutes: number) {
+  const sign = offsetMinutes < 0 ? "−" : "+";
+  const absolute = Math.abs(offsetMinutes);
+  const hours = Math.floor(absolute / 60).toString().padStart(2, "0");
+  const minutes = (absolute % 60).toString().padStart(2, "0");
+  return `UTC${sign}${hours}:${minutes}`;
+}
+
 export type AudioVisualizerMode =
   | "particles"
   | "grid"
@@ -181,6 +197,7 @@ export interface AppConfig {
   active_music_album_id: string | null;
   clock_enabled: boolean;
   clock_style: ClockStyle;
+  clock_timezone_offset_minutes: ClockTimezoneOffsetMinutes;
   clock_show_week: boolean;
   clock_show_date: boolean;
   clock_show_seconds: boolean;
@@ -244,6 +261,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   active_music_album_id: null,
   clock_enabled: false,
   clock_style: "lines",
+  clock_timezone_offset_minutes: DEFAULT_CLOCK_TIMEZONE_OFFSET_MINUTES,
   clock_show_week: true,
   clock_show_date: true,
   clock_show_seconds: true,

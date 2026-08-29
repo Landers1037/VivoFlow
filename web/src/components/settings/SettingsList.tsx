@@ -138,6 +138,44 @@ export function SettingsSwitchRow({
   );
 }
 
+export function SettingsSelectRow({
+  id,
+  title,
+  subtitle,
+  value,
+  options,
+  disabled,
+  onChange,
+}: {
+  id: string;
+  title: string;
+  subtitle?: string;
+  value: string;
+  options: { value: string; label: string }[];
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className={cn("settings-row", disabled && "is-disabled")}>
+      <label htmlFor={id} className="settings-row-copy">
+        <span className="settings-row-title">{title}</span>
+        {subtitle ? <span className="settings-row-subtitle">{subtitle}</span> : null}
+      </label>
+      <select
+        id={id}
+        value={value}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+        className="settings-select"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export function SettingsSliderRow({
   id,
   title,

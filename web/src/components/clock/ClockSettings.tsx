@@ -1,9 +1,11 @@
 import { Check } from "lucide-react";
-import { SettingsGroup, SettingsSwitchRow } from "@/components/settings/SettingsList";
+import { SettingsGroup, SettingsSelectRow, SettingsSwitchRow } from "@/components/settings/SettingsList";
 import { CLOCK_DOT_SHAPE_OPTIONS, CLOCK_STYLE_OPTIONS } from "@/components/clock/ClockPage";
 import { useAppearance } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
-import type { ClockDotShape, ClockStyle } from "@/types";
+import { formatClockTimezoneOffset } from "@/types";
+import { CLOCK_TIMEZONE_OFFSETS_MINUTES } from "@/types";
+import type { ClockDotShape, ClockStyle, ClockTimezoneOffsetMinutes } from "@/types";
 
 function ClockStylePreview({ id }: { id: ClockStyle }) {
   const base = "settings-style-preview";
@@ -94,6 +96,7 @@ export function ClockSettings() {
     config,
     setClockEnabled,
     setClockStyle,
+    setClockTimezoneOffsetMinutes,
     setClockShowWeek,
     setClockShowDate,
     setClockShowSeconds,
@@ -108,6 +111,20 @@ export function ClockSettings() {
           title={t("clockBoard")}
           checked={config.clock_enabled}
           onCheckedChange={setClockEnabled}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup>
+        <SettingsSelectRow
+          id="clock-timezone"
+          title={t("clockTimezone")}
+          subtitle={t("clockTimezoneHint")}
+          value={String(config.clock_timezone_offset_minutes)}
+          options={CLOCK_TIMEZONE_OFFSETS_MINUTES.map((offset) => ({
+            value: String(offset),
+            label: formatClockTimezoneOffset(offset),
+          }))}
+          onChange={(value) => setClockTimezoneOffsetMinutes(Number(value) as ClockTimezoneOffsetMinutes)}
         />
       </SettingsGroup>
 
