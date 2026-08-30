@@ -74,6 +74,10 @@ export function isThreeAudioMode(mode: AudioVisualizerMode): mode is ThreeAudioV
 
 export type Model3dId = "solar_system" | "tree" | "town";
 
+export type Model2dId = "village" | "cyber_city" | "garden" | "rain_room";
+
+export const MODEL2D_IDS: Model2dId[] = ["village", "cyber_city", "garden", "rain_room"];
+
 export const MODEL3D_IDS: Model3dId[] = ["solar_system", "tree", "town"];
 
 export function isModel3dId(id: string): id is Model3dId {
@@ -216,6 +220,8 @@ export interface AppConfig {
   blackhole_interactive: boolean;
   /** 旋转速度倍率，`1` 为当前默认慢旋 */
   blackhole_spin_speed: number;
+  model2d_enabled: boolean;
+  model2d_id: Model2dId;
   model3d_enabled: boolean;
   model3d_id: Model3dId;
   model3d_orbit_style: Model3dOrbitStyle;
@@ -278,6 +284,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   blackhole_color: DEFAULT_BLACKHOLE_COLOR,
   blackhole_interactive: false,
   blackhole_spin_speed: DEFAULT_BLACKHOLE_SPIN_SPEED,
+  model2d_enabled: false,
+  model2d_id: "village",
   model3d_enabled: false,
   model3d_id: "solar_system",
   model3d_orbit_style: "solid",

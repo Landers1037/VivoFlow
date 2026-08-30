@@ -2977,6 +2977,265 @@ html.dark[data-ui-style="amicro"] {
   scrollbar-width: none;
 }
 
+.settings-model2d-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.settings-model2d-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklch, var(--border) 86%, var(--primary) 14%);
+  border-radius: 0.95rem;
+  padding: 0;
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--card) 90%, transparent);
+  text-align: left;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.settings-model2d-card:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.settings-model2d-card:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--ring) 50%, transparent);
+}
+
+.settings-model2d-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.settings-model2d-card.is-active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 56%, transparent), 0 10px 24px color-mix(in oklch, var(--primary) 10%, transparent);
+}
+
+.settings-model2d-art {
+  display: block;
+  width: 100%;
+  height: clamp(8rem, 25dvh, 10.5rem);
+  object-fit: cover;
+  object-position: center;
+  background: #071119;
+  image-rendering: pixelated;
+}
+
+.settings-model2d-copy {
+  display: block;
+  min-height: 4.35rem;
+  padding: 0.65rem 0.7rem 0.72rem;
+}
+
+.settings-model2d-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  font-size: 0.92rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.settings-model2d-check {
+  display: flex;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in oklch, var(--muted-foreground) 70%, transparent);
+  border-radius: 999px;
+  color: var(--primary-foreground);
+}
+
+.settings-model2d-card.is-active .settings-model2d-check {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.settings-model2d-hint {
+  display: -webkit-box;
+  margin-top: 0.3rem;
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.models2d-page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #071119;
+  isolation: isolate;
+}
+
+.models2d-scene-image,
+.models2d-rain-layer {
+  position: absolute;
+  inset: -2%;
+  width: 104%;
+  height: 104%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+  image-rendering: pixelated;
+  will-change: transform, filter, opacity;
+}
+
+/* Each scene ships with a dedicated crop for both device orientations. The
+   portrait frame is the default; the wide frame is swapped in below without
+   asking CSS to stretch or letterbox the artwork. */
+.models2d-scene-landscape {
+  display: none;
+}
+
+.models2d-scene-base {
+  animation: models2d-camera-drift 14s ease-in-out infinite alternate;
+}
+
+.models2d-scene-motion {
+  z-index: 1;
+  opacity: 0.2;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.models2d-page[data-scene="village"] .models2d-scene-motion {
+  clip-path: inset(43% 0 13% 0);
+  animation: models2d-village-life 5.6s ease-in-out infinite alternate;
+}
+
+.models2d-page[data-scene="cyber_city"] .models2d-scene-base {
+  animation-duration: 9s;
+}
+
+.models2d-page[data-scene="cyber_city"] .models2d-scene-motion {
+  clip-path: inset(16% 0 20% 0);
+  opacity: 0.28;
+  animation: models2d-flying-cars 3.8s ease-in-out infinite alternate;
+}
+
+.models2d-page[data-scene="garden"] .models2d-scene-motion {
+  clip-path: inset(20% 0 0 0);
+  opacity: 0.24;
+  transform-origin: 50% 100%;
+  animation: models2d-flower-sway 3.4s ease-in-out infinite alternate;
+}
+
+.models2d-page[data-scene="rain_room"] .models2d-scene-motion {
+  opacity: 0.24;
+  animation: models2d-room-rhythm 2.4s steps(4, end) infinite;
+}
+
+.models2d-rain-layer {
+  z-index: 2;
+  opacity: 0.18;
+  mix-blend-mode: screen;
+  animation: models2d-rain-fall 2.8s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes models2d-camera-drift {
+  from { transform: scale(1.035) translate3d(-0.4%, -0.25%, 0); }
+  to { transform: scale(1.075) translate3d(0.55%, 0.35%, 0); }
+}
+
+@keyframes models2d-village-life {
+  from { transform: scale(1.045) translate3d(-0.8%, 0, 0); }
+  to { transform: scale(1.045) translate3d(0.9%, -0.35%, 0); }
+}
+
+@keyframes models2d-flying-cars {
+  from { transform: scale(1.04) translate3d(-1.7%, 0.4%, 0); filter: brightness(0.94); }
+  to { transform: scale(1.04) translate3d(1.8%, -0.45%, 0); filter: brightness(1.14); }
+}
+
+@keyframes models2d-flower-sway {
+  from { transform: scale(1.035) rotate(-0.28deg) translate3d(-0.2%, 0, 0); }
+  to { transform: scale(1.035) rotate(0.32deg) translate3d(0.2%, -0.15%, 0); }
+}
+
+@keyframes models2d-room-rhythm {
+  0%, 100% { opacity: 0.12; filter: brightness(0.92) saturate(0.95); }
+  35% { opacity: 0.32; filter: brightness(1.12) saturate(1.16); }
+  62% { opacity: 0.2; filter: brightness(1.02) saturate(1.04); }
+}
+
+@keyframes models2d-rain-fall {
+  from { transform: translate3d(0, -3.5%, 0) scale(1.04); }
+  to { transform: translate3d(0, 3.5%, 0) scale(1.04); }
+}
+
+/* Wide scene artwork is composed for landscape, so it can fill the short
+   viewport without the portrait asset being enlarged into a narrow strip. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .models2d-scene-portrait {
+    display: none;
+  }
+
+  .models2d-scene-landscape {
+    display: block;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .models2d-scene-landscape.models2d-scene-base {
+    animation: models2d-landscape-drift 14s ease-in-out infinite alternate;
+  }
+
+  .models2d-scene-landscape.models2d-scene-motion {
+    clip-path: none;
+    opacity: 0.14;
+    animation: models2d-landscape-drift 9s ease-in-out infinite alternate;
+  }
+
+  .models2d-page[data-scene="rain_room"] .models2d-scene-landscape.models2d-scene-motion {
+    opacity: 0.2;
+  }
+
+  /* The wide room artwork already contains its own rain; the old portrait
+     overlay would tint the whole landscape blue and make the scene muddy. */
+  .models2d-rain-layer {
+    display: none;
+  }
+
+  .settings-model2d-art {
+    height: 6.5rem;
+  }
+
+  .settings-model2d-copy {
+    min-height: 3.6rem;
+    padding-block: 0.52rem 0.58rem;
+  }
+}
+
+@keyframes models2d-landscape-drift {
+  from { transform: translate3d(-0.35%, -0.2%, 0); }
+  to { transform: translate3d(0.35%, 0.2%, 0); }
+}
+
+@keyframes models2d-landscape-rain {
+  from { transform: translate3d(0, -2.5%, 0); }
+  to { transform: translate3d(0, 2.5%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .models2d-scene-image,
+  .models2d-rain-layer {
+    animation: none !important;
+  }
+}
+
 @media (min-width: 721px) {
   .settings-detail-body {
     width: 100%;

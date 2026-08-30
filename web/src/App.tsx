@@ -9,6 +9,7 @@ import { SettingsPage } from "@/components/SettingsPage";
 import { ClockPage } from "@/components/clock/ClockPage";
 import { BlackholePage } from "@/components/blackhole/BlackholePage";
 import { Models3dPage } from "@/components/models3d/Models3dPage";
+import { Models2dPage } from "@/components/models2d/Models2dPage";
 import { MusicAlbumPage } from "@/components/music/MusicAlbumPage";
 import { IllustrationPage } from "@/components/illustration/IllustrationPage";
 import { musicApi } from "@/lib/music";
@@ -149,6 +150,15 @@ function AppShell({
     return (
       <div className="vf-shell overflow-hidden">
         <BlackholePage />
+        {titleBar()}
+      </div>
+    );
+  }
+
+  if (page === "dashboard" && appearanceConfig.model2d_enabled) {
+    return (
+      <div className="vf-shell overflow-hidden">
+        <Models2dPage />
         {titleBar()}
       </div>
     );

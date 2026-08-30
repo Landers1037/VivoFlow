@@ -56,6 +56,14 @@ No actionable P0, P1, or P2 findings remain.
 - [x] `git diff --check`
 - [x] Verify graphite card/panel surfaces and border tokens in the running browser preview.
 
+## 2D Models orientation follow-up
+
+- [x] Added a dedicated landscape/portrait pair for each 2D scene. Landscape files are `1536 × 1024`; portrait files are `1024 × 1536`, with the scene-safe subject placement composed independently rather than cropped from the other orientation.
+- [x] The home scene swaps image sources at the iPhone XS landscape breakpoint (`orientation: landscape` and `max-height: 520px`): portrait keeps the immersive vertical crop, while landscape uses the wide source with `object-fit: cover` and no portrait sidebars.
+- [x] The landscape healing-room artwork contains its own rain treatment; the old portrait rain overlay is disabled in landscape so it cannot wash the wide scene in blue.
+- [x] Source visual checks completed for all eight artwork files. The retained [landscape regression capture](D:/code/web/VivoFlow/design-qa-models2d-landscape.png) documents the old portrait-in-landscape failure; the new wide files are the replacement evidence set.
+- [x] `npm run build`, `cargo test -p vivoflow`, and `git diff --check` pass after the orientation swap.
+
 ## Follow-up Polish
 
 - P3: a future pass could add an optional compact dashboard summary header when live snapshot data is available.

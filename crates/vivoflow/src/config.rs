@@ -86,6 +86,10 @@ fn default_blackhole_spin_speed() -> f32 {
     1.0
 }
 
+fn default_model2d_id() -> String {
+    "village".into()
+}
+
 fn default_model3d_id() -> String {
     "solar_system".into()
 }
@@ -226,6 +230,10 @@ pub struct AppConfig {
     #[serde(default = "default_blackhole_spin_speed")]
     pub blackhole_spin_speed: f32,
     #[serde(default)]
+    pub model2d_enabled: bool,
+    #[serde(default = "default_model2d_id")]
+    pub model2d_id: String,
+    #[serde(default)]
     pub model3d_enabled: bool,
     #[serde(default = "default_model3d_id")]
     pub model3d_id: String,
@@ -335,6 +343,8 @@ impl Default for AppConfig {
             blackhole_color: default_blackhole_color(),
             blackhole_interactive: false,
             blackhole_spin_speed: default_blackhole_spin_speed(),
+            model2d_enabled: false,
+            model2d_id: default_model2d_id(),
             model3d_enabled: false,
             model3d_id: default_model3d_id(),
             model3d_orbit_style: default_model3d_orbit_style(),
@@ -547,6 +557,9 @@ impl AppConfig {
         if !["circle", "square", "rounded", "star"].contains(&self.clock_dot_shape.as_str()) {
             self.clock_dot_shape = default_clock_dot_shape();
         }
+        if !["village", "cyber_city", "garden", "rain_room"].contains(&self.model2d_id.as_str()) {
+            self.model2d_id = default_model2d_id();
+        }
         if !["solar_system", "tree", "town"].contains(&self.model3d_id.as_str()) {
             self.model3d_id = default_model3d_id();
         }
@@ -620,26 +633,34 @@ impl AppConfig {
             self.illustration_enabled = false;
             self.audio_visualizer_enabled = false;
             self.blackhole_enabled = false;
+            self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.music_album_enabled {
             self.photo_album_enabled = false;
             self.illustration_enabled = false;
             self.audio_visualizer_enabled = false;
             self.blackhole_enabled = false;
+            self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.audio_visualizer_enabled {
             self.photo_album_enabled = false;
             self.illustration_enabled = false;
             self.blackhole_enabled = false;
+            self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.photo_album_enabled {
             self.illustration_enabled = false;
             self.blackhole_enabled = false;
+            self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.illustration_enabled {
             self.blackhole_enabled = false;
+            self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.blackhole_enabled {
+            self.model2d_enabled = false;
+            self.model3d_enabled = false;
+        } else if self.model2d_enabled {
             self.model3d_enabled = false;
         }
         self

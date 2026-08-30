@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model3dClockPosition, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
@@ -37,6 +37,7 @@ import {
   MODEL3D_ORBIT_STYLES,
   MODEL3D_TREE_BASE_SHAPES,
   MODEL3D_TREE_CANOPY_SHAPES,
+  MODEL2D_IDS,
   UI_STYLES,
 } from "@/types";
 
@@ -191,6 +192,10 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     blackhole_spin_speed: Number.isFinite(Number(base.blackhole_spin_speed))
       ? Math.min(3, Math.max(0, Number(base.blackhole_spin_speed)))
       : DEFAULT_BLACKHOLE_SPIN_SPEED,
+    model2d_enabled: Boolean(base.model2d_enabled),
+    model2d_id: MODEL2D_IDS.includes(base.model2d_id as Model2dId)
+      ? (base.model2d_id as Model2dId)
+      : "village",
     model3d_enabled: Boolean(base.model3d_enabled),
     model3d_id: MODEL3D_IDS.includes(base.model3d_id as Model3dId)
       ? (base.model3d_id as Model3dId)
@@ -335,6 +340,8 @@ interface AppearanceContextValue {
   setBlackholeColor: (hex: string) => void;
   setBlackholeInteractive: (v: boolean) => void;
   setBlackholeSpinSpeed: (v: number) => void;
+  setModel2dEnabled: (v: boolean) => void;
+  setModel2dId: (v: Model2dId) => void;
   setModel3dEnabled: (v: boolean) => void;
   setModel3dId: (v: Model3dId) => void;
   setModel3dOrbitStyle: (v: Model3dOrbitStyle) => void;
@@ -370,6 +377,7 @@ function exclusiveFullscreen(enabled: Partial<AppConfig>): Partial<AppConfig> {
     audio_visualizer_enabled: false,
     clock_enabled: false,
     blackhole_enabled: false,
+    model2d_enabled: false,
     model3d_enabled: false,
     ...enabled,
   };
@@ -485,6 +493,9 @@ export function AppearanceProvider({
       setBlackholeColor: (hex) => patch({ blackhole_color: normalizeHexColor(hex, DEFAULT_BLACKHOLE_COLOR) }),
       setBlackholeInteractive: (blackhole_interactive) => patch({ blackhole_interactive }),
       setBlackholeSpinSpeed: (blackhole_spin_speed) => patch({ blackhole_spin_speed }),
+      setModel2dEnabled: (model2d_enabled) =>
+        patch(model2d_enabled ? exclusiveFullscreen({ model2d_enabled: true }) : { model2d_enabled }),
+      setModel2dId: (model2d_id) => patch({ model2d_id }),
       setModel3dEnabled: (model3d_enabled) =>
         patch(model3d_enabled ? exclusiveFullscreen({ model3d_enabled: true }) : { model3d_enabled }),
       setModel3dId: (model3d_id) => patch({ model3d_id }),

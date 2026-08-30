@@ -243,6 +243,7 @@ async fn enable(
     c.audio_visualizer_enabled = false;
     c.clock_enabled = false;
     c.blackhole_enabled = false;
+    c.model2d_enabled = false;
     c.model3d_enabled = false;
     c.active_music_album_id = Some(id);
     crate::config::save_config(&c).map_err(MusicError::internal)?;
