@@ -29,7 +29,7 @@
   - `blackhole_interactive`：拖拽/缩放手势（默认 `false`）
   - `blackhole_spin_speed`：旋转倍率 `0..=3`（默认 `1`）
   - `model3d_enabled`：全屏 3D 模型看板开关（默认 `false`）
-  - `model3d_id`：场景 id，`solar_system` / `tree`（非法回退太阳系）
+  - `model3d_id`：场景 id，`solar_system` / `tree` / `town` / `flower`（非法回退太阳系）
   - `model3d_orbit_style`：`solid` / `dashed` / `hidden`（默认 `solid`）
   - `model3d_textures_enabled`：是否使用太阳系贴图（默认 `true`）
   - `model3d_tree_canopy_shape`：`round` / `cone` / `layered`（默认 `layered`）
@@ -37,6 +37,13 @@
   - `model3d_tree_base_shape`：`square` / `circle` / `heart`（默认 `square`）
   - `model3d_tree_base_color`：底座 `#RRGGBB`（默认 `#8f98a3`）
   - `model3d_tree_trunk_color`：树干 `#RRGGBB`（默认 `#4a301c`）
+  - `model3d_flower_type`：花型，`rose` / `tulip` / `sunflower` / `daisy` / `lily` / `orchid` / `carnation` / `peony` / `lavender` / `hydrangea`（默认 `rose`）
+  - `model3d_flower_petal_color`：花瓣 `#RRGGBB`（默认 `#d94a64`）
+  - `model3d_flower_foliage_color`：叶茎 `#RRGGBB`（默认 `#3f7d4a`）
+  - `model3d_flower_pot_shape`：花盆形状，`round` / `square` / `pedestal`（默认 `round`）
+  - `model3d_flower_pot_color`：花盆 `#RRGGBB`（默认 `#b86f47`）
+  - `model3d_flower_seed`：8 位十六进制布局种子（默认 `7c4a2f91`）
+  - `model3d_flower_generator_version`：花簇生成器版本（默认 `1`）
 - `EnabledModules`：`cpu` / `memory` / `gpu` / `disk` / `network`（默认全开）
 
 ## 行为

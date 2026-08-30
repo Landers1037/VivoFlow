@@ -53,12 +53,13 @@
 
 - 独立子页，入口在「显示」分组、黑洞下面。
 - `model3d_enabled` 开启后首页进入全屏 3D 场景，并关闭时钟、黑洞、相册、音乐、音频。
-- `model3d_id`：当前场景，`solar_system`、`tree` 或 `town`。设置页用卡片预览，点击切换；未选中的卡片不创建 GPU 上下文。
+- `model3d_id`：当前场景，`solar_system`、`tree`、`town` 或 `flower`。设置页用卡片预览，点击切换；未选中的卡片不创建 GPU 上下文。
 - 选中太阳系时可配 `model3d_orbit_style`：`solid` / `dashed` / `hidden`，轨道线为白色；以及 `model3d_textures_enabled`（默认开）关闭后用纯色球体。
 - 选中树时可配树冠形状 `round` / `cone` / `layered` 与颜色、底座形状 `square` / `circle` / `heart` 与颜色、树干颜色。树冠大小分小/中/大，刷新或重选形状时随机（原先尺寸为小）。`layered` 为从下往上、从大到小的方板层叠（约 3–4 层，层与层紧贴、中间不露树干）。树为 Minecraft 风格方块，首页可拖拽旋转、滚轮或双指缩放。
 - 太阳系：太阳、地球、月球，压缩轨道比例；地球绕日、月球绕地、自转。首页可拖拽旋转、滚轮或双指缩放。
 - 城镇：俯视斜角的 Minecraft 式方块城镇。种子等概率选择海滨、湖畔、森林、平原或城市主题；海滨有轮船、湖畔有渔船，森林/平原/城市外围有铁路和循环火车。道路、建筑、人物和汽车均由确定性种子生成并缓慢运动。可设置人口（12/28/48）、建筑密度（35%/60%/80%）和白天/夜晚，并将种子与完整参数保存为最多 50 个命名收藏。
-- 所有 3D 卡片共享模型时钟配置（`model3d_clock_enabled` / `model3d_clock_position` / `model3d_clock_show_date` / `model3d_clock_show_seconds`）：可开启/关闭，选择左上、正上、右上、左下、正下或右下，显示日期和秒；树、城镇使用方块风格时钟，设置与全局时钟看板独立。
+- 花：与树一致的低多边形体素盆栽花簇。支持玫瑰、郁金香、向日葵、雏菊、百合、兰花、康乃馨、牡丹、薰衣草、绣球 10 种花型；每次生成当前花型的 3–7 枝，随机高度、朝向、开放度和叶片分布。可调整花瓣、叶茎、花盆颜色，以及圆盆、方盆、高脚盆形状。随机生成只更换 8 位布局种子，花型、配色和花盆设置保持不变；相同种子与设置会生成相同布局。
+- 所有 3D 卡片共享模型时钟配置（`model3d_clock_enabled` / `model3d_clock_position` / `model3d_clock_show_date` / `model3d_clock_show_seconds`）：可开启/关闭，选择左上、正上、右上、左下、正下或右下，显示日期和秒；树、城镇、花使用方块风格时钟，设置与全局时钟看板独立。
 - 渲染用 Three.js `WebGPURenderer`：桌面 Chrome / Edge 优先 WebGPU；iPhone / iPad / Safari 强制 WebGL2（这些环境的 WebGPU 常能拿到 adapter 却画出黑屏，Three 不会自动回退）。两者都不可用时显示提示。
 - 贴图放在 `web/public/models/solar-system/`（`sun.jpg`、`earth.jpg`、`moon.jpg` 等）。缺失时用程序化球体，不阻断渲染。太阳系贴图署名 Solar System Scope（CC BY 4.0）。
 
