@@ -16,7 +16,7 @@
 |------|------|
 | 核心数 / 型号 / 占用 | `sysinfo`（双次 refresh，避免首帧全 0） |
 | 标称频率 | `Cpu::frequency()` |
-| 当前运行频率 | Windows `CallNtPowerInformation(ProcessorInformation)`；失败则回退标称频率或 `null` |
+| 当前运行频率 | Windows `Win32_PerfFormattedData_Counters_ProcessorInformation` 以 `ProcessorFrequency × PercentProcessorPerformance / 100` 计算各逻辑核心有效频率并取峰值；失败则回退 `CallNtPowerInformation(ProcessorInformation)` 平均值、标称频率或 `null` |
 | `load_5s` / `load_5m` / `load_15m` | 采集器内 `VecDeque` 滚动平均占用 % |
 | 温度 | `thermal::cpu_temperature_c()`（性能计数器 / ACPI WMI，尽力而为） |
 
@@ -25,7 +25,7 @@
 | 能力 | 实现 |
 |------|------|
 | 总量 / 已用 / 占用% | `sysinfo` |
-| 条级型号 / 频率 / 容量 | WMI `Win32_PhysicalMemory` |
+| 条级型号 / 频率 / 容量 | WMI `Win32_PhysicalMemory`；频率优先 `ConfiguredClockSpeed`（XMP/EXPO 后配置值），缺失时回退 `Speed` |
 | 温度 | `thermal::memory_temperature_c()`（匹配 MEM/DRAM 等热区名；多数主板不可用则为 `null`） |
 
 WMI 字符串经 `clean_wmi_str` 过滤空串与 `"NULL"`。

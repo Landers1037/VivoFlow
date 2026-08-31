@@ -17,9 +17,9 @@
 
 | 类型 | 关键字段 |
 |------|----------|
-| `CpuMetrics` | `cores`, `model`, `base_mhz`, `current_mhz`, `usage_percent`, `load_5s` / `load_5m` / `load_15m`（滚动占用均值 %）, `temperature_c` |
+| `CpuMetrics` | `cores`, `model`, `base_mhz`, `current_mhz`（Windows 有效运行峰值估算）, `usage_percent`, `load_5s` / `load_5m` / `load_15m`（滚动占用均值 %）, `temperature_c` |
 | `MemoryMetrics` | `total_bytes`, `used_bytes`, `usage_percent`, `modules[]`, `temperature_c` |
-| `MemoryModule` | `part_number`, `manufacturer`, `speed_mhz`, `capacity_bytes` |
+| `MemoryModule` | `part_number`, `manufacturer`, `speed_mhz`（优先 WMI `ConfiguredClockSpeed`）, `capacity_bytes` |
 | `GpuMetrics` | `name`, `vram_*`, `usage_percent`, `temperature_c`, `*_clock_mhz` |
 | `DiskMetrics` | `name`, `model`, `kind`, `total_bytes`, `used_bytes`, `read_bps`, `write_bps` |
 | `NetworkMetrics` | `name`, `model`, `mac`, `rx_bps`, `tx_bps` |
