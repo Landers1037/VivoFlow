@@ -224,6 +224,7 @@ export interface AppConfig {
   theme: ThemeMode;
   language: Lang;
   hide_title_bar: boolean;
+  system_dashboard_enabled: boolean;
   mobile_card_mode: boolean;
   mobile_auto_carousel: boolean;
   mobile_carousel_interval_s: number;
@@ -297,6 +298,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   theme: "system",
   language: "zh",
   hide_title_bar: false,
+  system_dashboard_enabled: false,
   mobile_card_mode: false,
   mobile_auto_carousel: true,
   mobile_carousel_interval_s: 10,
@@ -514,7 +516,16 @@ export interface Snapshot {
   gpu?: GpuMetrics[];
   disks?: DiskMetrics[];
   network?: NetworkMetrics[];
+  system?: SystemMetrics;
   temp_history?: TempHistoryPoint[];
+}
+
+export interface SystemMetrics {
+  host_name: string | null;
+  os_name: string | null;
+  os_version: string | null;
+  kernel_version: string | null;
+  uptime_seconds: number;
 }
 
 export type ConnState = "connecting" | "connected" | "disconnected";

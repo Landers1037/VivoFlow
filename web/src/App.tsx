@@ -12,6 +12,7 @@ import { Models3dPage } from "@/components/models3d/Models3dPage";
 import { Models2dPage } from "@/components/models2d/Models2dPage";
 import { MusicAlbumPage } from "@/components/music/MusicAlbumPage";
 import { IllustrationPage } from "@/components/illustration/IllustrationPage";
+import { SystemDashboard } from "@/components/system/SystemDashboard";
 import { musicApi } from "@/lib/music";
 import { FullPageLoader } from "@/components/viz";
 import { AppearanceProvider, useAppearance } from "@/hooks/useAppearance";
@@ -100,6 +101,23 @@ function AppShell({
       inFlow={inFlow}
     />
   );
+
+  if (page === "dashboard" && appearanceConfig.system_dashboard_enabled) {
+    return (
+      <div
+        className="vf-shell vf-system-dashboard-shell overflow-hidden"
+        data-titlebar-visible={!hideTitleBar || headerRevealed ? "true" : "false"}
+      >
+        <SystemDashboard
+          snapshot={snapshot}
+          history={history}
+          conn={conn}
+          error={error ? (error.kind === "key" ? t(error.key) : error.message) : undefined}
+        />
+        {titleBar()}
+      </div>
+    );
+  }
 
   if (page === "dashboard" && appearanceConfig.clock_enabled) {
     return (

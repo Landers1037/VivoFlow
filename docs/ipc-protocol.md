@@ -34,6 +34,7 @@
   "theme": "system",
   "language": "zh",
   "hide_title_bar": false,
+  "system_dashboard_enabled": false,
   "mobile_card_mode": false,
   "mobile_auto_carousel": true,
   "mobile_carousel_interval_s": 10,
@@ -65,6 +66,7 @@
 | `theme` | `light` / `dark` / `system` |
 | `language` | `zh` / `en` |
 | `hide_title_bar` | `true` / `false`；仅隐藏仪表盘标题栏 |
+| `system_dashboard_enabled` | `true` / `false`；首页显示固定单屏系统看板，并与其他首页全屏模块互斥 |
 | `mobile_card_mode` | `true` / `false`；手机启用 2x 分页卡片 |
 | `mobile_auto_carousel` | `true` / `false`；仅移动卡片模式生效 |
 | `mobile_carousel_interval_s` | `[5, 60]`，默认 `10` |
@@ -82,7 +84,7 @@
 
 | type | 说明 |
 |------|------|
-| `snapshot` | 完整指标快照 |
+| `snapshot` | 完整指标快照；含 `system` 主机/操作系统信息和现有硬件、温度历史字段 |
 | `config` | `{ "type":"config", "config": AppConfig }` |
 | `error` | `{ "type":"error", "message": "..." }` |
 | `audio_frame` | 64 个归一化频段及 `rms`、`peak`、`beat`；仅向已订阅连接推送 |

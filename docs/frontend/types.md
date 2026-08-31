@@ -11,7 +11,7 @@
 - `background_color`：页面背景基色
 - `glass_gradient_start` / `glass_gradient_end`：毛玻璃背景渐变两端色（`#RRGGBB`）
 - `ThemeMode` / `Lang`
-- `hide_title_bar`、`mobile_card_mode`、`mobile_auto_carousel`、`mobile_carousel_interval_s`
+- `hide_title_bar`、`system_dashboard_enabled`、`mobile_card_mode`、`mobile_auto_carousel`、`mobile_carousel_interval_s`
 - `clock_enabled`、`clock_style`（`lines` / `dial` / `pixel` / `flip` / `object` / `dots`）、`clock_timezone_offset_minutes`（固定 UTC 偏移分钟数，默认 `480`，即东八区）、`clock_show_week` / `clock_show_date` / `clock_show_seconds`、`clock_dot_shape`（`circle` / `square` / `rounded` / `star`）
 - `illustration_enabled`：全屏像素插画轮播开关；`IllustrationImage`（含用于缓存失效的 `version`）、`PixelArtSettings`、`IllustrationsResponse` 和 `StorageStatus` 描述插画与存储 API 数据。
 - `blackhole_enabled`：全屏黑洞看板
@@ -24,7 +24,7 @@
 - `model3d_tree_canopy_shape`：`round` / `cone` / `layered`
 - `model3d_tree_canopy_color` / `model3d_tree_base_color` / `model3d_tree_trunk_color`
 - `model3d_tree_base_shape`：`square` / `circle` / `heart`
-- `Snapshot` 及 `CpuMetrics`、`MemoryMetrics`、`GpuMetrics`、`DiskMetrics`、`NetworkMetrics`
+- `Snapshot` 及 `SystemMetrics`、`CpuMetrics`、`MemoryMetrics`、`GpuMetrics`、`DiskMetrics`、`NetworkMetrics`
 - `ConnState`：`"connecting" | "connected" | "disconnected"`
 
 字段可空性与 JSON `null` 对齐，避免 UI 对缺失硬件字段崩溃。

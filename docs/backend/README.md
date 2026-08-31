@@ -9,7 +9,7 @@
 | [audio.md](./audio.md) | `audio.rs` | Windows WASAPI 回环、频谱与音频状态 |
 | [models.md](./models.md) | `models.rs` | 快照与指标数据结构 |
 | [hub.md](./hub.md) | `hub.rs` | 采集循环、缓存、广播 |
-| [collectors.md](./collectors.md) | `collectors/*` | CPU/内存/GPU/磁盘/网络采集 |
+| [collectors.md](./collectors.md) | `collectors/*` | CPU/内存/GPU/磁盘/网络/系统信息采集 |
 | [ipc.md](./ipc.md) | `ipc.rs` | WebSocket 消息处理 |
 | [server.md](./server.md) | `server.rs` | HTTP 路由与静态资源 |
 

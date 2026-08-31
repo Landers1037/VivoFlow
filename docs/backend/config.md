@@ -13,6 +13,7 @@
   - `background_color`：页面背景基色，默认 `#0b1a20`，按明暗主题混合显示
   - `theme` / `language`
   - `hide_title_bar`：隐藏仪表盘标题栏（默认 `false`）
+  - `system_dashboard_enabled`：系统看板开关（默认 `false`）；开启后以固定单屏系统信息墙作为首页
   - `mobile_card_mode`：手机分页卡片模式（默认 `false`）
   - `mobile_auto_carousel`：移动卡片自动轮播（默认 `true`，仅移动模式生效）
   - `mobile_carousel_interval_s`：轮播间隔秒数（默认 `10`，限制 `5..=60`）
@@ -50,7 +51,7 @@
 
 - `Default` 提供开箱即用的默认值。
 - `sanitize()` 在 `set_config` 时调用，限制间隔、历史长度和轮播间隔，并校验风格 / 主题色 / 背景色 / 自定义 hex，防止极端配置拖垮系统。
-- `clock_enabled`、`music_album_enabled`、`photo_album_enabled`、`illustration_enabled`、`audio_visualizer_enabled`、`blackhole_enabled`、`model3d_enabled` 互斥，最多启用一个首页全屏模块。同时开启时优先保留时钟，其次音乐、音频、相册、插画、黑洞、3D 模型。旧配置缺少字段时使用默认值。
+- `system_dashboard_enabled`、`clock_enabled`、`music_album_enabled`、`photo_album_enabled`、`illustration_enabled`、`audio_visualizer_enabled`、`blackhole_enabled`、`model2d_enabled`、`model3d_enabled` 互斥，最多启用一个首页全屏模块。系统看板优先级最高；未开启系统看板时，旧顺序依次保留时钟、音乐、音频、相册、插画、黑洞、2D、3D 模型。旧配置缺少字段时使用默认值。
 - 媒体根路径不属于 `AppConfig`，单独保存在配置目录的 `storage.json`，通过 `/api/storage` 迁移和更新，避免普通 `set_config` 绕过文件迁移。
 
 配置由 `MetricsHub` 持有，采集循环与 IPC 读写同一把 `RwLock`。

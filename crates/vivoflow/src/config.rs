@@ -202,6 +202,8 @@ pub struct AppConfig {
     #[serde(default)]
     pub hide_title_bar: bool,
     #[serde(default)]
+    pub system_dashboard_enabled: bool,
+    #[serde(default)]
     pub mobile_card_mode: bool,
     #[serde(default = "default_mobile_auto_carousel")]
     pub mobile_auto_carousel: bool,
@@ -357,6 +359,7 @@ impl Default for AppConfig {
             theme: "system".into(),
             language: "zh".into(),
             hide_title_bar: false,
+            system_dashboard_enabled: false,
             mobile_card_mode: false,
             mobile_auto_carousel: true,
             mobile_carousel_interval_s: default_mobile_carousel_interval_s(),
@@ -724,7 +727,16 @@ impl AppConfig {
         {
             self.model3d_clock_position = default_model3d_clock_position();
         }
-        if self.clock_enabled {
+        if self.system_dashboard_enabled {
+            self.clock_enabled = false;
+            self.photo_album_enabled = false;
+            self.music_album_enabled = false;
+            self.illustration_enabled = false;
+            self.audio_visualizer_enabled = false;
+            self.blackhole_enabled = false;
+            self.model2d_enabled = false;
+            self.model3d_enabled = false;
+        } else if self.clock_enabled {
             self.photo_album_enabled = false;
             self.music_album_enabled = false;
             self.illustration_enabled = false;
@@ -849,6 +861,33 @@ mod tests {
     }
 
     #[test]
+    fn system_dashboard_is_highest_priority_and_exclusive() {
+        let cfg = AppConfig {
+            system_dashboard_enabled: true,
+            clock_enabled: true,
+            photo_album_enabled: true,
+            music_album_enabled: true,
+            illustration_enabled: true,
+            audio_visualizer_enabled: true,
+            blackhole_enabled: true,
+            model2d_enabled: true,
+            model3d_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+
+        assert!(cfg.system_dashboard_enabled);
+        assert!(!cfg.clock_enabled);
+        assert!(!cfg.photo_album_enabled);
+        assert!(!cfg.music_album_enabled);
+        assert!(!cfg.illustration_enabled);
+        assert!(!cfg.audio_visualizer_enabled);
+        assert!(!cfg.blackhole_enabled);
+        assert!(!cfg.model2d_enabled);
+        assert!(!cfg.model3d_enabled);
+    }
+
+    #[test]
     fn illustration_module_is_exclusive_with_media_and_visual_modules() {
         let cfg = AppConfig {
             illustration_enabled: true,
@@ -921,6 +960,7 @@ mod tests {
 
         let cfg: AppConfig = serde_json::from_str(raw).expect("legacy config should deserialize");
         assert!(!cfg.hide_title_bar);
+        assert!(!cfg.system_dashboard_enabled);
         assert!(!cfg.mobile_card_mode);
         assert!(cfg.mobile_auto_carousel);
         assert_eq!(cfg.mobile_carousel_interval_s, 10);

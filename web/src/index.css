@@ -3569,6 +3569,565 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   display: none;
 }
 
+/* Fixed single-viewport system dashboard. The board itself never scrolls;
+   dense device collections use contained panel scrolling so the visual grid
+   keeps a deliberate, even rhythm without dropping any collected rows. */
+.vf-system-dashboard {
+  --system-cpu: var(--primary);
+  --system-memory: color-mix(in oklch, var(--primary) 68%, #3b82f6);
+  --system-network: color-mix(in oklch, var(--primary) 66%, #14b8a6);
+  --system-network-secondary: color-mix(in oklch, var(--primary) 54%, #f59e0b);
+  --system-temp: color-mix(in oklch, var(--primary) 62%, #f97316);
+  --system-temp-secondary: color-mix(in oklch, var(--primary) 52%, #a855f7);
+  --system-dashboard-top-inset: max(0.45rem, env(safe-area-inset-top));
+  --system-dashboard-bottom-inset: max(0.45rem, env(safe-area-inset-bottom));
+  --system-board-grid-reserve: 7rem;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  padding: var(--system-dashboard-top-inset) max(0.55rem, env(safe-area-inset-right)) var(--system-dashboard-bottom-inset) max(0.55rem, env(safe-area-inset-left));
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.vf-system-dashboard-shell[data-titlebar-visible="true"] .vf-system-dashboard {
+  /* Keep the board header clear of the existing full-screen title-bar overlay. */
+  --system-dashboard-top-inset: max(6.35rem, calc(5.35rem + env(safe-area-inset-top)));
+  padding-top: var(--system-dashboard-top-inset);
+}
+
+.vf-system-dashboard-scaler {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.vf-system-dashboard-content,
+.vf-system-board {
+  width: 100%;
+  min-width: 0;
+}
+
+.vf-system-dashboard-content {
+  transform-origin: center top;
+  will-change: transform;
+}
+
+.vf-system-board {
+  display: grid;
+  gap: 0.42rem;
+  color: var(--foreground);
+}
+
+.vf-system-board-header,
+.vf-system-board-status,
+.vf-system-board-brand,
+.vf-system-summary-metric,
+.vf-system-panel-heading,
+.vf-system-device-heading,
+.vf-system-history-title {
+  display: flex;
+  align-items: center;
+}
+
+.vf-system-board-header {
+  justify-content: space-between;
+  gap: 0.65rem;
+  min-height: 2.05rem;
+  padding-inline: 0.1rem;
+}
+
+.vf-system-board-brand {
+  min-width: 0;
+  gap: 0.48rem;
+}
+
+.vf-system-board-mark,
+.vf-system-board-empty-mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 35%, var(--border));
+  border-radius: 0.48rem;
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary) 9%, var(--card));
+}
+
+.vf-system-board-mark svg,
+.vf-system-board-empty-mark svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.vf-system-board-kicker {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.vf-system-board-host {
+  margin: 0.08rem 0 0;
+  color: var(--muted-foreground);
+  font-family: var(--font-data-face);
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.vf-system-board h1 {
+  max-width: 48vw;
+  margin: 0.1rem 0 0;
+  overflow-wrap: anywhere;
+  font-size: 1.08rem;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+
+.vf-system-board-status {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  max-width: 56%;
+  color: var(--muted-foreground);
+  font-size: 0.66rem;
+  text-align: right;
+}
+
+.vf-system-board-status-dot {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: var(--muted-foreground);
+}
+
+.vf-system-board-status-dot.is-live {
+  background: #22c55e;
+  box-shadow: 0 0 0 0.16rem color-mix(in oklch, #22c55e 18%, transparent);
+}
+
+.vf-system-board-divider {
+  width: 1px;
+  height: 0.8rem;
+  margin-inline: 0.12rem;
+  background: var(--border);
+}
+
+.vf-system-board-updated {
+  font-family: var(--font-data-face);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.vf-system-board-error {
+  border: 1px solid color-mix(in oklch, var(--destructive) 35%, var(--border));
+  border-radius: calc(var(--radius) * 0.65);
+  padding: 0.28rem 0.45rem;
+  color: var(--destructive);
+  background: color-mix(in oklch, var(--destructive) 8%, var(--card));
+  overflow-wrap: anywhere;
+}
+
+.vf-system-board-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.vf-system-summary-metric {
+  min-width: 0;
+  gap: 0.42rem;
+  border: 1px solid var(--surface-border-color);
+  border-radius: calc(var(--radius) * 0.62);
+  padding: 0.36rem 0.48rem;
+  background: color-mix(in oklch, var(--surface-bg) 92%, var(--primary) 8%);
+  box-shadow: var(--surface-shadow);
+}
+
+.vf-system-summary-metric > svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+.vf-system-summary-metric p,
+.vf-system-summary-metric strong,
+.vf-system-summary-metric span {
+  display: block;
+  margin: 0;
+}
+
+.vf-system-summary-metric p {
+  color: var(--muted-foreground);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.vf-system-summary-metric strong {
+  margin-top: 0.08rem;
+  color: var(--foreground);
+  font-family: var(--font-data-face);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  line-height: 1.05;
+}
+
+.vf-system-summary-metric span {
+  margin-top: 0.08rem;
+  color: var(--muted-foreground);
+  font-size: 0.62rem;
+  overflow-wrap: anywhere;
+}
+
+.vf-system-board-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.vf-system-panel {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  flex-direction: column;
+  box-sizing: border-box;
+  border: 1px solid var(--surface-border-color);
+  border-radius: calc(var(--radius) * 0.62);
+  padding: 0.38rem 0.46rem;
+  background: color-mix(in oklch, var(--surface-bg) 95%, var(--primary) 5%);
+  box-shadow: var(--surface-shadow);
+  overflow: hidden;
+}
+
+.vf-system-panel-heading {
+  flex: 0 0 auto;
+  gap: 0.3rem;
+  min-width: 0;
+  margin-bottom: 0.28rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 78%, transparent);
+}
+
+.vf-system-panel-heading svg {
+  width: 0.78rem;
+  height: 0.78rem;
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+.vf-system-panel-heading h2 {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.vf-system-panel-body {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.16rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-color: color-mix(in oklch, var(--primary) 52%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+.vf-system-panel-body::-webkit-scrollbar {
+  width: 0.24rem;
+}
+
+.vf-system-panel-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vf-system-panel-body::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--primary) 52%, transparent);
+}
+
+.vf-system-info-row,
+.vf-system-device-row,
+.vf-system-device-grid {
+  min-width: 0;
+  font-size: 0.67rem;
+}
+
+.vf-system-info-row {
+  display: grid;
+  grid-template-columns: minmax(4.2rem, 0.72fr) minmax(0, 1.28fr);
+  gap: 0.3rem;
+  align-items: baseline;
+}
+
+.vf-system-info-row span,
+.vf-system-device-grid,
+.vf-system-subsection-label,
+.vf-system-empty-row {
+  color: var(--muted-foreground);
+}
+
+.vf-system-info-row strong {
+  min-width: 0;
+  color: var(--foreground);
+  font-family: var(--font-data-face);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.vf-system-subsection-label {
+  margin-top: 0.14rem;
+  font-size: 0.61rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.vf-system-device-list {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.vf-system-device-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 0.8fr);
+  gap: 0.25rem;
+  padding-block: 0.1rem;
+  border-top: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
+  color: var(--muted-foreground);
+  font-family: var(--font-data-face);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.vf-system-device-name {
+  min-width: 0;
+  color: var(--foreground);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.vf-system-device-block {
+  min-width: 0;
+  padding: 0.18rem 0.2rem;
+  border-top: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
+}
+
+.vf-system-device-heading {
+  justify-content: space-between;
+  gap: 0.35rem;
+  min-width: 0;
+  color: var(--foreground);
+  font-family: var(--font-data-face);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.vf-system-device-heading strong,
+.vf-system-device-heading span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.vf-system-device-heading strong {
+  font-weight: 650;
+}
+
+.vf-system-device-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.1rem 0.35rem;
+  margin-top: 0.08rem;
+  font-family: var(--font-data-face);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.vf-system-empty-row {
+  padding: 0.3rem 0.1rem;
+  text-align: center;
+}
+
+.vf-system-board-history {
+  display: grid;
+  grid-template-columns: auto repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  align-items: center;
+  min-width: 0;
+  border-top: 1px solid color-mix(in oklch, var(--border) 78%, transparent);
+  padding-top: 0.3rem;
+}
+
+.vf-system-history-title {
+  gap: 0.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.vf-system-history-title svg {
+  width: 0.78rem;
+  height: 0.78rem;
+  color: var(--primary);
+}
+
+.vf-system-trend {
+  display: grid;
+  grid-template-columns: minmax(3.2rem, auto) minmax(0, 1fr);
+  gap: 0.25rem;
+  align-items: center;
+  min-width: 0;
+  color: var(--muted-foreground);
+  font-size: 0.6rem;
+}
+
+.vf-system-trend > span {
+  overflow-wrap: anywhere;
+}
+
+.vf-system-trend-chart {
+  width: 100%;
+  height: 1.35rem;
+  min-width: 0;
+}
+
+.vf-system-board-empty {
+  display: grid;
+  height: calc(100dvh - max(0.9rem, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.vf-system-board-empty h1,
+.vf-system-board-empty p {
+  max-width: 28rem;
+  margin: 0;
+}
+
+.vf-system-board-empty h1 {
+  font-size: 1rem;
+}
+
+.vf-system-board-empty p {
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+
+@media (orientation: portrait) {
+  .vf-system-dashboard {
+    --system-board-grid-reserve: 10rem;
+  }
+
+  .vf-system-board-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vf-system-board-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    height: clamp(24rem, calc(100dvh - var(--system-dashboard-top-inset) - var(--system-dashboard-bottom-inset) - var(--system-board-grid-reserve)), 50rem);
+  }
+
+  .vf-system-panel-system {
+    grid-column: span 2;
+  }
+
+  .vf-system-board-history {
+    grid-template-columns: auto repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .vf-system-dashboard {
+    --system-dashboard-top-inset: max(0.28rem, env(safe-area-inset-top));
+    --system-dashboard-bottom-inset: max(0.28rem, env(safe-area-inset-bottom));
+    padding-top: var(--system-dashboard-top-inset);
+    padding-bottom: var(--system-dashboard-bottom-inset);
+  }
+
+  .vf-system-board {
+    gap: 0.3rem;
+  }
+
+  .vf-system-board-header {
+    min-height: 1.65rem;
+  }
+
+  .vf-system-board-mark {
+    width: 1.45rem;
+    height: 1.45rem;
+  }
+
+  .vf-system-board-summary {
+    gap: 0.25rem;
+  }
+
+  .vf-system-summary-metric {
+    padding-block: 0.24rem;
+  }
+
+  .vf-system-panel {
+    padding-block: 0.26rem;
+  }
+
+  .vf-system-panel-heading {
+    margin-bottom: 0.18rem;
+    padding-bottom: 0.12rem;
+  }
+
+  .vf-system-device-block {
+    padding-block: 0.1rem;
+  }
+
+  .vf-system-trend-chart {
+    height: 1rem;
+  }
+}
+
+@media (orientation: landscape) {
+  .vf-system-dashboard {
+    /* The compact landscape board should use the whole content width while
+       respecting the iPhone safe area and the requested 1rem visual gutter. */
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  .vf-system-board-grid {
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    height: clamp(13rem, calc(100dvh - var(--system-dashboard-top-inset) - var(--system-dashboard-bottom-inset) - var(--system-board-grid-reserve)), 36rem);
+  }
+}
+
 @keyframes vf-signal-pulse {
   0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 38%, transparent); }
   70% { box-shadow: 0 0 0 0.36rem color-mix(in oklch, var(--primary) 0%, transparent); }

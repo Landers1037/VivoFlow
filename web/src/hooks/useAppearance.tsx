@@ -171,6 +171,7 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     theme: themes.includes(base.theme as ThemeMode) ? (base.theme as ThemeMode) : "system",
     language: langs.includes(base.language as Lang) ? (base.language as Lang) : "zh",
     hide_title_bar: Boolean(base.hide_title_bar),
+    system_dashboard_enabled: Boolean(base.system_dashboard_enabled),
     mobile_card_mode: Boolean(base.mobile_card_mode),
     mobile_auto_carousel: base.mobile_auto_carousel !== false,
     mobile_carousel_interval_s: Number.isFinite(Number(base.mobile_carousel_interval_s))
@@ -360,6 +361,7 @@ interface AppearanceContextValue {
   setLanguage: (v: Lang) => void;
   setThemeMode: (v: ThemeMode) => void;
   setHideTitleBar: (v: boolean) => void;
+  setSystemDashboardEnabled: (v: boolean) => void;
   setMobileCardMode: (v: boolean) => void;
   setMobileAutoCarousel: (v: boolean) => void;
   setMobileCarouselInterval: (v: number) => void;
@@ -425,6 +427,7 @@ const AppearanceContext = createContext<AppearanceContextValue | null>(null);
 
 function exclusiveFullscreen(enabled: Partial<AppConfig>): Partial<AppConfig> {
   return {
+    system_dashboard_enabled: false,
     photo_album_enabled: false,
     music_album_enabled: false,
     illustration_enabled: false,
@@ -507,6 +510,15 @@ export function AppearanceProvider({
       setLanguage: (language) => patch({ language }),
       setThemeMode: (theme) => patch({ theme }),
       setHideTitleBar: (hide_title_bar) => patch({ hide_title_bar }),
+      setSystemDashboardEnabled: (system_dashboard_enabled) =>
+        patch(
+          system_dashboard_enabled
+            ? {
+                ...exclusiveFullscreen({ system_dashboard_enabled: true }),
+                system_dashboard_enabled: true,
+              }
+            : { system_dashboard_enabled },
+        ),
       setMobileCardMode: (mobile_card_mode) => patch({ mobile_card_mode }),
       setMobileAutoCarousel: (mobile_auto_carousel) => patch({ mobile_auto_carousel }),
       setMobileCarouselInterval: (mobile_carousel_interval_s) =>

@@ -4,7 +4,11 @@
 
 ## 编排：`mod.rs`
 
-`Collector` 聚合五个子采集器。`collect(&EnabledModules)` 按开关决定是否 `sample()`，组装带 `ts` 的 `Snapshot`。另维护 `temp_history`：CPU/内存温度约每 1 分钟记一点，最多 60 点（约 1 小时）。
+`Collector` 聚合 CPU、内存、GPU、磁盘、网卡和系统信息采集器。`collect(&EnabledModules)` 按开关决定硬件模块是否 `sample()`，系统信息始终写入 `Snapshot.system`，组装带 `ts` 的快照。另维护 `temp_history`：CPU/内存温度约每 1 分钟记一点，最多 60 点（约 1 小时）。
+
+## system.rs
+
+启动时读取主机名、操作系统名称/版本和内核版本；每次快照更新 `sysinfo::System::uptime()`。字段不可用时保留为 `null`，不影响其他硬件条目采集。
 
 ## cpu.rs
 

@@ -1,6 +1,6 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, ChevronLeft, AudioLines, Clock, Frame, Globe, HardDrive, Images, Info, Music2, Orbit, Palette, Radio, Sparkles } from "lucide-react";
+import { Check, ChevronLeft, AudioLines, Clock, Frame, Globe, HardDrive, Images, Info, MonitorCog, Music2, Orbit, Palette, Radio, Sparkles } from "lucide-react";
 import { ClockSettings } from "@/components/clock/ClockSettings";
 import { BlackholeSettings } from "@/components/blackhole/BlackholeSettings";
 import { Models3dSettings } from "@/components/models3d/Models3dSettings";
@@ -10,6 +10,7 @@ import { MusicAlbumSettings } from "@/components/music/MusicAlbumSettings";
 import { AudioSettings } from "@/components/audio/AudioSettings";
 import { IllustrationSettings } from "@/components/illustration/IllustrationSettings";
 import { StorageSettings } from "@/components/storage/StorageSettings";
+import { SystemDashboardSettings } from "@/components/system/SystemDashboardSettings";
 import {
   SettingsGroup,
   SettingsRow,
@@ -33,7 +34,7 @@ import { DEFAULT_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
 
-export type SettingsPane = "index" | "appearance" | "clock" | "blackhole" | "models3d" | "models2d" | "collection" | "storage" | "albums" | "music" | "illustration" | "audio" | "about";
+export type SettingsPane = "index" | "appearance" | "clock" | "blackhole" | "models3d" | "models2d" | "system" | "collection" | "storage" | "albums" | "music" | "illustration" | "audio" | "about";
 
 export function SettingsPage({
   config,
@@ -142,6 +143,13 @@ export function SettingsPage({
         </SettingsGroup>
 
         <SettingsGroup label={t("settingsGroupData")}>
+          <SettingsRow
+            icon={MonitorCog}
+            title={t("systemDashboard")}
+            value={synced.system_dashboard_enabled ? t("settingsOn") : t("settingsOff")}
+            chevron
+            onClick={() => open("system")}
+          />
           <SettingsRow
             icon={Radio}
             title={t("collection")}
@@ -257,6 +265,7 @@ export function SettingsPage({
               ) : null}
 
               {pane === "storage" ? <StorageSettings /> : null}
+              {pane === "system" ? <SystemDashboardSettings /> : null}
 
               {pane === "clock" ? <ClockSettings /> : null}
               {pane === "blackhole" ? <BlackholeSettings /> : null}
@@ -293,6 +302,8 @@ function paneLabel(t: TFunction, pane: SettingsPane): string {
       return t("models3d");
     case "models2d":
       return t("models2d");
+    case "system":
+      return t("systemDashboard");
     case "collection":
       return t("collection");
     case "storage":

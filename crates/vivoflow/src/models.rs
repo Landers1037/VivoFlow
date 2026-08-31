@@ -15,9 +15,21 @@ pub struct Snapshot {
     pub disks: Option<Vec<DiskMetrics>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub network: Option<Vec<NetworkMetrics>>,
+    /// Host and operating-system information for the system dashboard.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub system: Option<SystemMetrics>,
     /// CPU / memory temperature samples at ~1 minute spacing (newest last).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub temp_history: Vec<TempHistoryPoint>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemMetrics {
+    pub host_name: Option<String>,
+    pub os_name: Option<String>,
+    pub os_version: Option<String>,
+    pub kernel_version: Option<String>,
+    pub uptime_seconds: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -91,4 +103,35 @@ pub struct NetworkMetrics {
     pub mac: Option<String>,
     pub rx_bps: u64,
     pub tx_bps: u64,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn system_metrics_are_serialized_in_snapshot() {
+        let snapshot = Snapshot {
+            msg_type: "snapshot",
+            ts: 1_725_000_000_000,
+            cpu: None,
+            memory: None,
+            gpu: None,
+            disks: None,
+            network: None,
+            system: Some(SystemMetrics {
+                host_name: Some("dev-host".into()),
+                os_name: Some("Windows".into()),
+                os_version: Some("11".into()),
+                kernel_version: Some("10.0".into()),
+                uptime_seconds: 3_600,
+            }),
+            temp_history: Vec::new(),
+        };
+
+        let value = serde_json::to_value(snapshot).expect("snapshot should serialize");
+        assert_eq!(value["system"]["host_name"], "dev-host");
+        assert_eq!(value["system"]["uptime_seconds"], 3_600);
+        assert!(value.get("temp_history").is_none());
+    }
 }

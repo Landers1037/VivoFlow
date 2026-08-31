@@ -3,6 +3,7 @@ mod disk;
 mod gpu;
 mod memory;
 mod network;
+mod system;
 pub(crate) mod thermal;
 
 use std::collections::VecDeque;
@@ -19,6 +20,7 @@ use self::disk::DiskCollector;
 use self::gpu::GpuCollector;
 use self::memory::MemoryCollector;
 use self::network::NetworkCollector;
+use self::system::SystemCollector;
 
 const TEMP_SAMPLE_INTERVAL: Duration = Duration::from_secs(60);
 const TEMP_HISTORY_MAX: usize = 60;
@@ -29,6 +31,7 @@ pub struct Collector {
     gpu: GpuCollector,
     disk: DiskCollector,
     network: NetworkCollector,
+    system: SystemCollector,
     temp_history: VecDeque<TempHistoryPoint>,
     last_temp_sample_at: Option<Instant>,
 }
@@ -41,6 +44,7 @@ impl Collector {
             gpu: GpuCollector::new(),
             disk: DiskCollector::new(),
             network: NetworkCollector::new(),
+            system: SystemCollector::new(),
             temp_history: VecDeque::with_capacity(TEMP_HISTORY_MAX),
             last_temp_sample_at: None,
         }
@@ -85,6 +89,7 @@ impl Collector {
             gpu,
             disks,
             network,
+            system: Some(self.system.sample()),
             temp_history: self.temp_history.iter().cloned().collect(),
         })
     }
