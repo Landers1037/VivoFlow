@@ -12,6 +12,8 @@
 - 将多声道样本混合为单声道，并生成 64 个频段、RMS、峰值和节拍信息；
 - 通过广播通道向 WebSocket 客户端发布 `audio_frame` 和 `audio_status`。
 
+采集在音频可视化开启时运行；图片粒子首页开启且 `particle_audio_reactive` 为真时也会运行。两个功能共享 `audio_device_id`、64 段频谱和 WebSocket 订阅协议。
+
 非 Windows 平台不会启动回环采集，并返回 `audio loopback is only supported on Windows`。
 
 ## Windows 回环链路

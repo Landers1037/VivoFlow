@@ -8,7 +8,8 @@
 | [types.md](./types.md) | `types.ts` | 与后端对齐的 TypeScript 类型 |
 | [hooks.md](./hooks.md) | `hooks/useVivoflowWs.ts` | WebSocket 连接、重连、状态 |
 | [dashboard.md](./dashboard.md) | `components/Dashboard.tsx`, `hooks/useDashboardOrder.ts` | 指标分区展示、长按拖拽排序与本地持久化 |
-| [settings.md](./settings.md) | `components/SettingsPage.tsx` | 全页设置（外观 / 时钟 / 黑洞 / 3D 模型 / 采集 / 存储 / 相册 / 音乐专辑 / 插画 / 音频可视化 / 关于） |
+| [settings.md](./settings.md) | `components/SettingsPage.tsx` | 全页设置（外观 / 时钟 / 黑洞 / 3D 模型 / 采集 / 存储 / 相册 / 音乐专辑 / 插画 / 粒子 / 音频可视化 / 关于） |
+| [particles.md](./particles.md) | `components/particles/*`, `lib/particles.ts` | 图片粒子图库、Worker 采样与 Three.js 2D/3D 渲染 |
 | [music-albums.md](./music-albums.md) | `components/music/*`, `lib/music.ts` | 音乐专辑设置、媒体上传、本地播放器与 LRC 歌词 |
 | [i18n.md](./i18n.md) | `i18n/*`, `useAppearance` | 中英文文案与切换 |
 | [viz.md](./viz.md) | `components/viz/*` | 多风格加载动画与图表 |

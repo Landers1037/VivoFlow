@@ -1,6 +1,6 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, ChevronLeft, AudioLines, Clock, Frame, Globe, HardDrive, Images, Info, MonitorCog, Music2, Orbit, Palette, Radio, Sparkles } from "lucide-react";
+import { Atom, Check, ChevronLeft, AudioLines, Clock, Frame, Globe, HardDrive, Images, Info, MonitorCog, Music2, Orbit, Palette, Radio, Sparkles } from "lucide-react";
 import { ClockSettings } from "@/components/clock/ClockSettings";
 import { BlackholeSettings } from "@/components/blackhole/BlackholeSettings";
 import { Models3dSettings } from "@/components/models3d/Models3dSettings";
@@ -9,6 +9,7 @@ import { AlbumSettings } from "@/components/albums/AlbumSettings";
 import { MusicAlbumSettings } from "@/components/music/MusicAlbumSettings";
 import { AudioSettings } from "@/components/audio/AudioSettings";
 import { IllustrationSettings } from "@/components/illustration/IllustrationSettings";
+import { ParticleSettings } from "@/components/particles/ParticleSettings";
 import { StorageSettings } from "@/components/storage/StorageSettings";
 import { SystemDashboardSettings } from "@/components/system/SystemDashboardSettings";
 import {
@@ -34,7 +35,7 @@ import { DEFAULT_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
 
-export type SettingsPane = "index" | "appearance" | "clock" | "blackhole" | "models3d" | "models2d" | "system" | "collection" | "storage" | "albums" | "music" | "illustration" | "audio" | "about";
+export type SettingsPane = "index" | "appearance" | "clock" | "blackhole" | "models3d" | "models2d" | "system" | "collection" | "storage" | "albums" | "music" | "illustration" | "particles" | "audio" | "about";
 
 export function SettingsPage({
   config,
@@ -44,6 +45,7 @@ export function SettingsPage({
   audioStatus,
   onAudioSubscribe,
   resetNonce = 0,
+  initialPane = "index",
 }: {
   config: AppConfig | null;
   onSave: (cfg: AppConfig) => void;
@@ -52,6 +54,7 @@ export function SettingsPage({
   audioStatus: AudioStatus | null;
   onAudioSubscribe: (enabled: boolean) => void;
   resetNonce?: number;
+  initialPane?: SettingsPane;
 }) {
   const {
     t,
@@ -69,7 +72,7 @@ export function SettingsPage({
     setMobileCarouselInterval,
   } = useAppearance();
   const reduceMotion = useReducedMotion();
-  const [pane, setPane] = useState<SettingsPane>("index");
+  const [pane, setPane] = useState<SettingsPane>(initialPane);
   const [savedFlash, setSavedFlash] = useState(false);
   const [local, setLocal] = useState<AppConfig>(config ?? DEFAULT_CONFIG);
 
@@ -78,8 +81,8 @@ export function SettingsPage({
   }, [config]);
 
   useEffect(() => {
-    setPane("index");
-  }, [resetNonce]);
+    setPane(initialPane);
+  }, [initialPane, resetNonce]);
 
   const styleName = t(
     UI_STYLE_OPTIONS.find((option) => option.id === synced.ui_style)?.nameKey ?? "styleAmicro",
@@ -187,6 +190,13 @@ export function SettingsPage({
             onClick={() => open("illustration")}
           />
           <SettingsRow
+            icon={Atom}
+            title={t("particle")}
+            value={synced.particle_enabled ? t("settingsOn") : t("settingsOff")}
+            chevron
+            onClick={() => open("particles")}
+          />
+          <SettingsRow
             icon={AudioLines}
             title={t("audioVisualizer")}
             value={synced.audio_visualizer_enabled ? t("settingsOn") : t("settingsOff")}
@@ -274,6 +284,7 @@ export function SettingsPage({
               {pane === "albums" ? <AlbumSettings /> : null}
               {pane === "music" ? <MusicAlbumSettings /> : null}
               {pane === "illustration" ? <IllustrationSettings /> : null}
+              {pane === "particles" ? <ParticleSettings frame={audioFrame} status={audioStatus} onSubscribe={onAudioSubscribe} /> : null}
               {pane === "audio" ? (
                 <AudioSettings
                   frame={audioFrame}
@@ -314,6 +325,8 @@ function paneLabel(t: TFunction, pane: SettingsPane): string {
       return t("musicAlbums");
     case "illustration":
       return t("illustration");
+    case "particles":
+      return t("particle");
     case "audio":
       return t("audioVisualizer");
     case "about":

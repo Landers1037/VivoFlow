@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { AudioLines, Check, ChevronDown, MonitorSpeaker, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AudioLines, Check, RefreshCw } from "lucide-react";
 import { AudioRenderer } from "@/components/audio/AudioRenderer";
+import { AudioDevicePicker, useAudioDevices } from "@/components/audio/AudioDevicePicker";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { SettingsGroup, SettingsSliderRow, SettingsSwitchRow } from "@/components/settings/SettingsList";
 import { normalizeHexColor, useAppearance } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
-import { isThreeAudioMode, type AudioDevice, type AudioFrame, type AudioStatus, type AudioVisualizerMode, type ThreeAudioVisualizerMode } from "@/types";
+import { isThreeAudioMode, type AudioFrame, type AudioStatus, type AudioVisualizerMode, type ThreeAudioVisualizerMode } from "@/types";
 
 const TWO_D_MODES: { id: AudioVisualizerMode; key: "audioModeParticles" | "audioModeGrid" | "audioModeAurora" | "audioModeRadial" | "audioModeBars" }[] = [
   { id: "particles", key: "audioModeParticles" }, { id: "grid", key: "audioModeGrid" },
@@ -21,9 +22,7 @@ const INPUT = "min-h-10 w-full rounded-lg border border-border bg-background px-
 
 export function AudioSettings({ frame, status, onSubscribe }: { frame: AudioFrame | null; status: AudioStatus | null; onSubscribe: (enabled: boolean) => void }) {
   const { config, synced, t, setAudioVisualizerEnabled, setAudioDeviceId, setAudioVisualizerMode, setAudioColorMode, setAudioColors, setAudioAmplitude, setAudioSmoothing } = useAppearance();
-  const [devices, setDevices] = useState<AudioDevice[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [deviceError, setDeviceError] = useState<string | null>(null);
+  const { devices, loading, error: deviceError, refresh: loadDevices } = useAudioDevices();
   const [primary, setPrimary] = useState(config.audio_color_primary);
   const [secondary, setSecondary] = useState(config.audio_color_secondary);
   const [threePreviewMode, setThreePreviewMode] = useState<ThreeAudioVisualizerMode>(isThreeAudioMode(config.audio_visualizer_mode) ? config.audio_visualizer_mode : "city3d");
@@ -31,17 +30,6 @@ export function AudioSettings({ frame, status, onSubscribe }: { frame: AudioFram
   useEffect(() => { setPrimary(config.audio_color_primary); setSecondary(config.audio_color_secondary); }, [config.audio_color_primary, config.audio_color_secondary]);
   useEffect(() => { if (isThreeAudioMode(config.audio_visualizer_mode)) setThreePreviewMode(config.audio_visualizer_mode); }, [config.audio_visualizer_mode]);
   useEffect(() => { onSubscribe(true); return () => onSubscribe(false); }, [onSubscribe]);
-  const loadDevices = useCallback(async () => {
-    setLoading(true); setDeviceError(null);
-    try {
-      const response = await fetch("/api/audio/devices");
-      if (!response.ok) throw new Error(`${response.status}`);
-      const body = await response.json() as { devices?: AudioDevice[] };
-      setDevices(body.devices ?? []);
-    } catch { setDeviceError(t("audioDeviceLoadFailed")); }
-    finally { setLoading(false); }
-  }, [t]);
-  useEffect(() => { void loadDevices(); }, [loadDevices]);
   const commitColors = (nextPrimary = primary, nextSecondary = secondary) => setAudioColors(normalizeHexColor(nextPrimary), normalizeHexColor(nextSecondary));
   const statusText = status?.state === "fallback" ? t("audioFallback") : status?.state === "error" ? t("audioCaptureError") : status?.state === "capturing" ? t("audioListening") : t("audioDisabled");
 
@@ -118,71 +106,4 @@ export function AudioSettings({ frame, status, onSubscribe }: { frame: AudioFram
 
 function ColorField({ id, label, value, onChange, onBlur }: { id: string; label: string; value: string; onChange: (value: string) => void; onBlur: () => void }) {
   return <div className="space-y-1.5"><Label htmlFor={`${id}-text`}>{label}</Label><div className="flex gap-2"><input id={id} type="color" value={normalizeHexColor(value)} onChange={(e) => onChange(e.target.value)} className="h-10 w-12 cursor-pointer rounded-lg border border-border bg-background p-1" /><input id={`${id}-text`} value={value} maxLength={7} onChange={(e) => onChange(e.target.value)} onBlur={onBlur} className={INPUT} /></div></div>;
-}
-
-function AudioDevicePicker({ devices, value, disabled, onChange }: { devices: AudioDevice[]; value: string | null; disabled: boolean; onChange: (value: string | null) => void }) {
-  const { t } = useAppearance();
-  const [open, setOpen] = useState(false);
-  const [highlighted, setHighlighted] = useState(0);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const options = [{ id: "", name: t("systemDefaultDevice"), is_default: false }, ...devices];
-  const selectedIndex = Math.max(0, options.findIndex((option) => option.id === (value ?? "")));
-  const selected = options[selectedIndex];
-
-  useEffect(() => {
-    const close = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
-  }, []);
-
-  const choose = (index: number) => {
-    const option = options[index];
-    if (!option) return;
-    onChange(option.id || null);
-    setHighlighted(index);
-    setOpen(false);
-  };
-
-  return <div ref={rootRef} className="relative">
-    <button
-      id="audio-device"
-      type="button"
-      disabled={disabled}
-      aria-haspopup="listbox"
-      aria-expanded={open}
-      onClick={() => { setHighlighted(selectedIndex); setOpen((current) => !current); }}
-      onKeyDown={(event) => {
-        if (event.key === "Escape") { setOpen(false); return; }
-        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-          event.preventDefault();
-          if (!open) { setOpen(true); setHighlighted(selectedIndex); return; }
-          const delta = event.key === "ArrowDown" ? 1 : -1;
-          setHighlighted((current) => (current + delta + options.length) % options.length);
-        } else if (event.key === "Enter" && open) { event.preventDefault(); choose(highlighted); }
-      }}
-      className={cn(
-        "vf-row flex min-h-14 w-full items-center gap-3 border px-3 py-2 text-left outline-none transition duration-200 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50",
-        open ? "border-primary/55 bg-primary/[0.055] shadow-[0_12px_32px_color-mix(in_oklch,var(--primary)_10%,transparent)]" : "border-border bg-card hover:border-primary/35 hover:bg-muted/35",
-      )}
-      style={{ borderRadius: "var(--radius)" }}
-    >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/15 bg-primary/10 text-primary"><MonitorSpeaker className="h-4 w-4" /></span>
-      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-foreground">{selected.name}</span><span className="mt-0.5 block text-[11px] text-muted-foreground">{selected.id ? t("audioSpecificDevice") : t("audioDefaultDeviceHint")}</span></span>
-      <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200", open && "rotate-180 text-primary")} />
-    </button>
-
-    {open ? <div role="listbox" aria-label={t("audioOutputDevice")} className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden border border-border/80 bg-card/95 p-1.5 shadow-[0_20px_55px_oklch(0_0_0/22%)] backdrop-blur-xl" style={{ borderRadius: "var(--radius)" }}>
-      {options.map((option, index) => {
-        const active = option.id === (value ?? "");
-        return <button key={option.id || "system-default"} type="button" role="option" aria-selected={active} onPointerMove={() => setHighlighted(index)} onClick={() => choose(index)} className={cn("flex min-h-11 w-full items-center gap-3 px-3 py-2 text-left outline-none transition-colors", highlighted === index ? "bg-primary/10" : "hover:bg-muted/60", active && "text-primary")} style={{ borderRadius: "calc(var(--radius) * .72)" }}>
-          <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-full border", active ? "border-primary/30 bg-primary/15" : "border-border bg-muted/45")}><MonitorSpeaker className="h-3.5 w-3.5" /></span>
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">{option.name}</span>
-          {option.is_default ? <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">{t("defaultDevice")}</span> : null}
-          <span className="flex h-5 w-5 items-center justify-center">{active ? <Check className="h-4 w-4" /> : null}</span>
-        </button>;
-      })}
-    </div> : null}
-  </div>;
 }

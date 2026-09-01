@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
+import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, Particle3dMode, ParticleDimension, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
@@ -146,6 +146,11 @@ function normalizeTownFavorite(raw: Partial<TownFavorite> | null | undefined): T
   };
 }
 
+function finiteNumber(value: unknown, min: number, max: number, fallback: number) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? Math.min(max, Math.max(min, numeric)) : fallback;
+}
+
 function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
   const base = { ...DEFAULT_CONFIG, ...(raw ?? {}) };
   const accents: AccentId[] = [...ACCENT_PRESETS, "custom"];
@@ -210,6 +215,15 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     audio_color_secondary: normalizeHexColor(base.audio_color_secondary || "#a855f7"),
     audio_amplitude: Number.isFinite(Number(base.audio_amplitude)) ? Math.min(5, Math.max(0.5, Number(base.audio_amplitude))) : 1,
     audio_smoothing: Number.isFinite(Number(base.audio_smoothing)) ? Math.min(0.9, Math.max(0, Number(base.audio_smoothing))) : 0.65,
+    particle_enabled: Boolean(base.particle_enabled),
+    particle_dimension: (["2d", "3d"] as const).includes(base.particle_dimension as ParticleDimension) ? base.particle_dimension as ParticleDimension : "2d",
+    particle_3d_mode: (["relief", "plane", "cloud"] as const).includes(base.particle_3d_mode as Particle3dMode) ? base.particle_3d_mode as Particle3dMode : "relief",
+    particle_audio_reactive: Boolean(base.particle_audio_reactive),
+    particle_density: finiteNumber(base.particle_density, 0.2, 1, 0.6),
+    particle_size: finiteNumber(base.particle_size, 0.5, 3, 1.2),
+    particle_depth: finiteNumber(base.particle_depth, 0, 2, 0.8),
+    particle_motion: finiteNumber(base.particle_motion, 0, 2, 0.6),
+    particle_audio_strength: finiteNumber(base.particle_audio_strength, 0, 3, 1),
     blackhole_enabled: Boolean(base.blackhole_enabled),
     blackhole_color: normalizeHexColor(base.blackhole_color, DEFAULT_BLACKHOLE_COLOR),
     blackhole_interactive: Boolean(base.blackhole_interactive),
@@ -386,6 +400,15 @@ interface AppearanceContextValue {
   setAudioColors: (primary: string, secondary: string) => void;
   setAudioAmplitude: (v: number) => void;
   setAudioSmoothing: (v: number) => void;
+  setParticleEnabled: (v: boolean) => void;
+  setParticleDimension: (v: ParticleDimension) => void;
+  setParticle3dMode: (v: Particle3dMode) => void;
+  setParticleAudioReactive: (v: boolean) => void;
+  setParticleDensity: (v: number) => void;
+  setParticleSize: (v: number) => void;
+  setParticleDepth: (v: number) => void;
+  setParticleMotion: (v: number) => void;
+  setParticleAudioStrength: (v: number) => void;
   setBlackholeEnabled: (v: boolean) => void;
   setBlackholeColor: (hex: string) => void;
   setBlackholeInteractive: (v: boolean) => void;
@@ -432,6 +455,7 @@ function exclusiveFullscreen(enabled: Partial<AppConfig>): Partial<AppConfig> {
     music_album_enabled: false,
     illustration_enabled: false,
     audio_visualizer_enabled: false,
+    particle_enabled: false,
     clock_enabled: false,
     blackhole_enabled: false,
     model2d_enabled: false,
@@ -554,6 +578,16 @@ export function AppearanceProvider({
       setAudioColors: (audio_color_primary, audio_color_secondary) => patch({ audio_color_primary: normalizeHexColor(audio_color_primary), audio_color_secondary: normalizeHexColor(audio_color_secondary) }),
       setAudioAmplitude: (audio_amplitude) => patch({ audio_amplitude }),
       setAudioSmoothing: (audio_smoothing) => patch({ audio_smoothing }),
+      setParticleEnabled: (particle_enabled) =>
+        patch(particle_enabled ? exclusiveFullscreen({ particle_enabled: true }) : { particle_enabled }),
+      setParticleDimension: (particle_dimension) => patch({ particle_dimension }),
+      setParticle3dMode: (particle_3d_mode) => patch({ particle_3d_mode }),
+      setParticleAudioReactive: (particle_audio_reactive) => patch({ particle_audio_reactive }),
+      setParticleDensity: (particle_density) => patch({ particle_density }),
+      setParticleSize: (particle_size) => patch({ particle_size }),
+      setParticleDepth: (particle_depth) => patch({ particle_depth }),
+      setParticleMotion: (particle_motion) => patch({ particle_motion }),
+      setParticleAudioStrength: (particle_audio_strength) => patch({ particle_audio_strength }),
       setBlackholeEnabled: (blackhole_enabled) =>
         patch(blackhole_enabled ? exclusiveFullscreen({ blackhole_enabled: true }) : { blackhole_enabled }),
       setBlackholeColor: (hex) => patch({ blackhole_color: normalizeHexColor(hex, DEFAULT_BLACKHOLE_COLOR) }),

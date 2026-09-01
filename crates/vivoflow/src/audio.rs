@@ -239,7 +239,7 @@ impl AudioHub {
         let mut last_device_probe = Instant::now();
         loop {
             let cfg = self.config.read().clone();
-            if !cfg.audio_visualizer_enabled {
+            if !audio_capture_enabled(&cfg) {
                 capture = None;
                 current_selection = cfg.audio_device_id.clone();
                 self.publish_status(AudioStatus::disabled(cfg.audio_device_id));
@@ -332,6 +332,10 @@ impl AudioHub {
             std::thread::sleep(Duration::from_millis(5));
         }
     }
+}
+
+fn audio_capture_enabled(config: &AppConfig) -> bool {
+    config.audio_visualizer_enabled || (config.particle_enabled && config.particle_audio_reactive)
 }
 
 pub fn enumerate_devices() -> anyhow::Result<Vec<AudioDevice>> {
@@ -865,6 +869,19 @@ mod platform {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn particle_audio_response_controls_capture_without_audio_visualizer() {
+        let mut config = AppConfig::default();
+        assert!(!audio_capture_enabled(&config));
+        config.particle_enabled = true;
+        config.particle_audio_reactive = true;
+        assert!(audio_capture_enabled(&config));
+        config.particle_enabled = false;
+        assert!(!audio_capture_enabled(&config));
+        config.audio_visualizer_enabled = true;
+        assert!(audio_capture_enabled(&config));
+    }
 
     fn pcm_format(container_bits: u16, valid_bits: u16, channels: usize) -> AudioSampleFormat {
         AudioSampleFormat {

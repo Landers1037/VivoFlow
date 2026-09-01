@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 const STORAGE_CONFIG_FILE: &str = "storage.json";
-pub const STORAGE_CATEGORIES: [&str; 3] = ["albums", "music_albums", "illustrations"];
+pub const STORAGE_CATEGORIES: [&str; 4] = ["albums", "music_albums", "illustrations", "particles"];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct StoredStorageConfig {
@@ -390,6 +390,7 @@ mod tests {
         assert_eq!(status.total_bytes, 3);
         assert_eq!(status.total_files, 1);
         assert_eq!(status.categories["albums"].bytes, 3);
+        assert!(status.categories.contains_key("particles"));
         let _ = fs::remove_dir_all(root);
     }
 

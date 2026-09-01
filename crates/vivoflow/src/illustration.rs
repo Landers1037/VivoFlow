@@ -438,7 +438,7 @@ async fn content(
     Ok(response)
 }
 
-fn image_kind(bytes: &[u8]) -> Option<(&'static str, &'static str)> {
+pub(crate) fn image_kind(bytes: &[u8]) -> Option<(&'static str, &'static str)> {
     if bytes.starts_with(&[0xff, 0xd8, 0xff]) {
         Some(("image/jpeg", "jpg"))
     } else if bytes.starts_with(&[0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a]) {

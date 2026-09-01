@@ -19,6 +19,11 @@
   - `mobile_carousel_interval_s`：轮播间隔秒数（默认 `10`，限制 `5..=60`）
   - `music_album_enabled`：音乐专辑首页模块开关（默认 `false`）
   - `illustration_enabled`：像素插画首页模块开关（默认 `false`）
+  - `particle_enabled`：图片粒子首页模块开关（默认 `false`）
+  - `particle_dimension`：`2d` / `3d`（默认 `2d`）
+  - `particle_3d_mode`：`relief` / `plane` / `cloud`（默认 `relief`）
+  - `particle_audio_reactive`：是否使用共享音频频谱（默认 `false`）
+  - `particle_density` / `particle_size` / `particle_depth` / `particle_motion` / `particle_audio_strength`：粒子密度、粒径、景深、运动和音频强度
   - `active_music_album_id`：当前启用的音乐专辑 ID，可在关闭模块时保留
   - `clock_enabled`：全屏时钟看板开关（默认 `false`）
   - `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object` / `dots`（默认 `lines`）
@@ -51,7 +56,7 @@
 
 - `Default` 提供开箱即用的默认值。
 - `sanitize()` 在 `set_config` 时调用，限制间隔、历史长度和轮播间隔，并校验风格 / 主题色 / 背景色 / 自定义 hex，防止极端配置拖垮系统。
-- `system_dashboard_enabled`、`clock_enabled`、`music_album_enabled`、`photo_album_enabled`、`illustration_enabled`、`audio_visualizer_enabled`、`blackhole_enabled`、`model2d_enabled`、`model3d_enabled` 互斥，最多启用一个首页全屏模块。系统看板优先级最高；未开启系统看板时，旧顺序依次保留时钟、音乐、音频、相册、插画、黑洞、2D、3D 模型。旧配置缺少字段时使用默认值。
+- `system_dashboard_enabled`、`clock_enabled`、`music_album_enabled`、`photo_album_enabled`、`illustration_enabled`、`audio_visualizer_enabled`、`particle_enabled`、`blackhole_enabled`、`model2d_enabled`、`model3d_enabled` 互斥，最多启用一个首页全屏模块。优先级依次为系统看板、时钟、音乐、音频可视化、粒子、相册、插画、黑洞、2D、3D 模型。旧配置缺少字段时使用默认值。
 - 媒体根路径不属于 `AppConfig`，单独保存在配置目录的 `storage.json`，通过 `/api/storage` 迁移和更新，避免普通 `set_config` 绕过文件迁移。
 
 配置由 `MetricsHub` 持有，采集循环与 IPC 读写同一把 `RwLock`。

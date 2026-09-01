@@ -32,6 +32,7 @@ pub async fn serve(
     albums: AlbumStore,
     music: crate::music::MusicStore,
     illustrations: crate::illustration::IllustrationStore,
+    particles: crate::particle::ParticleStore,
     audio: AudioHub,
     storage: StorageManager,
 ) -> anyhow::Result<()> {
@@ -55,7 +56,8 @@ pub async fn serve(
         .merge(crate::storage::router(storage.clone()))
         .merge(crate::album::router(albums))
         .merge(crate::music::router(music))
-        .merge(crate::illustration::router(illustrations));
+        .merge(crate::illustration::router(illustrations))
+        .merge(crate::particle::router(particles));
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;

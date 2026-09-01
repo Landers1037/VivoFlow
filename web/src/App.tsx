@@ -5,13 +5,14 @@ import { TitleBarOverlay } from "@/components/TitleBarOverlay";
 import { Dashboard } from "@/components/Dashboard";
 import { PhotoAlbumPage } from "@/components/albums/PhotoAlbumPage";
 import { AudioVisualizerPage } from "@/components/audio/AudioVisualizerPage";
-import { SettingsPage } from "@/components/SettingsPage";
+import { SettingsPage, type SettingsPane } from "@/components/SettingsPage";
 import { ClockPage } from "@/components/clock/ClockPage";
 import { BlackholePage } from "@/components/blackhole/BlackholePage";
 import { Models3dPage } from "@/components/models3d/Models3dPage";
 import { Models2dPage } from "@/components/models2d/Models2dPage";
 import { MusicAlbumPage } from "@/components/music/MusicAlbumPage";
 import { IllustrationPage } from "@/components/illustration/IllustrationPage";
+import { ParticlePage } from "@/components/particles/ParticlePage";
 import { SystemDashboard } from "@/components/system/SystemDashboard";
 import { musicApi } from "@/lib/music";
 import { FullPageLoader } from "@/components/viz";
@@ -45,7 +46,9 @@ function AppShell({
   const { t, config: appearanceConfig } = useAppearance();
   const [page, setPage] = useState<"dashboard" | "settings">("dashboard");
   const [settingsReset, setSettingsReset] = useState(0);
-  const openSettings = () => {
+  const [settingsInitialPane, setSettingsInitialPane] = useState<SettingsPane>("index");
+  const openSettings = (pane: SettingsPane = "index") => {
+    setSettingsInitialPane(pane);
     if (page === "settings") setSettingsReset((nonce) => nonce + 1);
     else setPage("settings");
   };
@@ -97,7 +100,7 @@ function AppShell({
       config={config}
       t={t}
       onReveal={revealHeader}
-      onOpenSettings={openSettings}
+      onOpenSettings={() => openSettings()}
       inFlow={inFlow}
     />
   );
@@ -131,7 +134,7 @@ function AppShell({
   if (page === "dashboard" && appearanceConfig.music_album_enabled && musicAlbum) {
     return (
       <div className="vf-shell overflow-hidden">
-        <MusicAlbumPage album={musicAlbum} onOpenSettings={openSettings} />
+        <MusicAlbumPage album={musicAlbum} onOpenSettings={() => openSettings()} />
         {titleBar()}
       </div>
     );
@@ -140,7 +143,16 @@ function AppShell({
   if (page === "dashboard" && appearanceConfig.audio_visualizer_enabled) {
     return (
       <div className="vf-shell overflow-hidden">
-        <AudioVisualizerPage frame={audioFrame} status={audioStatus} onSubscribe={setAudioSubscription} onOpenSettings={openSettings} />
+        <AudioVisualizerPage frame={audioFrame} status={audioStatus} onSubscribe={setAudioSubscription} onOpenSettings={() => openSettings()} />
+        {titleBar()}
+      </div>
+    );
+  }
+
+  if (page === "dashboard" && appearanceConfig.particle_enabled) {
+    return (
+      <div className="vf-shell overflow-hidden">
+        <ParticlePage frame={audioFrame} status={audioStatus} onSubscribe={setAudioSubscription} onOpenSettings={() => openSettings("particles")} />
         {titleBar()}
       </div>
     );
@@ -149,7 +161,7 @@ function AppShell({
   if (page === "dashboard" && appearanceConfig.photo_album_enabled) {
     return (
       <div className="vf-shell overflow-hidden">
-        <PhotoAlbumPage onOpenSettings={openSettings} />
+        <PhotoAlbumPage onOpenSettings={() => openSettings()} />
         {titleBar()}
       </div>
     );
@@ -158,7 +170,7 @@ function AppShell({
   if (page === "dashboard" && appearanceConfig.illustration_enabled) {
     return (
       <div className="vf-shell overflow-hidden">
-        <IllustrationPage onOpenSettings={openSettings} />
+        <IllustrationPage onOpenSettings={() => openSettings()} />
         {titleBar()}
       </div>
     );
@@ -203,6 +215,7 @@ function AppShell({
             audioStatus={audioStatus}
             onAudioSubscribe={setAudioSubscription}
             resetNonce={settingsReset}
+            initialPane={settingsInitialPane}
           />
         ) : (
           <>
@@ -247,7 +260,7 @@ function AppShell({
           type="button"
           className={cn("vf-mobile-nav-item", page === "settings" && "vf-mobile-nav-item-active")}
           aria-current={page === "settings" ? "page" : undefined}
-          onClick={openSettings}
+          onClick={() => openSettings()}
         >
           <Settings2 className="h-[18px] w-[18px]" />
           <span>{t("settings")}</span>

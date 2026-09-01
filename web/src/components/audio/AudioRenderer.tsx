@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { AudioCanvas } from "@/components/audio/AudioCanvas";
 import { useAppearance } from "@/hooks/useAppearance";
-import { initialAutoGainState, normalizeAudioFrame } from "@/lib/audioSignal";
+import { useNormalizedAudioFrame } from "@/hooks/useNormalizedAudioFrame";
 import { cn } from "@/lib/utils";
 import { isThreeAudioMode, type AudioFrame, type AudioVisualizerMode } from "@/types";
 
@@ -23,12 +23,7 @@ interface Props {
 export function AudioRenderer(props: Props) {
   const { t } = useAppearance();
   const [webglFailed, setWebglFailed] = useState(false);
-  const autoGain = useRef(initialAutoGainState(performance.now()));
-  const normalizedFrame = useMemo(() => {
-    const normalized = normalizeAudioFrame(props.frame, autoGain.current, performance.now());
-    autoGain.current = normalized.state;
-    return normalized.frame;
-  }, [props.frame]);
+  const normalizedFrame = useNormalizedAudioFrame(props.frame);
   const rendererProps = { ...props, frame: normalizedFrame };
   useEffect(() => setWebglFailed(false), [props.mode]);
 

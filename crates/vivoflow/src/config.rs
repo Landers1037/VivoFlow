@@ -78,6 +78,28 @@ fn default_audio_smoothing() -> f32 {
     0.65
 }
 
+fn default_particle_dimension() -> String {
+    "2d".into()
+}
+fn default_particle_3d_mode() -> String {
+    "relief".into()
+}
+fn default_particle_density() -> f32 {
+    0.6
+}
+fn default_particle_size() -> f32 {
+    1.2
+}
+fn default_particle_depth() -> f32 {
+    0.8
+}
+fn default_particle_motion() -> f32 {
+    0.6
+}
+fn default_particle_audio_strength() -> f32 {
+    1.0
+}
+
 fn default_blackhole_color() -> String {
     "#e8c09a".into()
 }
@@ -252,6 +274,24 @@ pub struct AppConfig {
     #[serde(default = "default_audio_smoothing")]
     pub audio_smoothing: f32,
     #[serde(default)]
+    pub particle_enabled: bool,
+    #[serde(default = "default_particle_dimension")]
+    pub particle_dimension: String,
+    #[serde(default = "default_particle_3d_mode")]
+    pub particle_3d_mode: String,
+    #[serde(default)]
+    pub particle_audio_reactive: bool,
+    #[serde(default = "default_particle_density")]
+    pub particle_density: f32,
+    #[serde(default = "default_particle_size")]
+    pub particle_size: f32,
+    #[serde(default = "default_particle_depth")]
+    pub particle_depth: f32,
+    #[serde(default = "default_particle_motion")]
+    pub particle_motion: f32,
+    #[serde(default = "default_particle_audio_strength")]
+    pub particle_audio_strength: f32,
+    #[serde(default)]
     pub blackhole_enabled: bool,
     #[serde(default = "default_blackhole_color")]
     pub blackhole_color: String,
@@ -384,6 +424,15 @@ impl Default for AppConfig {
             audio_color_secondary: default_audio_color_secondary(),
             audio_amplitude: default_audio_amplitude(),
             audio_smoothing: default_audio_smoothing(),
+            particle_enabled: false,
+            particle_dimension: default_particle_dimension(),
+            particle_3d_mode: default_particle_3d_mode(),
+            particle_audio_reactive: false,
+            particle_density: default_particle_density(),
+            particle_size: default_particle_size(),
+            particle_depth: default_particle_depth(),
+            particle_motion: default_particle_motion(),
+            particle_audio_strength: default_particle_audio_strength(),
             blackhole_enabled: false,
             blackhole_color: default_blackhole_color(),
             blackhole_interactive: false,
@@ -463,6 +512,14 @@ fn is_hex_color(s: &str) -> bool {
         return false;
     }
     b[1..].iter().all(|c| c.is_ascii_hexdigit())
+}
+
+fn finite_clamp(value: f32, min: f32, max: f32, fallback: f32) -> f32 {
+    if value.is_finite() {
+        value.clamp(min, max)
+    } else {
+        fallback
+    }
 }
 
 fn normalize_town_seed(raw: &str) -> String {
@@ -589,6 +646,24 @@ impl AppConfig {
         } else {
             default_audio_smoothing()
         };
+        if !["2d", "3d"].contains(&self.particle_dimension.as_str()) {
+            self.particle_dimension = default_particle_dimension();
+        }
+        if !["relief", "plane", "cloud"].contains(&self.particle_3d_mode.as_str()) {
+            self.particle_3d_mode = default_particle_3d_mode();
+        }
+        self.particle_density =
+            finite_clamp(self.particle_density, 0.2, 1.0, default_particle_density());
+        self.particle_size = finite_clamp(self.particle_size, 0.5, 3.0, default_particle_size());
+        self.particle_depth = finite_clamp(self.particle_depth, 0.0, 2.0, default_particle_depth());
+        self.particle_motion =
+            finite_clamp(self.particle_motion, 0.0, 2.0, default_particle_motion());
+        self.particle_audio_strength = finite_clamp(
+            self.particle_audio_strength,
+            0.0,
+            3.0,
+            default_particle_audio_strength(),
+        );
         if !is_hex_color(&self.blackhole_color) {
             self.blackhole_color = default_blackhole_color();
         } else {
@@ -733,6 +808,7 @@ impl AppConfig {
             self.music_album_enabled = false;
             self.illustration_enabled = false;
             self.audio_visualizer_enabled = false;
+            self.particle_enabled = false;
             self.blackhole_enabled = false;
             self.model2d_enabled = false;
             self.model3d_enabled = false;
@@ -741,6 +817,7 @@ impl AppConfig {
             self.music_album_enabled = false;
             self.illustration_enabled = false;
             self.audio_visualizer_enabled = false;
+            self.particle_enabled = false;
             self.blackhole_enabled = false;
             self.model2d_enabled = false;
             self.model3d_enabled = false;
@@ -748,10 +825,18 @@ impl AppConfig {
             self.photo_album_enabled = false;
             self.illustration_enabled = false;
             self.audio_visualizer_enabled = false;
+            self.particle_enabled = false;
             self.blackhole_enabled = false;
             self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.audio_visualizer_enabled {
+            self.photo_album_enabled = false;
+            self.illustration_enabled = false;
+            self.particle_enabled = false;
+            self.blackhole_enabled = false;
+            self.model2d_enabled = false;
+            self.model3d_enabled = false;
+        } else if self.particle_enabled {
             self.photo_album_enabled = false;
             self.illustration_enabled = false;
             self.blackhole_enabled = false;
@@ -759,10 +844,12 @@ impl AppConfig {
             self.model3d_enabled = false;
         } else if self.photo_album_enabled {
             self.illustration_enabled = false;
+            self.particle_enabled = false;
             self.blackhole_enabled = false;
             self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.illustration_enabled {
+            self.particle_enabled = false;
             self.blackhole_enabled = false;
             self.model2d_enabled = false;
             self.model3d_enabled = false;
@@ -834,6 +921,48 @@ pub fn save_config(cfg: &AppConfig) -> anyhow::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn particle_config_is_sanitized_and_wins_over_lower_priority_modules() {
+        let config = AppConfig {
+            particle_enabled: true,
+            photo_album_enabled: true,
+            illustration_enabled: true,
+            blackhole_enabled: true,
+            particle_dimension: "unknown".into(),
+            particle_3d_mode: "unknown".into(),
+            particle_density: 9.0,
+            particle_size: f32::NAN,
+            particle_depth: -3.0,
+            particle_motion: 8.0,
+            particle_audio_strength: 7.0,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(config.particle_enabled);
+        assert!(!config.photo_album_enabled);
+        assert!(!config.illustration_enabled);
+        assert!(!config.blackhole_enabled);
+        assert_eq!(config.particle_dimension, "2d");
+        assert_eq!(config.particle_3d_mode, "relief");
+        assert_eq!(config.particle_density, 1.0);
+        assert_eq!(config.particle_size, 1.2);
+        assert_eq!(config.particle_depth, 0.0);
+        assert_eq!(config.particle_motion, 2.0);
+        assert_eq!(config.particle_audio_strength, 3.0);
+    }
+
+    #[test]
+    fn audio_visualizer_has_priority_over_particles() {
+        let config = AppConfig {
+            audio_visualizer_enabled: true,
+            particle_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(config.audio_visualizer_enabled);
+        assert!(!config.particle_enabled);
+    }
 
     #[test]
     fn music_album_config_is_exclusive_and_preserves_active_id() {

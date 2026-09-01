@@ -75,6 +75,8 @@ export function isThreeAudioMode(mode: AudioVisualizerMode): mode is ThreeAudioV
 export type Model3dId = "solar_system" | "tree" | "town" | "flower";
 
 export type Model2dId = "village" | "cyber_city" | "garden" | "rain_room";
+export type ParticleDimension = "2d" | "3d";
+export type Particle3dMode = "relief" | "plane" | "cloud";
 
 export const MODEL2D_IDS: Model2dId[] = ["village", "cyber_city", "garden", "rain_room"];
 
@@ -249,6 +251,15 @@ export interface AppConfig {
   audio_color_secondary: string;
   audio_amplitude: number;
   audio_smoothing: number;
+  particle_enabled: boolean;
+  particle_dimension: ParticleDimension;
+  particle_3d_mode: Particle3dMode;
+  particle_audio_reactive: boolean;
+  particle_density: number;
+  particle_size: number;
+  particle_depth: number;
+  particle_motion: number;
+  particle_audio_strength: number;
   blackhole_enabled: boolean;
   /** `#RRGGBB`，吸积盘色，当前画面为默认暖色 */
   blackhole_color: string;
@@ -323,6 +334,15 @@ export const DEFAULT_CONFIG: AppConfig = {
   audio_color_secondary: "#a855f7",
   audio_amplitude: 1,
   audio_smoothing: 0.65,
+  particle_enabled: false,
+  particle_dimension: "2d",
+  particle_3d_mode: "relief",
+  particle_audio_reactive: false,
+  particle_density: 0.6,
+  particle_size: 1.2,
+  particle_depth: 0.8,
+  particle_motion: 0.6,
+  particle_audio_strength: 1,
   blackhole_enabled: false,
   blackhole_color: DEFAULT_BLACKHOLE_COLOR,
   blackhole_interactive: false,
@@ -367,6 +387,20 @@ export interface AudioStatus {
   selected_device_id: string | null;
   active_device_id: string | null;
   reason: string | null;
+}
+
+export interface ParticleImage {
+  id: string;
+  version: number;
+  original_name: string;
+  mime_type: string;
+  size_bytes: number;
+  content_url: string;
+}
+
+export interface ParticleLibraryResponse {
+  active_image_id: string | null;
+  images: ParticleImage[];
 }
 
 export interface AlbumImage {

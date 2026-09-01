@@ -7,6 +7,7 @@ mod illustration;
 mod ipc;
 mod models;
 mod music;
+mod particle;
 mod server;
 mod storage;
 
@@ -46,8 +47,19 @@ async fn main() -> anyhow::Result<()> {
     let albums = crate::album::AlbumStore::load(storage.clone())?;
     let music = crate::music::MusicStore::load(hub.config.clone(), storage.clone())?;
     let illustrations = crate::illustration::IllustrationStore::load(storage.clone())?;
+    let particles = crate::particle::ParticleStore::load(storage.clone())?;
 
     tracing::info!("VivoFlow listening on http://{addr}");
     tracing::info!("WebSocket JSON IPC at ws://{addr}/ws");
-    serve(addr, hub, albums, music, illustrations, audio, storage).await
+    serve(
+        addr,
+        hub,
+        albums,
+        music,
+        illustrations,
+        particles,
+        audio,
+        storage,
+    )
+    .await
 }
