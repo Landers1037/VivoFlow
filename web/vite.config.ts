@@ -15,12 +15,14 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/ws": {
-        target: "ws://127.0.0.1:8787",
+        target: "wss://127.0.0.1:8787",
         ws: true,
+        secure: false,
       },
       "/api": {
-        target: "http://127.0.0.1:8787",
+        target: "https://127.0.0.1:8787",
         changeOrigin: true,
+        secure: false,
         timeout: 120000,
         proxyTimeout: 120000,
       },

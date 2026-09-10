@@ -14,6 +14,11 @@
   - `theme` / `language`
   - `hide_title_bar`：隐藏仪表盘标题栏（默认 `false`）
   - `system_dashboard_enabled`：系统看板开关（默认 `false`）；开启后以固定单屏系统信息墙作为首页
+  - `agent_enabled`：动态智能体首页模块开关（默认 `false`）
+  - `agent_shape`：`blob` / `wedge` / `gem`（默认 `blob`）
+  - `agent_color`：身体 `#RRGGBB`（默认 `#f3f0ea`）
+  - `agent_default_emotion`：32 种内置表情 ID 之一（默认 `02`）
+  - `agent_random_emotions` / `agent_voice_enabled`：随机表情与浏览器麦克风声音响应开关（默认 `false`）
   - `mobile_card_mode`：手机分页卡片模式（默认 `false`）
   - `mobile_auto_carousel`：移动卡片自动轮播（默认 `true`，仅移动模式生效）
   - `mobile_carousel_interval_s`：轮播间隔秒数（默认 `10`，限制 `5..=60`）
@@ -56,7 +61,7 @@
 
 - `Default` 提供开箱即用的默认值。
 - `sanitize()` 在 `set_config` 时调用，限制间隔、历史长度和轮播间隔，并校验风格 / 主题色 / 背景色 / 自定义 hex，防止极端配置拖垮系统。
-- `system_dashboard_enabled`、`clock_enabled`、`music_album_enabled`、`photo_album_enabled`、`illustration_enabled`、`audio_visualizer_enabled`、`particle_enabled`、`blackhole_enabled`、`model2d_enabled`、`model3d_enabled` 互斥，最多启用一个首页全屏模块。优先级依次为系统看板、时钟、音乐、音频可视化、粒子、相册、插画、黑洞、2D、3D 模型。旧配置缺少字段时使用默认值。
+- `system_dashboard_enabled`、`clock_enabled`、`music_album_enabled`、`photo_album_enabled`、`illustration_enabled`、`audio_visualizer_enabled`、`particle_enabled`、`blackhole_enabled`、`model2d_enabled`、`model3d_enabled`、`agent_enabled` 互斥，最多启用一个首页全屏模块。优先级依次为系统看板、时钟、音乐、音频可视化、粒子、相册、插画、黑洞、2D、3D 模型、智能体。旧配置缺少字段时使用默认值。
 - 媒体根路径不属于 `AppConfig`，单独保存在配置目录的 `storage.json`，通过 `/api/storage` 迁移和更新，避免普通 `set_config` 绕过文件迁移。
 
 配置由 `MetricsHub` 持有，采集循环与 IPC 读写同一把 `RwLock`。

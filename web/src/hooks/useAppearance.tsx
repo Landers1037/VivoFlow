@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, Particle3dMode, ParticleDimension, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
+import type { AccentId, AgentEmotionId, AgentShape, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, Particle3dMode, ParticleDimension, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
@@ -415,6 +415,12 @@ interface AppearanceContextValue {
   setBlackholeSpinSpeed: (v: number) => void;
   setModel2dEnabled: (v: boolean) => void;
   setModel2dId: (v: Model2dId) => void;
+  setAgentEnabled: (v: boolean) => void;
+  setAgentShape: (v: AgentShape) => void;
+  setAgentColor: (hex: string) => void;
+  setAgentDefaultEmotion: (v: AgentEmotionId) => void;
+  setAgentRandomEmotions: (v: boolean) => void;
+  setAgentVoiceEnabled: (v: boolean) => void;
   setModel3dEnabled: (v: boolean) => void;
   setModel3dId: (v: Model3dId) => void;
   setModel3dOrbitStyle: (v: Model3dOrbitStyle) => void;
@@ -451,6 +457,7 @@ const AppearanceContext = createContext<AppearanceContextValue | null>(null);
 function exclusiveFullscreen(enabled: Partial<AppConfig>): Partial<AppConfig> {
   return {
     system_dashboard_enabled: false,
+    agent_enabled: false,
     photo_album_enabled: false,
     music_album_enabled: false,
     illustration_enabled: false,
@@ -596,6 +603,13 @@ export function AppearanceProvider({
       setModel2dEnabled: (model2d_enabled) =>
         patch(model2d_enabled ? exclusiveFullscreen({ model2d_enabled: true }) : { model2d_enabled }),
       setModel2dId: (model2d_id) => patch({ model2d_id }),
+      setAgentEnabled: (agent_enabled) =>
+        patch(agent_enabled ? exclusiveFullscreen({ agent_enabled: true }) : { agent_enabled }),
+      setAgentShape: (agent_shape) => patch({ agent_shape }),
+      setAgentColor: (agent_color) => patch({ agent_color: normalizeHexColor(agent_color, "#f3f0ea") }),
+      setAgentDefaultEmotion: (agent_default_emotion) => patch({ agent_default_emotion }),
+      setAgentRandomEmotions: (agent_random_emotions) => patch({ agent_random_emotions }),
+      setAgentVoiceEnabled: (agent_voice_enabled) => patch({ agent_voice_enabled }),
       setModel3dEnabled: (model3d_enabled) =>
         patch(model3d_enabled ? exclusiveFullscreen({ model3d_enabled: true }) : { model3d_enabled }),
       setModel3dId: (model3d_id) => patch({ model3d_id }),

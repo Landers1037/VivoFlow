@@ -1,3 +1,4 @@
+mod agent_voice;
 mod album;
 mod audio;
 mod collectors;
@@ -10,6 +11,7 @@ mod music;
 mod particle;
 mod server;
 mod storage;
+mod tls;
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -48,9 +50,12 @@ async fn main() -> anyhow::Result<()> {
     let music = crate::music::MusicStore::load(hub.config.clone(), storage.clone())?;
     let illustrations = crate::illustration::IllustrationStore::load(storage.clone())?;
     let particles = crate::particle::ParticleStore::load(storage.clone())?;
+    let tls = crate::tls::ensure_tls_assets()?;
 
-    tracing::info!("VivoFlow listening on http://{addr}");
-    tracing::info!("WebSocket JSON IPC at ws://{addr}/ws");
+    tracing::info!("VivoFlow listening on https://{addr}");
+    tracing::info!("WebSocket JSON IPC at wss://{addr}/ws");
+    tracing::info!("root CA certificate: {}", tls.root_ca_cert_path.display());
+    tracing::info!("certificate names: {}", tls.subject_alt_names.join(", "));
     serve(
         addr,
         hub,
@@ -60,6 +65,7 @@ async fn main() -> anyhow::Result<()> {
         particles,
         audio,
         storage,
+        tls,
     )
     .await
 }

@@ -16,4 +16,4 @@
 | [amicro.md](./amicro.md) | `components/amicro/*` | 兼容 re-export（请改用 viz） |
 | [ui-utils.md](./ui-utils.md) | `components/ui/*`, `lib/utils.ts` | shadcn 风格组件与格式化 |
 
-开发服务器见 [`web/vite.config.ts`](../web/vite.config.ts)：`/ws`、`/api` 代理到 `127.0.0.1:8787`。
+开发服务器见 [`web/vite.config.ts`](../../web/vite.config.ts)：`/ws`、`/api` 通过 HTTPS/WSS 代理到 `127.0.0.1:8787`，开发代理接受后端自动签发的本地证书。

@@ -23,7 +23,7 @@ Windows 系统指标采集器 + 移动优先仪表盘。单进程：Rust 采集�
 ./scripts/dev.ps1
 ```
 
-本机打开 `http://127.0.0.1:5173`。手机同 Wi‑Fi 访问 `http://<电脑局域网IP>:5173`（Vite 会把 `/api`、`/ws` 代理到 `8787`）。改前端会即时刷新，不必重新 `build.ps1`。
+本机打开 `http://127.0.0.1:5173`。Vite 会以 HTTPS/WSS 代理到 `8787`；开发页面仍可在 localhost 安全上下文中使用麦克风。改前端会即时刷新，不必重新 `build.ps1`。
 
 若 8787 已被生产进程占用，先关掉 `vivoflow.exe` 再跑开发脚本。
 
@@ -48,11 +48,15 @@ npm run dev
 
 脚本会：构建 `web/` → 同步到 `crates/vivoflow/static`（该目录已 gitignore）→ `cargo build --release`。
 
-默认监听 `0.0.0.0:8787`。手机同 Wi‑Fi 访问：
+首次启动会在配置目录的 `tls/` 下创建并持久化 VivoFlow 根 CA，再为 `localhost`、当前主机名和检测到的本机 IP 签发服务端证书。之后默认监听 `0.0.0.0:8787`，手机同 Wi‑Fi 访问：
 
 ```text
-http://<电脑局域网IP>:8787
+https://<电脑局域网IP>:8787
 ```
+
+根证书路径会打印在启动日志中，默认是 `%LOCALAPPDATA%/VivoFlow/tls/vivoflow-root-ca.pem`，也可从 `https://<电脑局域网IP>:8787/api/tls/root-ca.pem` 下载。将该公开根证书安装并设为受信任后，Safari 才会把页面视为可信 HTTPS；根 CA 私钥不会通过接口提供。iPhone/iPad 还需在「设置 → 通用 → 关于本机 → 证书信任设置」中为该根证书开启完全信任。
+
+根 CA 会跨启动复用，因此客户端只需安装一次；服务端证书每次启动重新签发，以包含当前局域网地址。若删除整个 `tls/` 目录，下一次启动会生成新的根 CA，所有客户端都需要重新安装。
 
 环境变量：
 
@@ -81,7 +85,7 @@ http://<电脑局域网IP>:8787
 | S→C | `error` | 错误信息 |
 | S→C | `audio_frame` / `audio_status` | 64 段频谱与捕获状态 |
 
-HTTP 调试：`GET /api/health`、`GET /api/snapshot`、`GET /api/config`、`GET /api/audio/devices`、`GET /api/illustrations`、`GET /api/storage`。
+HTTPS 调试：`GET /api/health`、`GET /api/snapshot`、`GET /api/config`、`GET /api/audio/devices`、`GET /api/tls/root-ca.pem`、`GET /api/illustrations`、`GET /api/storage`。
 
 ### 配置示例
 
@@ -118,7 +122,7 @@ HTTP 调试：`GET /api/health`、`GET /api/snapshot`、`GET /api/config`、`GET
 - 部分机器的内存 SPD（型号/频率）
 - 部分 CPU 当前运行频率
 
-首版仅建议局域网使用，无认证。
+首版仅建议受信任的局域网使用，无认证。HTTPS 保护传输内容，但不会限制同一网络中的访问者。
 
 ## 许可证
 

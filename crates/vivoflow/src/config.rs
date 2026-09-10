@@ -200,6 +200,16 @@ fn default_model3d_clock_show() -> bool {
     true
 }
 
+fn default_agent_shape() -> String {
+    "blob".into()
+}
+fn default_agent_color() -> String {
+    "#f3f0ea".into()
+}
+fn default_agent_emotion() -> String {
+    "02".into()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub interval_ms: u64,
@@ -225,6 +235,18 @@ pub struct AppConfig {
     pub hide_title_bar: bool,
     #[serde(default)]
     pub system_dashboard_enabled: bool,
+    #[serde(default)]
+    pub agent_enabled: bool,
+    #[serde(default = "default_agent_shape")]
+    pub agent_shape: String,
+    #[serde(default = "default_agent_color")]
+    pub agent_color: String,
+    #[serde(default = "default_agent_emotion")]
+    pub agent_default_emotion: String,
+    #[serde(default)]
+    pub agent_random_emotions: bool,
+    #[serde(default)]
+    pub agent_voice_enabled: bool,
     #[serde(default)]
     pub mobile_card_mode: bool,
     #[serde(default = "default_mobile_auto_carousel")]
@@ -400,6 +422,12 @@ impl Default for AppConfig {
             language: "zh".into(),
             hide_title_bar: false,
             system_dashboard_enabled: false,
+            agent_enabled: false,
+            agent_shape: default_agent_shape(),
+            agent_color: default_agent_color(),
+            agent_default_emotion: default_agent_emotion(),
+            agent_random_emotions: false,
+            agent_voice_enabled: false,
             mobile_card_mode: false,
             mobile_auto_carousel: true,
             mobile_carousel_interval_s: default_mobile_carousel_interval_s(),
@@ -802,7 +830,24 @@ impl AppConfig {
         {
             self.model3d_clock_position = default_model3d_clock_position();
         }
+        if !["blob", "wedge", "gem"].contains(&self.agent_shape.as_str()) {
+            self.agent_shape = default_agent_shape();
+        }
+        if !is_hex_color(&self.agent_color) {
+            self.agent_color = default_agent_color();
+        } else {
+            self.agent_color = self.agent_color.to_ascii_lowercase();
+        }
+        const AGENT_EMOTIONS: &[&str] = &[
+            "00", "01", "02", "03", "04", "05", "06", "07", "10", "11", "12", "13", "14", "15",
+            "16", "17", "18", "19", "20", "21", "30", "31", "32", "33", "34", "35", "36", "37",
+            "38", "39", "40", "41",
+        ];
+        if !AGENT_EMOTIONS.contains(&self.agent_default_emotion.as_str()) {
+            self.agent_default_emotion = default_agent_emotion();
+        }
         if self.system_dashboard_enabled {
+            self.agent_enabled = false;
             self.clock_enabled = false;
             self.photo_album_enabled = false;
             self.music_album_enabled = false;
@@ -813,6 +858,7 @@ impl AppConfig {
             self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.clock_enabled {
+            self.agent_enabled = false;
             self.photo_album_enabled = false;
             self.music_album_enabled = false;
             self.illustration_enabled = false;
@@ -822,6 +868,7 @@ impl AppConfig {
             self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.music_album_enabled {
+            self.agent_enabled = false;
             self.photo_album_enabled = false;
             self.illustration_enabled = false;
             self.audio_visualizer_enabled = false;
@@ -830,6 +877,7 @@ impl AppConfig {
             self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.audio_visualizer_enabled {
+            self.agent_enabled = false;
             self.photo_album_enabled = false;
             self.illustration_enabled = false;
             self.particle_enabled = false;
@@ -837,27 +885,34 @@ impl AppConfig {
             self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.particle_enabled {
+            self.agent_enabled = false;
             self.photo_album_enabled = false;
             self.illustration_enabled = false;
             self.blackhole_enabled = false;
             self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.photo_album_enabled {
+            self.agent_enabled = false;
             self.illustration_enabled = false;
             self.particle_enabled = false;
             self.blackhole_enabled = false;
             self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.illustration_enabled {
+            self.agent_enabled = false;
             self.particle_enabled = false;
             self.blackhole_enabled = false;
             self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.blackhole_enabled {
+            self.agent_enabled = false;
             self.model2d_enabled = false;
             self.model3d_enabled = false;
         } else if self.model2d_enabled {
+            self.agent_enabled = false;
             self.model3d_enabled = false;
+        } else if self.model3d_enabled {
+            self.agent_enabled = false;
         }
         self
     }
@@ -1607,5 +1662,29 @@ mod tests {
         }
         .sanitize();
         assert_eq!(cfg.audio_visualizer_mode, "bars");
+    }
+
+    #[test]
+    fn agent_config_is_sanitized_and_lowest_priority() {
+        let invalid = AppConfig {
+            agent_enabled: true,
+            agent_shape: "square".into(),
+            agent_color: "cream".into(),
+            agent_default_emotion: "99".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(invalid.agent_enabled);
+        assert_eq!(invalid.agent_shape, "blob");
+        assert_eq!(invalid.agent_color, "#f3f0ea");
+        assert_eq!(invalid.agent_default_emotion, "02");
+        let higher = AppConfig {
+            model3d_enabled: true,
+            agent_enabled: true,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(higher.model3d_enabled);
+        assert!(!higher.agent_enabled);
     }
 }

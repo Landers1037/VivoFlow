@@ -1,6 +1,6 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Atom, Check, ChevronLeft, AudioLines, Clock, Frame, Globe, HardDrive, Images, Info, MonitorCog, Music2, Orbit, Palette, Radio, Sparkles } from "lucide-react";
+import { Atom, Bot, Check, ChevronLeft, AudioLines, Clock, Frame, Globe, HardDrive, Images, Info, MonitorCog, Music2, Orbit, Palette, Radio, Sparkles } from "lucide-react";
 import { ClockSettings } from "@/components/clock/ClockSettings";
 import { BlackholeSettings } from "@/components/blackhole/BlackholeSettings";
 import { Models3dSettings } from "@/components/models3d/Models3dSettings";
@@ -12,6 +12,7 @@ import { IllustrationSettings } from "@/components/illustration/IllustrationSett
 import { ParticleSettings } from "@/components/particles/ParticleSettings";
 import { StorageSettings } from "@/components/storage/StorageSettings";
 import { SystemDashboardSettings } from "@/components/system/SystemDashboardSettings";
+import { AgentSettings } from "@/components/agent/AgentSettings";
 import {
   SettingsGroup,
   SettingsRow,
@@ -35,7 +36,7 @@ import { DEFAULT_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
 
-export type SettingsPane = "index" | "appearance" | "clock" | "blackhole" | "models3d" | "models2d" | "system" | "collection" | "storage" | "albums" | "music" | "illustration" | "particles" | "audio" | "about";
+export type SettingsPane = "index" | "appearance" | "agent" | "clock" | "blackhole" | "models3d" | "models2d" | "system" | "collection" | "storage" | "albums" | "music" | "illustration" | "particles" | "audio" | "about";
 
 export function SettingsPage({
   config,
@@ -108,6 +109,7 @@ export function SettingsPage({
         </header>
 
         <SettingsGroup label={t("settingsGroupDisplay")}>
+          <SettingsRow icon={Bot} title={t("agent")} value={synced.agent_enabled ? t("settingsOn") : t("settingsOff")} chevron onClick={() => open("agent")} />
           <SettingsRow
             icon={Palette}
             title={t("appearance")}
@@ -253,6 +255,7 @@ export function SettingsPage({
                   setMobileCarouselInterval={setMobileCarouselInterval}
                 />
               ) : null}
+              {pane === "agent" ? <AgentSettings /> : null}
 
               {pane === "collection" ? (
                 <CollectionTab
@@ -305,6 +308,8 @@ function paneLabel(t: TFunction, pane: SettingsPane): string {
   switch (pane) {
     case "appearance":
       return t("appearance");
+    case "agent":
+      return t("agent");
     case "clock":
       return t("clock");
     case "blackhole":

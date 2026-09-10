@@ -14,6 +14,7 @@ use crate::audio::AudioHub;
 use crate::hub::MetricsHub;
 use crate::ipc::handle_socket;
 use crate::storage::StorageManager;
+use crate::tls::TlsAssets;
 
 #[derive(Embed)]
 #[folder = "static"]
@@ -24,6 +25,7 @@ struct Assets;
 struct AppState {
     hub: MetricsHub,
     audio: AudioHub,
+    root_ca_pem: std::sync::Arc<Vec<u8>>,
 }
 
 pub async fn serve(
@@ -35,8 +37,14 @@ pub async fn serve(
     particles: crate::particle::ParticleStore,
     audio: AudioHub,
     storage: StorageManager,
+    tls: TlsAssets,
 ) -> anyhow::Result<()> {
-    let state = AppState { hub, audio };
+    let root_ca_pem = tokio::fs::read(&tls.root_ca_cert_path).await?;
+    let state = AppState {
+        hub,
+        audio,
+        root_ca_pem: std::sync::Arc::new(root_ca_pem),
+    };
 
     let app = Router::new()
         .route("/api/health", get(health))
@@ -44,6 +52,8 @@ pub async fn serve(
         .route("/api/history", get(history))
         .route("/api/config", get(get_config))
         .route("/api/audio/devices", get(audio_devices))
+        .route("/api/tls/root-ca.pem", get(root_ca))
+        .route("/ws/agent-voice", get(crate::agent_voice::ws_handler))
         .route("/ws", get(ws_handler))
         .fallback(static_handler)
         .layer(
@@ -59,8 +69,14 @@ pub async fn serve(
         .merge(crate::illustration::router(illustrations))
         .merge(crate::particle::router(particles));
 
-    let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
+    let tls_config = axum_server::tls_rustls::RustlsConfig::from_pem_file(
+        &tls.server_cert_path,
+        &tls.server_key_path,
+    )
+    .await?;
+    axum_server::bind_rustls(addr, tls_config)
+        .serve(app.into_make_service())
+        .await?;
     Ok(())
 }
 
@@ -107,6 +123,21 @@ async fn audio_devices() -> impl IntoResponse {
         )
             .into_response(),
     }
+}
+
+async fn root_ca(State(state): State<AppState>) -> impl IntoResponse {
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "application/x-pem-file"),
+            (
+                header::CONTENT_DISPOSITION,
+                "attachment; filename=vivoflow-root-ca.pem",
+            ),
+            (header::CACHE_CONTROL, "no-store"),
+        ],
+        state.root_ca_pem.as_ref().clone(),
+    )
 }
 
 async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> impl IntoResponse {

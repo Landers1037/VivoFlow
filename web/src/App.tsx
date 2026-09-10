@@ -14,6 +14,7 @@ import { MusicAlbumPage } from "@/components/music/MusicAlbumPage";
 import { IllustrationPage } from "@/components/illustration/IllustrationPage";
 import { ParticlePage } from "@/components/particles/ParticlePage";
 import { SystemDashboard } from "@/components/system/SystemDashboard";
+import { AgentPage } from "@/components/agent/AgentPage";
 import { musicApi } from "@/lib/music";
 import { FullPageLoader } from "@/components/viz";
 import { AppearanceProvider, useAppearance } from "@/hooks/useAppearance";
@@ -198,6 +199,15 @@ function AppShell({
     return (
       <div className="vf-shell overflow-hidden">
         <Models3dPage />
+        {titleBar()}
+      </div>
+    );
+  }
+
+  if (page === "dashboard" && appearanceConfig.agent_enabled) {
+    return (
+      <div className="vf-shell overflow-hidden">
+        <AgentPage />
         {titleBar()}
       </div>
     );

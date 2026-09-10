@@ -3241,6 +3241,49 @@ html.dark[data-ui-style="amicro"] {
   to { transform: translate3d(0, 2.5%, 0); }
 }
 
+.agent-page {
+  position: relative;
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: hidden;
+  padding: max(4rem, env(safe-area-inset-top)) 1.5rem max(3rem, env(safe-area-inset-bottom));
+}
+
+.agent-face { width: min(72vmin, 34rem); aspect-ratio: 1; }
+.agent-face svg { width: 100%; height: 100%; overflow: visible; }
+.agent-face .agent-body { transform-origin: center; transition: d .45s ease, fill .25s ease; }
+.agent-face .agent-eyes { transform-box: fill-box; transform-origin: center; translate: var(--agent-gaze-x, 0) var(--agent-gaze-y, 0); transition: translate .22s ease, transform .22s ease; }
+.agent-face .agent-eyes rect { transition: transform .35s cubic-bezier(.2,.8,.2,1), fill .25s ease; }
+.agent-face.is-animated .agent-body { animation: agent-breathe 4.2s ease-in-out infinite; }
+.agent-face.is-animated .agent-eyes { animation: agent-blink 6.4s ease-in-out infinite; }
+.agent-face.is-listening .agent-body { animation-duration: 1.25s; }
+.agent-face.is-listening .agent-eyes { animation: agent-listen .8s ease-in-out infinite alternate; }
+.agent-face[data-emotion="07"] { animation: agent-shake .35s ease-in-out 2; }
+.agent-face[data-emotion="33"] { animation: agent-bounce 1.1s ease-out; }
+.agent-face[data-emotion="34"] .agent-body, .agent-face[data-emotion="21"] .agent-body { filter: saturate(1.4); }
+.agent-orbit { transform-origin: 114px 48px; animation: agent-orbit 2.4s linear infinite; }
+.agent-voice-status { position:absolute; bottom:max(2rem,env(safe-area-inset-bottom)); display:flex; align-items:center; gap:.5rem; border:1px solid color-mix(in srgb,var(--border),transparent 20%); border-radius:999px; background:color-mix(in srgb,var(--card),transparent 10%); color:var(--foreground); padding:.65rem 1rem; font-size:.8rem; backdrop-filter:blur(12px); }
+.agent-voice-status strong { color:var(--primary); font-weight:650; }
+.agent-settings-preview { display:grid; place-items:center; min-height:15rem; margin:0 0 1rem; border-radius:var(--radius); background:color-mix(in srgb,var(--card),transparent 18%); overflow:hidden; }
+.agent-settings-preview .agent-face { width:min(58vw,14rem); }
+.agent-color-row { display:flex; align-items:center; gap:1rem; padding:.75rem 1rem; }
+.agent-color-row input { width:3rem; height:2rem; border:0; border-radius:.5rem; background:transparent; }
+.agent-color-row code { color:var(--muted-foreground); }
+.agent-emotion-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.55rem; }
+.agent-emotion-card { position:relative; display:grid; justify-items:center; gap:.25rem; min-width:0; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); padding:.55rem .25rem; color:var(--foreground); font-size:.7rem; }
+.agent-emotion-card.is-active { border-color:var(--primary); box-shadow:0 0 0 1px var(--primary); }
+.agent-emotion-card .agent-face { width:3.65rem; }
+.agent-emotion-card > svg { position:absolute; top:.35rem; right:.35rem; width:.8rem; color:var(--primary); }
+@keyframes agent-breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.018) translateY(-2px)} }
+@keyframes agent-blink { 0%,46%,50%,100%{scale:1 1} 48%{scale:1 .08} }
+@keyframes agent-listen { from{scale:1} to{scale:1.055} }
+@keyframes agent-shake { 0%,100%{transform:translateX(0)} 35%{transform:translateX(-5px)} 70%{transform:translateX(5px)} }
+@keyframes agent-bounce { 45%{transform:translateY(-16px)} }
+@keyframes agent-orbit { to{transform:rotate(360deg)} }
+
+@media (max-width: 420px) { .agent-emotion-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .agent-face{width:min(84vmin,28rem)} }
+
 @media (prefers-reduced-motion: reduce) {
   .models2d-scene-image,
   .models2d-rain-layer {

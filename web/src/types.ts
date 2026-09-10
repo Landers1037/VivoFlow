@@ -75,6 +75,16 @@ export function isThreeAudioMode(mode: AudioVisualizerMode): mode is ThreeAudioV
 export type Model3dId = "solar_system" | "tree" | "town" | "flower";
 
 export type Model2dId = "village" | "cyber_city" | "garden" | "rain_room";
+export type AgentShape = "blob" | "wedge" | "gem";
+export type AgentEmotionId =
+  | "00" | "01" | "02" | "03" | "04" | "05" | "06" | "07"
+  | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "20" | "21"
+  | "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" | "38" | "39" | "40" | "41";
+export const AGENT_EMOTION_IDS: AgentEmotionId[] = [
+  "00", "01", "02", "03", "04", "05", "06", "07",
+  "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
+  "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41",
+];
 export type ParticleDimension = "2d" | "3d";
 export type Particle3dMode = "relief" | "plane" | "cloud";
 
@@ -227,6 +237,12 @@ export interface AppConfig {
   language: Lang;
   hide_title_bar: boolean;
   system_dashboard_enabled: boolean;
+  agent_enabled: boolean;
+  agent_shape: AgentShape;
+  agent_color: string;
+  agent_default_emotion: AgentEmotionId;
+  agent_random_emotions: boolean;
+  agent_voice_enabled: boolean;
   mobile_card_mode: boolean;
   mobile_auto_carousel: boolean;
   mobile_carousel_interval_s: number;
@@ -310,6 +326,12 @@ export const DEFAULT_CONFIG: AppConfig = {
   language: "zh",
   hide_title_bar: false,
   system_dashboard_enabled: false,
+  agent_enabled: false,
+  agent_shape: "blob",
+  agent_color: "#f3f0ea",
+  agent_default_emotion: "02",
+  agent_random_emotions: false,
+  agent_voice_enabled: false,
   mobile_card_mode: false,
   mobile_auto_carousel: true,
   mobile_carousel_interval_s: 10,

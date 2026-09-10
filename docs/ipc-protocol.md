@@ -1,6 +1,6 @@
 # JSON IPC 协议
 
-主通道：`ws://<host>:8787/ws`（HTTPS 页面则用 `wss:`）。  
+主通道：`wss://<host>:8787/ws`。
 所有消息为 JSON 对象，必含字符串字段 `type`。
 
 ## 客户端 → 服务端
@@ -104,6 +104,9 @@
 | GET | `/api/history` | 历史快照 |
 | GET | `/api/config` | 当前完整配置 |
 | GET | `/api/audio/devices` | Windows 输出设备列表 |
+| GET | `/api/tls/root-ca.pem` | 下载公开的 VivoFlow 根 CA 证书；不包含私钥 |
 | GET | `/*` | 内嵌前端 |
 
 环境变量：`VIVOFLOW_ADDR`（默认 `0.0.0.0:8787`）、`VIVOFLOW_CONFIG`（配置文件路径）。
+
+HTTP 与明文 WebSocket 不再监听。首次启动会在配置文件同级的 `tls/` 目录生成根 CA，之后复用该根 CA，并在每次启动时为当前主机名和本机 IP 重新签发服务端证书。客户端必须安装并信任 `vivoflow-root-ca.pem` 才能正常建立受信任连接。
