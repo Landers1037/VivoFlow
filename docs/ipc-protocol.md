@@ -40,6 +40,8 @@
   "mobile_carousel_interval_s": 10,
   "clock_enabled": false,
   "clock_style": "lines",
+  "clock_font": "default",
+  "clock_glass_background": "liquid_ether",
   "clock_timezone_offset_minutes": 480,
   "clock_show_week": true,
   "clock_show_date": true,
@@ -70,7 +72,9 @@
 | `mobile_card_mode` | `true` / `false`；手机启用 2x 分页卡片 |
 | `mobile_auto_carousel` | `true` / `false`；仅移动卡片模式生效 |
 | `mobile_carousel_interval_s` | `[5, 60]`，默认 `10` |
-| `clock_style` | `lines` / `dial` / `pixel` / `flip` / `object` / `dots` |
+| `clock_style` | `lines` / `dial` / `pixel` / `flip` / `object` / `dots` / `liquid_glass` |
+| `clock_font` | `default` / `outfit` / `jua` / `monomaniac_one` / `bungee_shade`；默认 `default`，保留当前钟面字体，液态玻璃的钟面默认字体为 Jua |
+| `clock_glass_background` | `none` / `liquid_ether` / `aurora` / `plasma` / `beams` / `ghost_fibers` / `gradient_waves` / `lightfall` / `dither` / `galaxy`；默认 `liquid_ether`，仅液态玻璃钟面使用 |
 | `clock_timezone_offset_minutes` | 内置固定 UTC 偏移分钟数，默认 `480`（`UTC+08:00`） |
 | `clock_dot_shape` | `circle` / `square` / `rounded` / `star` |
 | `audio_visualizer_mode` | `particles` / `grid` / `aurora` / `radial` / `bars` / `city3d` / `nebula3d` / `terrain3d` / `crystal3d` |

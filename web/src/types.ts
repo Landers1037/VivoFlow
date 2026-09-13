@@ -30,8 +30,20 @@ export type MusicAlbumEffect = "off" | "ripple" | "bars" | "particles" | "turnta
 export const MUSIC_ALBUM_EFFECTS: MusicAlbumEffect[] = ["off", "ripple", "bars", "particles", "turntable"];
 export type PixelArtPreset = "auto" | "balanced" | "detailed" | "retro" | "painting" | "8bit" | "custom";
 export type DitheringMode = "none" | "ordered" | "floyd_steinberg";
-export type ClockStyle = "lines" | "dial" | "pixel" | "flip" | "object" | "dots";
+export type ClockStyle = "lines" | "dial" | "pixel" | "flip" | "object" | "dots" | "liquid_glass";
 export type ClockDotShape = "circle" | "square" | "rounded" | "star";
+export type ClockFont = "default" | "outfit" | "jua" | "monomaniac_one" | "bungee_shade";
+export type ClockGlassBackground =
+  | "none"
+  | "liquid_ether"
+  | "aurora"
+  | "plasma"
+  | "beams"
+  | "ghost_fibers"
+  | "gradient_waves"
+  | "lightfall"
+  | "dither"
+  | "galaxy";
 export const CLOCK_TIMEZONE_OFFSETS_MINUTES = [
   -720, -660, -600, -570, -540, -480, -420, -360, -300, -240, -210, -180, -120, -60,
   0, 60, 120, 180, 210, 240, 270, 300, 330, 345, 360, 390, 420, 480, 525, 540, 570,
@@ -39,6 +51,21 @@ export const CLOCK_TIMEZONE_OFFSETS_MINUTES = [
 ] as const;
 export type ClockTimezoneOffsetMinutes = (typeof CLOCK_TIMEZONE_OFFSETS_MINUTES)[number];
 export const DEFAULT_CLOCK_TIMEZONE_OFFSET_MINUTES: ClockTimezoneOffsetMinutes = 480;
+export const CLOCK_FONTS: ClockFont[] = ["default", "outfit", "jua", "monomaniac_one", "bungee_shade"];
+export const DEFAULT_CLOCK_FONT: ClockFont = "default";
+export const CLOCK_GLASS_BACKGROUNDS: ClockGlassBackground[] = [
+  "none",
+  "liquid_ether",
+  "aurora",
+  "plasma",
+  "beams",
+  "ghost_fibers",
+  "gradient_waves",
+  "lightfall",
+  "dither",
+  "galaxy",
+];
+export const DEFAULT_CLOCK_GLASS_BACKGROUND: ClockGlassBackground = "liquid_ether";
 
 export function formatClockTimezoneOffset(offsetMinutes: number) {
   const sign = offsetMinutes < 0 ? "−" : "+";
@@ -201,7 +228,7 @@ export const UI_STYLES: UiStyle[] = [
   "editorial",
 ];
 
-export const CLOCK_STYLES: ClockStyle[] = ["lines", "dial", "pixel", "flip", "object", "dots"];
+export const CLOCK_STYLES: ClockStyle[] = ["lines", "dial", "pixel", "flip", "object", "dots", "liquid_glass"];
 export const CLOCK_DOT_SHAPES: ClockDotShape[] = ["circle", "square", "rounded", "star"];
 
 export const ACCENT_PRESETS: Exclude<AccentId, "custom">[] = [
@@ -254,6 +281,8 @@ export interface AppConfig {
   active_music_album_id: string | null;
   clock_enabled: boolean;
   clock_style: ClockStyle;
+  clock_font: ClockFont;
+  clock_glass_background: ClockGlassBackground;
   clock_timezone_offset_minutes: ClockTimezoneOffsetMinutes;
   clock_show_week: boolean;
   clock_show_date: boolean;
@@ -343,6 +372,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   active_music_album_id: null,
   clock_enabled: false,
   clock_style: "lines",
+  clock_font: DEFAULT_CLOCK_FONT,
+  clock_glass_background: DEFAULT_CLOCK_GLASS_BACKGROUND,
   clock_timezone_offset_minutes: DEFAULT_CLOCK_TIMEZONE_OFFSET_MINUTES,
   clock_show_week: true,
   clock_show_date: true,

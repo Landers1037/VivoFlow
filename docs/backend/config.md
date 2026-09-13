@@ -31,7 +31,9 @@
   - `particle_density` / `particle_size` / `particle_depth` / `particle_motion` / `particle_audio_strength`：粒子密度、粒径、景深、运动和音频强度
   - `active_music_album_id`：当前启用的音乐专辑 ID，可在关闭模块时保留
   - `clock_enabled`：全屏时钟看板开关（默认 `false`）
-  - `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object` / `dots`（默认 `lines`）
+  - `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object` / `dots` / `liquid_glass`（默认 `lines`）
+  - `clock_font`：`default` / `outfit` / `jua` / `monomaniac_one` / `bungee_shade`（默认 `default`；保留各钟面原有字体，液态玻璃默认 Jua）
+  - `clock_glass_background`：液态玻璃背景特效 `none` / `liquid_ether` / `aurora` / `plasma` / `beams` / `ghost_fibers` / `gradient_waves` / `lightfall` / `dither` / `galaxy`（默认 `liquid_ether`）
   - `clock_timezone_offset_minutes`：时钟使用的固定 UTC 偏移分钟数（默认 `480`，即东八区；仅接受内置的全球常用偏移）
   - `clock_show_week` / `clock_show_date` / `clock_show_seconds`：钟面信息开关（默认 `true`）
   - `clock_dot_shape`：点阵点形状 `circle` / `square` / `rounded` / `star`（默认 `circle`，仅点阵钟面使用）

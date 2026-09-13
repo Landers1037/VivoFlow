@@ -8,10 +8,12 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AgentEmotionId, AgentShape, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, Particle3dMode, ParticleDimension, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
+import type { AccentId, AgentEmotionId, AgentShape, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockFont, ClockGlassBackground, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, Particle3dMode, ParticleDimension, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
+  CLOCK_FONTS,
+  CLOCK_GLASS_BACKGROUNDS,
   CLOCK_TIMEZONE_OFFSETS_MINUTES,
   CLOCK_STYLES,
   MUSIC_ALBUM_EFFECTS,
@@ -22,7 +24,9 @@ import {
   DEFAULT_GLASS_GRADIENT_START,
   DEFAULT_ACCENT_CUSTOM,
   DEFAULT_CONFIG,
+  DEFAULT_CLOCK_FONT,
   DEFAULT_CLOCK_TIMEZONE_OFFSET_MINUTES,
+  DEFAULT_CLOCK_GLASS_BACKGROUND,
   DEFAULT_MODEL3D_CLOCK_POSITION,
   DEFAULT_MODEL3D_FLOWER_FOLIAGE_COLOR,
   DEFAULT_MODEL3D_FLOWER_PETAL_COLOR,
@@ -197,6 +201,12 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     clock_style: CLOCK_STYLES.includes(base.clock_style as ClockStyle)
       ? (base.clock_style as ClockStyle)
       : "lines",
+    clock_font: CLOCK_FONTS.includes(base.clock_font as ClockFont)
+      ? (base.clock_font as ClockFont)
+      : DEFAULT_CLOCK_FONT,
+    clock_glass_background: CLOCK_GLASS_BACKGROUNDS.includes(base.clock_glass_background as ClockGlassBackground)
+      ? (base.clock_glass_background as ClockGlassBackground)
+      : DEFAULT_CLOCK_GLASS_BACKGROUND,
     clock_timezone_offset_minutes: Number.isInteger(Number(base.clock_timezone_offset_minutes)) &&
       CLOCK_TIMEZONE_OFFSETS_MINUTES.includes(Number(base.clock_timezone_offset_minutes) as ClockTimezoneOffsetMinutes)
       ? Number(base.clock_timezone_offset_minutes) as ClockTimezoneOffsetMinutes
@@ -388,6 +398,8 @@ interface AppearanceContextValue {
   setActiveMusicAlbumId: (v: string | null) => void;
   setClockEnabled: (v: boolean) => void;
   setClockStyle: (v: ClockStyle) => void;
+  setClockFont: (v: ClockFont) => void;
+  setClockGlassBackground: (v: ClockGlassBackground) => void;
   setClockTimezoneOffsetMinutes: (v: ClockTimezoneOffsetMinutes) => void;
   setClockShowWeek: (v: boolean) => void;
   setClockShowDate: (v: boolean) => void;
@@ -568,6 +580,8 @@ export function AppearanceProvider({
       setClockEnabled: (clock_enabled) =>
         patch(clock_enabled ? exclusiveFullscreen({ clock_enabled: true }) : { clock_enabled }),
       setClockStyle: (clock_style) => patch({ clock_style }),
+      setClockFont: (clock_font) => patch({ clock_font }),
+      setClockGlassBackground: (clock_glass_background) => patch({ clock_glass_background }),
       setClockTimezoneOffsetMinutes: (clock_timezone_offset_minutes) => patch({ clock_timezone_offset_minutes }),
       setClockShowWeek: (clock_show_week) => patch({ clock_show_week }),
       setClockShowDate: (clock_show_date) => patch({ clock_show_date }),

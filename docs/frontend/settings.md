@@ -39,11 +39,13 @@
 
 - 独立子页，入口在「显示」分组、外观下面。
 - `clock_enabled` 开启后首页进入全屏钟面，并关闭相册、插画、音乐、音频、黑洞、3D 模型。
-- `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object` / `dots`，与 14 种 `ui_style` 无关。
+- `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object` / `dots` / `liquid_glass`，与 14 种 `ui_style` 无关。
+- `clock_font`：支持保留当前钟面默认字体，或选择 Outfit、Jua、Monomaniac One、Bungee Shade；液态玻璃在默认模式下使用 Jua。
+- `liquid_glass` 使用圆角数字，背景由 React Bits shadcn 组件渲染，并通过统一 Canvas 合成路径在数字笔画内折射；`clock_glass_background` 提供 `none`、Liquid Ether、Aurora、Plasma、Beams、Ghost Fibers、Gradient Waves、Lightfall、Dither 和 Galaxy，默认 `liquid_ether`。
 - `clock_timezone_offset_minutes`：时钟使用的固定 UTC 偏移分钟数，默认 `480`（东八区 / `UTC+08:00`）；独立时钟与 3D 模型时钟共用。
 - `clock_dot_shape`：点阵点形状 `circle` / `square` / `rounded` / `star`，仅选中点阵时出现。
 - `clock_show_week` / `clock_show_date` / `clock_show_seconds` 默认开启。点阵关秒时不渲染秒带。点阵横屏时/分/秒并排：时 4 列 6 行，分秒 10 列 6 行；竖屏上下叠放且同为 12 列：时 2 行，分秒 5 行。
-- 钟面明暗跟随外观里的明亮 / 暗黑 / 跟随系统。字体本地 `@font-face`：Outfit、Noto Sans SC、Fusion Pixel、Barlow Condensed、DSEG7/14。
+- 钟面明暗跟随外观里的明亮 / 暗黑 / 跟随系统。字体本地 `@font-face`：Outfit、Jua、Monomaniac One、Bungee Shade、Noto Sans SC、Fusion Pixel、Barlow Condensed、DSEG7/14。
 
 ## 黑洞
 

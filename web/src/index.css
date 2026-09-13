@@ -21,6 +21,33 @@
 }
 
 @font-face {
+  font-family: "Jua";
+  src: url("./fonts/Jua-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  font-synthesis: none;
+}
+
+@font-face {
+  font-family: "Monomaniac One";
+  src: url("./fonts/MonomaniacOne-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  font-synthesis: none;
+}
+
+@font-face {
+  font-family: "Bungee Shade";
+  src: url("./fonts/BungeeShade-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  font-synthesis: none;
+}
+
+@font-face {
   font-family: "Fusion Pixel 12";
   src: url("./fonts/fusion-pixel-12px-proportional-zh_hans.otf.woff2") format("woff2");
   font-weight: 400;
@@ -4321,6 +4348,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
     calc(env(safe-area-inset-left, 0px) + 1.25rem);
   color: var(--clock-fg, var(--foreground));
   background: var(--clock-bg, var(--background));
+  font-family: var(--clock-font, Outfit, "Noto Sans SC", system-ui, sans-serif);
 }
 
 .blackhole-page {
@@ -4828,6 +4856,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
 .clock-meta {
   margin: 0 0 0.85rem;
   color: color-mix(in oklch, var(--clock-fg) 62%, transparent);
+  font-family: var(--clock-font, Outfit, "Noto Sans SC", system-ui, sans-serif);
   font-size: 0.92rem;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -4837,6 +4866,133 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
 .clock-meta-gap {
   display: inline-block;
   width: 0.7rem;
+}
+
+.clock-page[data-clock-style="liquid_glass"] {
+  --clock-bg: #071017;
+  --clock-fg: #f6fdff;
+  padding: 0;
+  overflow: hidden;
+  background: #071017;
+}
+
+.clock-liquid-glass {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
+  background: #071017;
+  color: #f6fdff;
+  touch-action: none;
+}
+
+.clock-liquid-glass-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.clock-liquid-glass-layout {
+  position: absolute;
+  inset: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  pointer-events: none;
+}
+
+.clock-liquid-glass-metadata {
+  position: absolute;
+  z-index: 2;
+  left: max(24px, env(safe-area-inset-left));
+  right: max(24px, env(safe-area-inset-right));
+  text-align: center;
+  color: rgb(240 248 255 / 80%);
+  text-shadow: 0 1px 12px rgb(0 0 0 / 40%);
+  font-family: var(--clock-font, Jua, "Noto Sans SC", system-ui, sans-serif);
+  pointer-events: none;
+}
+
+.clock-liquid-glass[data-failed="true"] .clock-liquid-glass-metadata {
+  display: none;
+}
+
+.clock-liquid-glass-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--vf-background-custom, #071017);
+  pointer-events: none;
+}
+
+.clock-liquid-glass-background > * {
+  width: 100%;
+  height: 100%;
+}
+
+.clock-liquid-glass-background canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.clock-liquid-glass-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: max(1.25rem, env(safe-area-inset-top, 0px)) max(1.25rem, env(safe-area-inset-right, 0px)) max(1.25rem, env(safe-area-inset-bottom, 0px)) max(1.25rem, env(safe-area-inset-left, 0px));
+  text-align: center;
+  background: linear-gradient(135deg, #18233c, #523e99 55%, #6dc4c1);
+  font-family: var(--clock-font, Jua, "Noto Sans SC", system-ui, sans-serif);
+}
+
+.clock-liquid-glass-fallback > span {
+  color: #f6fdff;
+  font-size: clamp(4rem, 20vw, 14rem);
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  line-height: 0.9;
+  text-shadow: 0 2px 20px rgb(84 218 255 / 35%);
+}
+
+.clock-liquid-glass-fallback small {
+  font-size: clamp(1.2rem, 5vw, 3rem);
+  font-weight: 700;
+}
+
+.clock-liquid-glass-fallback em {
+  margin-top: 0.75rem;
+  color: rgb(237 249 255 / 78%);
+  font-size: clamp(0.8rem, 2.7vw, 1.3rem);
+  font-style: normal;
+  letter-spacing: 0.04em;
+}
+
+.clock-liquid-glass-fallback p {
+  margin: 0.35rem 0 0;
+  color: rgb(237 249 255 / 68%);
+  font-size: 0.78rem;
+}
+
+.clock-liquid-glass[data-failed="true"] .clock-liquid-glass-fallback {
+  display: flex;
+}
+
+@media (orientation: portrait) {
+  .clock-liquid-glass {
+    height: 100dvh;
+  }
 }
 
 .clock-page[data-clock-style="lines"] {
@@ -4859,7 +5015,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   justify-content: center;
   gap: 0.32em;
   margin: 0;
-  font-family: Outfit, "Noto Sans SC", system-ui, sans-serif;
+  font-family: var(--clock-font, Outfit, "Noto Sans SC", system-ui, sans-serif);
   font-size: clamp(3.4rem, 22vw, 8.4rem);
   font-weight: 200;
   letter-spacing: -0.04em;
@@ -4950,7 +5106,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   top: 8%;
   left: 50%;
   width: 1.6rem;
-  font-family: Outfit, system-ui, sans-serif;
+  font-family: var(--clock-font, Outfit, system-ui, sans-serif);
   font-size: 1.05rem;
   font-weight: 500;
   letter-spacing: -0.03em;
@@ -4969,7 +5125,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   border-radius: 0.18rem;
   background: color-mix(in oklch, var(--clock-bg) 70%, black);
   box-shadow: inset 0 1px 2px oklch(0 0 0 / 25%);
-  font-family: Outfit, system-ui, sans-serif;
+  font-family: var(--clock-font, Outfit, system-ui, sans-serif);
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -5025,7 +5181,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
 }
 
 .clock-pixel {
-  font-family: "Fusion Pixel 12", "Noto Sans SC", monospace;
+  font-family: var(--clock-font, "Fusion Pixel 12", "Noto Sans SC", monospace);
   text-align: center;
 }
 
@@ -5091,7 +5247,7 @@ html:not(.dark) .clock-page[data-clock-style="flip"] {
 }
 
 .clock-flip-label {
-  font-family: "Barlow Condensed", Outfit, sans-serif;
+  font-family: var(--clock-font, "Barlow Condensed", Outfit, sans-serif);
   font-size: 0.72rem;
   letter-spacing: 0.18em;
   opacity: 0.55;
@@ -5108,7 +5264,7 @@ html:not(.dark) .clock-page[data-clock-style="flip"] {
   background: color-mix(in oklch, var(--clock-bg) 55%, black);
   box-shadow: inset 0 1px 0 oklch(1 0 0 / 12%), 0 8px 16px oklch(0 0 0 / 28%);
   color: var(--clock-fg);
-  font-family: "Barlow Condensed", Outfit, sans-serif;
+  font-family: var(--clock-font, "Barlow Condensed", Outfit, sans-serif);
   font-size: calc(var(--flip-h) * 0.72);
   font-weight: 400;
   letter-spacing: -0.04em;
@@ -5242,7 +5398,7 @@ html:not(.dark) .clock-flip-digit {
 
 .clock-lcd-7 {
   display: block;
-  font-family: "DSEG7 Classic", Outfit, monospace;
+  font-family: var(--clock-font, "DSEG7 Classic", Outfit, monospace);
   font-size: clamp(2.2rem, 12vw, 4.6rem);
   letter-spacing: 0.04em;
   line-height: 1.15;
@@ -5250,7 +5406,7 @@ html:not(.dark) .clock-flip-digit {
 }
 
 .clock-lcd-14 {
-  font-family: "DSEG14 Classic", Outfit, monospace;
+  font-family: var(--clock-font, "DSEG14 Classic", Outfit, monospace);
   letter-spacing: 0.06em;
 }
 
@@ -5258,7 +5414,7 @@ html:not(.dark) .clock-flip-digit {
   display: flex;
   justify-content: space-around;
   margin-top: 0.55rem;
-  font-family: "Barlow Condensed", Outfit, sans-serif;
+  font-family: var(--clock-font, "Barlow Condensed", Outfit, sans-serif);
   font-size: 0.68rem;
   letter-spacing: 0.2em;
   opacity: 0.55;

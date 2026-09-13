@@ -47,6 +47,14 @@ fn default_clock_style() -> String {
     "lines".into()
 }
 
+fn default_clock_font() -> String {
+    "default".into()
+}
+
+fn default_clock_glass_background() -> String {
+    "liquid_ether".into()
+}
+
 fn default_clock_timezone_offset_minutes() -> i32 {
     480
 }
@@ -269,6 +277,10 @@ pub struct AppConfig {
     pub clock_enabled: bool,
     #[serde(default = "default_clock_style")]
     pub clock_style: String,
+    #[serde(default = "default_clock_font")]
+    pub clock_font: String,
+    #[serde(default = "default_clock_glass_background")]
+    pub clock_glass_background: String,
     #[serde(default = "default_clock_timezone_offset_minutes")]
     pub clock_timezone_offset_minutes: i32,
     #[serde(default = "default_clock_show")]
@@ -439,6 +451,8 @@ impl Default for AppConfig {
             active_music_album_id: None,
             clock_enabled: false,
             clock_style: default_clock_style(),
+            clock_font: default_clock_font(),
+            clock_glass_background: default_clock_glass_background(),
             clock_timezone_offset_minutes: default_clock_timezone_offset_minutes(),
             clock_show_week: true,
             clock_show_date: true,
@@ -710,10 +724,39 @@ impl AppConfig {
             let id = id.trim();
             (!id.is_empty() && id.len() <= 128).then(|| id.to_owned())
         });
-        if !["lines", "dial", "pixel", "flip", "object", "dots"]
-            .contains(&self.clock_style.as_str())
+        if ![
+            "lines",
+            "dial",
+            "pixel",
+            "flip",
+            "object",
+            "dots",
+            "liquid_glass",
+        ]
+        .contains(&self.clock_style.as_str())
         {
             self.clock_style = default_clock_style();
+        }
+        if !["default", "outfit", "jua", "monomaniac_one", "bungee_shade"]
+            .contains(&self.clock_font.as_str())
+        {
+            self.clock_font = default_clock_font();
+        }
+        if ![
+            "none",
+            "liquid_ether",
+            "aurora",
+            "plasma",
+            "beams",
+            "ghost_fibers",
+            "gradient_waves",
+            "lightfall",
+            "dither",
+            "galaxy",
+        ]
+        .contains(&self.clock_glass_background.as_str())
+        {
+            self.clock_glass_background = default_clock_glass_background();
         }
         if !CLOCK_TIMEZONE_OFFSETS_MINUTES.contains(&self.clock_timezone_offset_minutes) {
             self.clock_timezone_offset_minutes = default_clock_timezone_offset_minutes();
@@ -1159,6 +1202,8 @@ mod tests {
         assert!(!cfg.illustration_enabled);
         assert!(!cfg.clock_enabled);
         assert_eq!(cfg.clock_style, "lines");
+        assert_eq!(cfg.clock_font, "default");
+        assert_eq!(cfg.clock_glass_background, "liquid_ether");
         assert_eq!(cfg.clock_timezone_offset_minutes, 480);
         assert!(cfg.clock_show_week);
         assert!(cfg.clock_show_date);
@@ -1275,6 +1320,8 @@ mod tests {
             audio_visualizer_enabled: true,
             music_album_enabled: true,
             clock_style: "unknown".into(),
+            clock_font: "unknown".into(),
+            clock_glass_background: "unknown".into(),
             clock_timezone_offset_minutes: 9999,
             ..AppConfig::default()
         }
@@ -1286,6 +1333,8 @@ mod tests {
         assert!(!cfg.blackhole_enabled);
         assert!(!cfg.model3d_enabled);
         assert_eq!(cfg.clock_style, "lines");
+        assert_eq!(cfg.clock_font, "default");
+        assert_eq!(cfg.clock_glass_background, "liquid_ether");
         assert_eq!(cfg.clock_timezone_offset_minutes, 480);
     }
 
@@ -1307,6 +1356,57 @@ mod tests {
         }
         .sanitize();
         assert_eq!(bad.clock_dot_shape, "circle");
+    }
+
+    #[test]
+    fn clock_font_is_sanitized() {
+        for font in ["default", "outfit", "jua", "monomaniac_one", "bungee_shade"] {
+            let ok = AppConfig {
+                clock_font: font.into(),
+                ..AppConfig::default()
+            }
+            .sanitize();
+            assert_eq!(ok.clock_font, font);
+        }
+
+        let bad = AppConfig {
+            clock_font: "unknown".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(bad.clock_font, "default");
+    }
+
+    #[test]
+    fn liquid_glass_clock_background_is_sanitized() {
+        for background in [
+            "none",
+            "liquid_ether",
+            "aurora",
+            "plasma",
+            "beams",
+            "ghost_fibers",
+            "gradient_waves",
+            "lightfall",
+            "dither",
+            "galaxy",
+        ] {
+            let ok = AppConfig {
+                clock_style: "liquid_glass".into(),
+                clock_glass_background: background.into(),
+                ..AppConfig::default()
+            }
+            .sanitize();
+            assert_eq!(ok.clock_style, "liquid_glass");
+            assert_eq!(ok.clock_glass_background, background);
+        }
+
+        let bad = AppConfig {
+            clock_glass_background: "floating_lines".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(bad.clock_glass_background, "liquid_ether");
     }
 
     #[test]

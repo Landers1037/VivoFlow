@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useReducedMotion } from "motion/react";
 import { useAppearance } from "@/hooks/useAppearance";
 import { useClockNow } from "@/hooks/useClockNow";
 import { cn } from "@/lib/utils";
 import { formatClockDate, formatClockWeek, getClockParts } from "@/lib/clock";
+import { getSelectedClockFontStack } from "@/lib/clockFonts";
+import { LiquidGlassClock } from "@/components/clock/LiquidGlassClock";
 import type { ClockDotShape, ClockStyle, ClockTimezoneOffsetMinutes, Lang } from "@/types";
 
 const DIAL_MARKS = [12, 3, 6, 9] as const;
@@ -12,6 +14,10 @@ export function ClockPage() {
   const { config, lang } = useAppearance();
   const now = useClockNow(config.clock_show_seconds);
   const style = config.clock_style;
+  const selectedFontStack = getSelectedClockFontStack(config.clock_font);
+  const clockPageStyle = selectedFontStack
+    ? ({ "--clock-font": selectedFontStack } as CSSProperties)
+    : undefined;
   const meta = {
     week: config.clock_show_week,
     date: config.clock_show_date,
@@ -20,13 +26,14 @@ export function ClockPage() {
   };
 
   return (
-    <div className="clock-page" data-clock-style={style}>
+    <div className="clock-page" data-clock-style={style} data-clock-font={config.clock_font} style={clockPageStyle}>
       {style === "lines" ? <LinesFace now={now} lang={lang} {...meta} /> : null}
       {style === "dial" ? <DialFace now={now} lang={lang} {...meta} /> : null}
       {style === "pixel" ? <PixelFace now={now} lang={lang} {...meta} /> : null}
       {style === "flip" ? <FlipFace now={now} lang={lang} {...meta} /> : null}
       {style === "object" ? <ObjectFace now={now} {...meta} /> : null}
       {style === "dots" ? <DotsFace now={now} lang={lang} shape={config.clock_dot_shape} {...meta} /> : null}
+      {style === "liquid_glass" ? <LiquidGlassClock now={now} lang={lang} font={config.clock_font} background={config.clock_glass_background} {...meta} /> : null}
     </div>
   );
 }
@@ -377,7 +384,7 @@ function DotBand({
 
 export const CLOCK_STYLE_OPTIONS: {
   id: ClockStyle;
-  nameKey: "clockStyleLines" | "clockStyleDial" | "clockStylePixel" | "clockStyleFlip" | "clockStyleObject" | "clockStyleDots";
+  nameKey: "clockStyleLines" | "clockStyleDial" | "clockStylePixel" | "clockStyleFlip" | "clockStyleObject" | "clockStyleDots" | "clockStyleLiquidGlass";
 }[] = [
   { id: "lines", nameKey: "clockStyleLines" },
   { id: "dial", nameKey: "clockStyleDial" },
@@ -385,6 +392,7 @@ export const CLOCK_STYLE_OPTIONS: {
   { id: "flip", nameKey: "clockStyleFlip" },
   { id: "object", nameKey: "clockStyleObject" },
   { id: "dots", nameKey: "clockStyleDots" },
+  { id: "liquid_glass", nameKey: "clockStyleLiquidGlass" },
 ];
 
 export const CLOCK_DOT_SHAPE_OPTIONS: {
