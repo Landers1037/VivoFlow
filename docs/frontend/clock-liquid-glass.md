@@ -39,6 +39,7 @@ React Bits 使用 MIT + Commons Clause 许可。本项目保留来源、版权�
 - 参考源为用户于 2026-09-12 提供的完整 GlassSurface.tsx，原样保存在 `web/src/components/clock/glass/references/GlassSurface.tsx.txt`；许可全文保存在同目录 `LICENSE.md`。该附件没有上游 commit 标识，未将它标注为特定上游提交。
 - 对应 upstream 的 `feDisplacementMap → feColorMatrix → feBlend(screen) → feGaussianBlur`：使用 `P' = P + scale × (map - 0.5)` 分别采样 R/G/B；采用示例 distortionScale=-150、通道偏移 5/15/25。最终使用轻量五点模糊，宽度 0.65 CSS px，避免小字号被示例 displace=15 的强模糊抹掉。
 - 原组件的矩形红/蓝梯度改为字体笔画的距离场和法线；平滑位移场以避免锯齿放大为玻璃条纹。像素遮罩保留内部孔洞及字体轮廓，移除旧版蓝色填充、全字平移和多层彩色描边。
+- 时、分、秒、星期和日期全部由同一个 WebGL 合成器绘制并采样同一帧背景；日期文字使用所选时钟字体及其中文回退字体生成轮廓，不再叠加普通 DOM 文本。
 - 数字遮罩按字体及字符缓存在 GPU，字号与时间变化复用纹理。背景切换和卸载释放纹理、程序、缓冲区及合成器 WebGL 上下文；StrictMode 重新挂载使用新画布。
 - 没有直接用矩形 `<GlassSurface>` 包住数字：原组件的 Safari/Firefox 磨砂降级无法满足手机动态折射。此处仅移植其滤镜流程和轮廓适配，并非全部 props 的等价实现。
 

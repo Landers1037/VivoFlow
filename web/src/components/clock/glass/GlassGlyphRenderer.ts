@@ -61,8 +61,10 @@ void main() {
   // Neutral, directional reflections replace the old opaque blue fill/neon strokes.
   float facing = dot(normal, normalize(vec2(-0.55, -0.83)));
   float rim = exp(-max(distance, 0.0) / max(0.75, 1.5 * glyphScale));
+  float smallGlyph = 1.0 - smoothstep(0.08, 0.24, glyphScale);
   float highlight = pow(max(facing, 0.0), 3.0) * 0.8 + pow(max(-facing, 0.0), 5.0) * 0.28;
-  float reflection = rim * (0.25 + highlight) + slope * slope * max(facing, 0.0) * 0.12;
+  float reflection = rim * (0.25 + highlight + smallGlyph * 0.32)
+    + slope * slope * max(facing, 0.0) * 0.12 + smallGlyph * 0.055;
   refracted *= 1.0 - slope * max(-facing, 0.0) * 0.12;
   refracted = mix(refracted, vec3(1.0), clamp(reflection, 0.0, 0.88));
   // Glyph holes and the exterior use the unmodified frame, including alpha.

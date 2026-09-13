@@ -4904,22 +4904,6 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   pointer-events: none;
 }
 
-.clock-liquid-glass-metadata {
-  position: absolute;
-  z-index: 2;
-  left: max(24px, env(safe-area-inset-left));
-  right: max(24px, env(safe-area-inset-right));
-  text-align: center;
-  color: rgb(240 248 255 / 80%);
-  text-shadow: 0 1px 12px rgb(0 0 0 / 40%);
-  font-family: var(--clock-font, Jua, "Noto Sans SC", system-ui, sans-serif);
-  pointer-events: none;
-}
-
-.clock-liquid-glass[data-failed="true"] .clock-liquid-glass-metadata {
-  display: none;
-}
-
 .clock-liquid-glass-background {
   position: absolute;
   inset: 0;

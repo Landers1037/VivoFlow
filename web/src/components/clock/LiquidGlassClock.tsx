@@ -25,7 +25,6 @@ export function LiquidGlassClock(props: LiquidGlassClockProps) {
   const { now, lang, week, date, seconds, timezoneOffsetMinutes, font, background } = props;
   const canvasRef = useRef<HTMLDivElement>(null);
   const layoutRef = useRef<HTMLDivElement>(null);
-  const metadataRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<GlassGlyphRenderer | null>(null);
   const redrawRef = useRef<(() => void) | null>(null);
   const stateRef = useRef(props);
@@ -83,6 +82,10 @@ export function LiquidGlassClock(props: LiquidGlassClockProps) {
       if (document.visibilityState === "hidden") return;
       const state = stateRef.current;
       const parts = getClockParts(state.now, state.timezoneOffsetMinutes);
+      const metadata = [
+        state.week ? formatClockWeek(state.now, state.lang, state.timezoneOffsetMinutes) : "",
+        state.date ? formatClockDate(state.now, state.lang, state.timezoneOffsetMinutes) : "",
+      ].filter(Boolean).join(" · ");
       renderer.setFont(fontSpec(state.font));
       const bounds = layout.getBoundingClientRect();
       const outer = canvas.getBoundingClientRect();
@@ -98,9 +101,18 @@ export function LiquidGlassClock(props: LiquidGlassClockProps) {
       renderer.begin(baseColor);
       renderer.drawText(`${parts.h}:${parts.m}`, fitted, centerX, baseline);
       if (state.seconds) renderer.drawText(parts.s, secondSize, centerX, baseline + fitted * 0.4);
-      if (metadataRef.current) {
-        metadataRef.current.style.top = `${baseline + (state.seconds ? fitted * 0.58 : fitted * 0.18)}px`;
-        metadataRef.current.style.fontSize = `${Math.max(13, Math.min(23, fitted * 0.12))}px`;
+      if (metadata) {
+        const preferredMetadataSize = Math.max(16, Math.min(32, fitted * 0.16));
+        const metadataSize = Math.min(
+          preferredMetadataSize,
+          preferredMetadataSize * bounds.width / renderer.measureText(metadata, preferredMetadataSize),
+        );
+        renderer.drawText(
+          metadata,
+          metadataSize,
+          centerX,
+          baseline + fitted * (state.seconds ? 0.7 : 0.36),
+        );
       }
     };
     const redraw = () => {
@@ -160,7 +172,7 @@ export function LiquidGlassClock(props: LiquidGlassClockProps) {
   useEffect(() => {
     let current = true;
     const spec = fontSpec(font);
-    void document.fonts.load(spec, "0123456789:").then(() => {
+    void document.fonts.load(spec, "0123456789:周日月年SepSat").then(() => {
       if (!current) return;
       rendererRef.current?.setFont(spec, true);
       redrawRef.current?.();
@@ -177,7 +189,6 @@ export function LiquidGlassClock(props: LiquidGlassClockProps) {
       <ClockBackgroundRenderer background={background} reduced={reduced} onFrame={onBackgroundFrame} onError={fail} />
       <div ref={canvasRef} aria-hidden="true" />
       <div ref={layoutRef} className="clock-liquid-glass-layout" aria-hidden="true" />
-      <div ref={metadataRef} className="clock-liquid-glass-metadata" aria-hidden="true">{meta}</div>
       <div className="clock-liquid-glass-fallback" aria-hidden="true">
         <span>{`${parts.h}:${parts.m}`}</span>
         {seconds ? <small>{parts.s}</small> : null}
