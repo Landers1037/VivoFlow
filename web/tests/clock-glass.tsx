@@ -26,6 +26,6 @@ function Verify() {
     <select aria-label="Time" value={time} onChange={e=>setTime(e.target.value)}>{["20:02:55","00:00:00","08:08:08","23:59:59","23:59:00"].map(value=><option key={value}>{value}</option>)}</select>
     <button onClick={()=>setSeconds(!seconds)}>Seconds {String(seconds)}</button><button onClick={()=>setMeta(!meta)}>Date {String(meta)}</button><button onClick={()=>setPortrait(!portrait)}>Portrait {String(portrait)}</button><button onClick={()=>void checkGlassRendering().then(value=>setResult(JSON.stringify(value)))}>Check pixels</button>
     <output style={{position:"fixed",bottom:0,left:0,fontSize:12}}>{result}</output>
-  </div><div style={{width:portrait?375:"100%",margin:"auto"}}><LiquidGlassClock now={new Date(`2026-09-12T${time}+08:00`)} lang={lang} week={meta} date={meta} seconds={seconds} timezoneOffsetMinutes={480} font={font} background={background}/></div></>;
+  </div><div style={{width:portrait?375:"100%",margin:"auto"}}><LiquidGlassClock now={new Date(`2026-09-12T${time}+08:00`)} lang={lang} week={meta} date={meta} seconds={seconds} timezoneOffsetMinutes={480} font={font} fontWeight={400} background={background}/></div></>;
 }
 createRoot(document.getElementById("root")!).render(<StrictMode><Verify/></StrictMode>);

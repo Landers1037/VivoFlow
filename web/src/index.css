@@ -4349,6 +4349,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   color: var(--clock-fg, var(--foreground));
   background: var(--clock-bg, var(--background));
   font-family: var(--clock-font, Outfit, "Noto Sans SC", system-ui, sans-serif);
+  font-weight: var(--clock-font-weight, 400);
 }
 
 .blackhole-page {
@@ -4567,6 +4568,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  font-weight: var(--clock-font-weight, 400);
 }
 
 .models3d-clock-layer.is-top_left .models3d-clock {
@@ -4605,7 +4607,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   font-family: "Barlow Condensed", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: clamp(1.6rem, 4vw, 2.7rem);
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: var(--clock-font-weight, 400);
   letter-spacing: 0.08em;
   line-height: 0.95;
 }
@@ -4858,7 +4860,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   color: color-mix(in oklch, var(--clock-fg) 62%, transparent);
   font-family: var(--clock-font, Outfit, "Noto Sans SC", system-ui, sans-serif);
   font-size: 0.92rem;
-  font-weight: 500;
+  font-weight: var(--clock-font-weight, 400);
   letter-spacing: 0.04em;
   text-align: center;
 }
@@ -4944,7 +4946,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
 .clock-liquid-glass-fallback > span {
   color: #f6fdff;
   font-size: clamp(4rem, 20vw, 14rem);
-  font-weight: 700;
+  font-weight: var(--clock-font-weight, 400);
   letter-spacing: -0.08em;
   line-height: 0.9;
   text-shadow: 0 2px 20px rgb(84 218 255 / 35%);
@@ -4952,7 +4954,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
 
 .clock-liquid-glass-fallback small {
   font-size: clamp(1.2rem, 5vw, 3rem);
-  font-weight: 700;
+  font-weight: var(--clock-font-weight, 400);
 }
 
 .clock-liquid-glass-fallback em {
@@ -5001,7 +5003,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   margin: 0;
   font-family: var(--clock-font, Outfit, "Noto Sans SC", system-ui, sans-serif);
   font-size: clamp(3.4rem, 22vw, 8.4rem);
-  font-weight: 200;
+  font-weight: var(--clock-font-weight, 400);
   letter-spacing: -0.04em;
   line-height: 0.92;
   font-variant-numeric: tabular-nums;
@@ -5027,7 +5029,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
 .clock-dial-week {
   margin: 0;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: var(--clock-font-weight, 400);
   letter-spacing: 0.08em;
 }
 
@@ -5092,7 +5094,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   width: 1.6rem;
   font-family: var(--clock-font, Outfit, system-ui, sans-serif);
   font-size: 1.05rem;
-  font-weight: 500;
+  font-weight: var(--clock-font-weight, 400);
   letter-spacing: -0.03em;
   text-align: center;
 }
@@ -5111,7 +5113,7 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   box-shadow: inset 0 1px 2px oklch(0 0 0 / 25%);
   font-family: var(--clock-font, Outfit, system-ui, sans-serif);
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: var(--clock-font-weight, 400);
   letter-spacing: 0.04em;
 }
 
@@ -5250,7 +5252,7 @@ html:not(.dark) .clock-page[data-clock-style="flip"] {
   color: var(--clock-fg);
   font-family: var(--clock-font, "Barlow Condensed", Outfit, sans-serif);
   font-size: calc(var(--flip-h) * 0.72);
-  font-weight: 400;
+  font-weight: var(--clock-font-weight, 400);
   letter-spacing: -0.04em;
   line-height: var(--flip-h);
   text-align: center;
@@ -5449,7 +5451,7 @@ html:not(.dark) .clock-flip-digit {
 .clock-dots-label {
   margin: 0 0 0.38rem;
   font-size: 0.72rem;
-  font-weight: 500;
+  font-weight: var(--clock-font-weight, 400);
   line-height: 1;
   color: color-mix(in oklch, var(--clock-fg) 56%, transparent);
 }

@@ -15,9 +15,10 @@ export function ClockPage() {
   const now = useClockNow(config.clock_show_seconds);
   const style = config.clock_style;
   const selectedFontStack = getSelectedClockFontStack(config.clock_font);
-  const clockPageStyle = selectedFontStack
-    ? ({ "--clock-font": selectedFontStack } as CSSProperties)
-    : undefined;
+  const clockPageStyle = {
+    ...(selectedFontStack ? { "--clock-font": selectedFontStack } : {}),
+    "--clock-font-weight": config.clock_font_weight,
+  } as CSSProperties;
   const meta = {
     week: config.clock_show_week,
     date: config.clock_show_date,
@@ -33,7 +34,7 @@ export function ClockPage() {
       {style === "flip" ? <FlipFace now={now} lang={lang} {...meta} /> : null}
       {style === "object" ? <ObjectFace now={now} {...meta} /> : null}
       {style === "dots" ? <DotsFace now={now} lang={lang} shape={config.clock_dot_shape} {...meta} /> : null}
-      {style === "liquid_glass" ? <LiquidGlassClock now={now} lang={lang} font={config.clock_font} background={config.clock_glass_background} {...meta} /> : null}
+      {style === "liquid_glass" ? <LiquidGlassClock now={now} lang={lang} font={config.clock_font} fontWeight={config.clock_font_weight} background={config.clock_glass_background} {...meta} /> : null}
     </div>
   );
 }

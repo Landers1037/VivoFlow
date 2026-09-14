@@ -51,6 +51,10 @@ fn default_clock_font() -> String {
     "default".into()
 }
 
+fn default_clock_font_weight() -> u16 {
+    400
+}
+
 fn default_clock_glass_background() -> String {
     "liquid_ether".into()
 }
@@ -279,6 +283,8 @@ pub struct AppConfig {
     pub clock_style: String,
     #[serde(default = "default_clock_font")]
     pub clock_font: String,
+    #[serde(default = "default_clock_font_weight")]
+    pub clock_font_weight: u16,
     #[serde(default = "default_clock_glass_background")]
     pub clock_glass_background: String,
     #[serde(default = "default_clock_timezone_offset_minutes")]
@@ -452,6 +458,7 @@ impl Default for AppConfig {
             clock_enabled: false,
             clock_style: default_clock_style(),
             clock_font: default_clock_font(),
+            clock_font_weight: default_clock_font_weight(),
             clock_glass_background: default_clock_glass_background(),
             clock_timezone_offset_minutes: default_clock_timezone_offset_minutes(),
             clock_show_week: true,
@@ -741,6 +748,9 @@ impl AppConfig {
             .contains(&self.clock_font.as_str())
         {
             self.clock_font = default_clock_font();
+        }
+        if ![100, 200, 300, 400, 500, 600, 700, 800, 900].contains(&self.clock_font_weight) {
+            self.clock_font_weight = default_clock_font_weight();
         }
         if ![
             "none",
@@ -1203,6 +1213,7 @@ mod tests {
         assert!(!cfg.clock_enabled);
         assert_eq!(cfg.clock_style, "lines");
         assert_eq!(cfg.clock_font, "default");
+        assert_eq!(cfg.clock_font_weight, 400);
         assert_eq!(cfg.clock_glass_background, "liquid_ether");
         assert_eq!(cfg.clock_timezone_offset_minutes, 480);
         assert!(cfg.clock_show_week);
@@ -1321,6 +1332,7 @@ mod tests {
             music_album_enabled: true,
             clock_style: "unknown".into(),
             clock_font: "unknown".into(),
+            clock_font_weight: 450,
             clock_glass_background: "unknown".into(),
             clock_timezone_offset_minutes: 9999,
             ..AppConfig::default()
@@ -1334,6 +1346,7 @@ mod tests {
         assert!(!cfg.model3d_enabled);
         assert_eq!(cfg.clock_style, "lines");
         assert_eq!(cfg.clock_font, "default");
+        assert_eq!(cfg.clock_font_weight, 400);
         assert_eq!(cfg.clock_glass_background, "liquid_ether");
         assert_eq!(cfg.clock_timezone_offset_minutes, 480);
     }
@@ -1375,6 +1388,25 @@ mod tests {
         }
         .sanitize();
         assert_eq!(bad.clock_font, "default");
+    }
+
+    #[test]
+    fn clock_font_weight_is_sanitized() {
+        for weight in [100, 200, 300, 400, 500, 600, 700, 800, 900] {
+            let ok = AppConfig {
+                clock_font_weight: weight,
+                ..AppConfig::default()
+            }
+            .sanitize();
+            assert_eq!(ok.clock_font_weight, weight);
+        }
+
+        let bad = AppConfig {
+            clock_font_weight: 450,
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(bad.clock_font_weight, 400);
     }
 
     #[test]

@@ -33,6 +33,9 @@ export type DitheringMode = "none" | "ordered" | "floyd_steinberg";
 export type ClockStyle = "lines" | "dial" | "pixel" | "flip" | "object" | "dots" | "liquid_glass";
 export type ClockDotShape = "circle" | "square" | "rounded" | "star";
 export type ClockFont = "default" | "outfit" | "jua" | "monomaniac_one" | "bungee_shade";
+export const CLOCK_FONT_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900] as const;
+export type ClockFontWeight = (typeof CLOCK_FONT_WEIGHTS)[number];
+export const DEFAULT_CLOCK_FONT_WEIGHT: ClockFontWeight = 400;
 export type ClockGlassBackground =
   | "none"
   | "liquid_ether"
@@ -282,6 +285,7 @@ export interface AppConfig {
   clock_enabled: boolean;
   clock_style: ClockStyle;
   clock_font: ClockFont;
+  clock_font_weight: ClockFontWeight;
   clock_glass_background: ClockGlassBackground;
   clock_timezone_offset_minutes: ClockTimezoneOffsetMinutes;
   clock_show_week: boolean;
@@ -373,6 +377,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   clock_enabled: false,
   clock_style: "lines",
   clock_font: DEFAULT_CLOCK_FONT,
+  clock_font_weight: DEFAULT_CLOCK_FONT_WEIGHT,
   clock_glass_background: DEFAULT_CLOCK_GLASS_BACKGROUND,
   clock_timezone_offset_minutes: DEFAULT_CLOCK_TIMEZONE_OFFSET_MINUTES,
   clock_show_week: true,

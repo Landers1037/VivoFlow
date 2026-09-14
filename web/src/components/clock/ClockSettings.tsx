@@ -1,11 +1,11 @@
 import { Check } from "lucide-react";
-import { SettingsGroup, SettingsSelectRow, SettingsSwitchRow } from "@/components/settings/SettingsList";
+import { SettingsGroup, SettingsSelectRow, SettingsSliderRow, SettingsSwitchRow } from "@/components/settings/SettingsList";
 import { CLOCK_DOT_SHAPE_OPTIONS, CLOCK_STYLE_OPTIONS } from "@/components/clock/ClockPage";
 import { useAppearance } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
 import { CLOCK_FONTS, CLOCK_GLASS_BACKGROUNDS, formatClockTimezoneOffset } from "@/types";
 import { CLOCK_TIMEZONE_OFFSETS_MINUTES } from "@/types";
-import type { ClockDotShape, ClockFont, ClockGlassBackground, ClockStyle, ClockTimezoneOffsetMinutes } from "@/types";
+import type { ClockDotShape, ClockFont, ClockFontWeight, ClockGlassBackground, ClockStyle, ClockTimezoneOffsetMinutes } from "@/types";
 
 const CLOCK_FONT_OPTIONS: {
   id: ClockFont;
@@ -167,6 +167,7 @@ export function ClockSettings() {
     setClockEnabled,
     setClockStyle,
     setClockFont,
+    setClockFontWeight,
     setClockGlassBackground,
     setClockTimezoneOffsetMinutes,
     setClockShowWeek,
@@ -224,7 +225,7 @@ export function ClockSettings() {
         </div>
       </SettingsGroup>
 
-      <SettingsGroup>
+      <SettingsGroup footer={t("clockFontWeightHint")}>
         <SettingsSelectRow
           id="clock-font"
           title={t("clockFont")}
@@ -240,6 +241,16 @@ export function ClockSettings() {
             return { value: id, label };
           })}
           onChange={(value) => setClockFont(value as ClockFont)}
+        />
+        <SettingsSliderRow
+          id="clock-font-weight"
+          title={t("clockFontWeight")}
+          valueLabel={String(config.clock_font_weight)}
+          min={100}
+          max={900}
+          step={100}
+          value={config.clock_font_weight}
+          onChange={(value) => setClockFontWeight(value as ClockFontWeight)}
         />
       </SettingsGroup>
 

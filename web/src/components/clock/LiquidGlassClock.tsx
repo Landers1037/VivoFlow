@@ -3,7 +3,7 @@ import { useReducedMotion } from "motion/react";
 import { translate } from "@/i18n/messages";
 import { formatClockDate, formatClockWeek, getClockParts } from "@/lib/clock";
 import { getLiquidGlassClockFontStack } from "@/lib/clockFonts";
-import type { ClockFont, ClockGlassBackground, ClockTimezoneOffsetMinutes, Lang } from "@/types";
+import type { ClockFont, ClockFontWeight, ClockGlassBackground, ClockTimezoneOffsetMinutes, Lang } from "@/types";
 import { ClockBackgroundRenderer } from "./ClockBackgroundRenderer";
 import { GlassGlyphRenderer } from "./glass/GlassGlyphRenderer";
 import { GLYPH_SIZE } from "./glass/glyphField";
@@ -16,13 +16,14 @@ export interface LiquidGlassClockProps {
   seconds: boolean;
   timezoneOffsetMinutes: ClockTimezoneOffsetMinutes;
   font: ClockFont;
+  fontWeight: ClockFontWeight;
   background: ClockGlassBackground;
 }
 
-const fontSpec = (font: ClockFont) => `${font === "outfit" ? 700 : 400} ${GLYPH_SIZE}px ${getLiquidGlassClockFontStack(font)}`;
+const fontSpec = (font: ClockFont, fontWeight: ClockFontWeight) => `${fontWeight} ${GLYPH_SIZE}px ${getLiquidGlassClockFontStack(font)}`;
 
 export function LiquidGlassClock(props: LiquidGlassClockProps) {
-  const { now, lang, week, date, seconds, timezoneOffsetMinutes, font, background } = props;
+  const { now, lang, week, date, seconds, timezoneOffsetMinutes, font, fontWeight, background } = props;
   const canvasRef = useRef<HTMLDivElement>(null);
   const layoutRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<GlassGlyphRenderer | null>(null);
@@ -86,7 +87,7 @@ export function LiquidGlassClock(props: LiquidGlassClockProps) {
         state.week ? formatClockWeek(state.now, state.lang, state.timezoneOffsetMinutes) : "",
         state.date ? formatClockDate(state.now, state.lang, state.timezoneOffsetMinutes) : "",
       ].filter(Boolean).join(" · ");
-      renderer.setFont(fontSpec(state.font));
+      renderer.setFont(fontSpec(state.font, state.fontWeight));
       const bounds = layout.getBoundingClientRect();
       const outer = canvas.getBoundingClientRect();
       const hasMeta = state.week || state.date;
@@ -166,19 +167,19 @@ export function LiquidGlassClock(props: LiquidGlassClockProps) {
     };
   }, [background]);
 
-  useEffect(() => { redrawRef.current?.(); }, [now, seconds, date, week, timezoneOffsetMinutes, font, lang]);
+  useEffect(() => { redrawRef.current?.(); }, [now, seconds, date, week, timezoneOffsetMinutes, font, fontWeight, lang]);
   useEffect(() => { lastFrameRef.current = -Infinity; }, [reduced]);
 
   useEffect(() => {
     let current = true;
-    const spec = fontSpec(font);
+    const spec = fontSpec(font, fontWeight);
     void document.fonts.load(spec, "0123456789:周日月年SepSat").then(() => {
       if (!current) return;
       rendererRef.current?.setFont(spec, true);
       redrawRef.current?.();
     });
     return () => { current = false; };
-  }, [font, background]);
+  }, [font, fontWeight, background]);
 
   const parts = getClockParts(now, timezoneOffsetMinutes);
   const visibleTime = `${parts.h}:${parts.m}${seconds ? `:${parts.s}` : ""}`;

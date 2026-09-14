@@ -41,6 +41,7 @@
 - `clock_enabled` 开启后首页进入全屏钟面，并关闭相册、插画、音乐、音频、黑洞、3D 模型。
 - `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object` / `dots` / `liquid_glass`，与 14 种 `ui_style` 无关。
 - `clock_font`：支持保留当前钟面默认字体，或选择 Outfit、Jua、Monomaniac One、Bungee Shade；液态玻璃在默认模式下使用 Jua。
+- `clock_font_weight`：支持从 `100` 到 `900`、步进 `100` 调整字体粗细；独立钟面、液态玻璃 Canvas 和 3D 模型时钟共用。
 - `liquid_glass` 使用圆角数字，背景由 React Bits shadcn 组件渲染，并通过统一 Canvas 合成路径在数字笔画内折射；`clock_glass_background` 提供 `none`、Liquid Ether、Aurora、Plasma、Beams、Ghost Fibers、Gradient Waves、Lightfall、Dither 和 Galaxy，默认 `liquid_ether`。
 - `clock_timezone_offset_minutes`：时钟使用的固定 UTC 偏移分钟数，默认 `480`（东八区 / `UTC+08:00`）；独立时钟与 3D 模型时钟共用。
 - `clock_dot_shape`：点阵点形状 `circle` / `square` / `rounded` / `star`，仅选中点阵时出现。

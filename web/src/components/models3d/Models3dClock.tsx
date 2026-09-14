@@ -30,6 +30,7 @@ export function Models3dClock({ modelId, position, showDate, showSeconds }: Mode
       : modelId === "flower"
         ? config.model3d_flower_pot_color
         : "#234c3b",
+    "--clock-font-weight": config.clock_font_weight,
   } as CSSProperties;
   const label = `${hours}:${minutes}${showSeconds ? `:${seconds}` : ""}${showDate ? ` · ${date}` : ""}`;
 

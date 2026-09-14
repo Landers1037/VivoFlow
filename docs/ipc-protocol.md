@@ -41,6 +41,7 @@
   "clock_enabled": false,
   "clock_style": "lines",
   "clock_font": "default",
+  "clock_font_weight": 400,
   "clock_glass_background": "liquid_ether",
   "clock_timezone_offset_minutes": 480,
   "clock_show_week": true,
@@ -74,6 +75,7 @@
 | `mobile_carousel_interval_s` | `[5, 60]`，默认 `10` |
 | `clock_style` | `lines` / `dial` / `pixel` / `flip` / `object` / `dots` / `liquid_glass` |
 | `clock_font` | `default` / `outfit` / `jua` / `monomaniac_one` / `bungee_shade`；默认 `default`，保留当前钟面字体，液态玻璃的钟面默认字体为 Jua |
+| `clock_font_weight` | `100`–`900`，步进 `100`；默认 `400`，对独立钟面和 3D 模型时钟生效 |
 | `clock_glass_background` | `none` / `liquid_ether` / `aurora` / `plasma` / `beams` / `ghost_fibers` / `gradient_waves` / `lightfall` / `dither` / `galaxy`；默认 `liquid_ether`，仅液态玻璃钟面使用 |
 | `clock_timezone_offset_minutes` | 内置固定 UTC 偏移分钟数，默认 `480`（`UTC+08:00`） |
 | `clock_dot_shape` | `circle` / `square` / `rounded` / `star` |

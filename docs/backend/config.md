@@ -33,6 +33,7 @@
   - `clock_enabled`：全屏时钟看板开关（默认 `false`）
   - `clock_style`：`lines` / `dial` / `pixel` / `flip` / `object` / `dots` / `liquid_glass`（默认 `lines`）
   - `clock_font`：`default` / `outfit` / `jua` / `monomaniac_one` / `bungee_shade`（默认 `default`；保留各钟面原有字体，液态玻璃默认 Jua）
+  - `clock_font_weight`：`100`–`900`，步进 `100`（默认 `400`；独立钟面与 3D 模型时钟共用）
   - `clock_glass_background`：液态玻璃背景特效 `none` / `liquid_ether` / `aurora` / `plasma` / `beams` / `ghost_fibers` / `gradient_waves` / `lightfall` / `dither` / `galaxy`（默认 `liquid_ether`）
   - `clock_timezone_offset_minutes`：时钟使用的固定 UTC 偏移分钟数（默认 `480`，即东八区；仅接受内置的全球常用偏移）
   - `clock_show_week` / `clock_show_date` / `clock_show_seconds`：钟面信息开关（默认 `true`）

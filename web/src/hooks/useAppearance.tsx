@@ -8,11 +8,12 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AgentEmotionId, AgentShape, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockFont, ClockGlassBackground, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, Particle3dMode, ParticleDimension, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
+import type { AccentId, AgentEmotionId, AgentShape, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockFont, ClockFontWeight, ClockGlassBackground, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, Particle3dMode, ParticleDimension, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   CLOCK_DOT_SHAPES,
   CLOCK_FONTS,
+  CLOCK_FONT_WEIGHTS,
   CLOCK_GLASS_BACKGROUNDS,
   CLOCK_TIMEZONE_OFFSETS_MINUTES,
   CLOCK_STYLES,
@@ -25,6 +26,7 @@ import {
   DEFAULT_ACCENT_CUSTOM,
   DEFAULT_CONFIG,
   DEFAULT_CLOCK_FONT,
+  DEFAULT_CLOCK_FONT_WEIGHT,
   DEFAULT_CLOCK_TIMEZONE_OFFSET_MINUTES,
   DEFAULT_CLOCK_GLASS_BACKGROUND,
   DEFAULT_MODEL3D_CLOCK_POSITION,
@@ -204,6 +206,9 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     clock_font: CLOCK_FONTS.includes(base.clock_font as ClockFont)
       ? (base.clock_font as ClockFont)
       : DEFAULT_CLOCK_FONT,
+    clock_font_weight: CLOCK_FONT_WEIGHTS.includes(Number(base.clock_font_weight) as ClockFontWeight)
+      ? Number(base.clock_font_weight) as ClockFontWeight
+      : DEFAULT_CLOCK_FONT_WEIGHT,
     clock_glass_background: CLOCK_GLASS_BACKGROUNDS.includes(base.clock_glass_background as ClockGlassBackground)
       ? (base.clock_glass_background as ClockGlassBackground)
       : DEFAULT_CLOCK_GLASS_BACKGROUND,
@@ -399,6 +404,7 @@ interface AppearanceContextValue {
   setClockEnabled: (v: boolean) => void;
   setClockStyle: (v: ClockStyle) => void;
   setClockFont: (v: ClockFont) => void;
+  setClockFontWeight: (v: ClockFontWeight) => void;
   setClockGlassBackground: (v: ClockGlassBackground) => void;
   setClockTimezoneOffsetMinutes: (v: ClockTimezoneOffsetMinutes) => void;
   setClockShowWeek: (v: boolean) => void;
@@ -581,6 +587,7 @@ export function AppearanceProvider({
         patch(clock_enabled ? exclusiveFullscreen({ clock_enabled: true }) : { clock_enabled }),
       setClockStyle: (clock_style) => patch({ clock_style }),
       setClockFont: (clock_font) => patch({ clock_font }),
+      setClockFontWeight: (clock_font_weight) => patch({ clock_font_weight }),
       setClockGlassBackground: (clock_glass_background) => patch({ clock_glass_background }),
       setClockTimezoneOffsetMinutes: (clock_timezone_offset_minutes) => patch({ clock_timezone_offset_minutes }),
       setClockShowWeek: (clock_show_week) => patch({ clock_show_week }),
