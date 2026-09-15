@@ -28,6 +28,8 @@ chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1", features = ["v4"] }
 futures-util = "0.3"
 parking_lot = "0.12"
+reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "stream", "rustls-tls-no-provider"] }
+rustls = { version = "0.23", default-features = false, features = ["aws-lc-rs"] }
 rcgen = { version = "0.14", features = ["pem", "x509-parser"] }
 local-ip-address = "0.6"
 hostname = "0.4"

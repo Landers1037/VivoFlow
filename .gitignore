@@ -11,6 +11,17 @@ web/dist/
 web/.vite/
 *.local
 
+# Local agent runtime state, dependencies, caches, and downloaded models
+agent/node_modules/
+agent/__pycache__/
+agent/.models.json
+agent/models-store.json
+agent/**/.models.json
+agent/**/models-store.json
+agent/whisper/
+agent/huggingface/
+agent/.venv/
+
 # Embedded UI is synced from web/dist by scripts/build.*
 # Do not commit built assets — cargo build.rs seeds a placeholder if missing.
 crates/vivoflow/static/

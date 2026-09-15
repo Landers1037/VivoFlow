@@ -1,3 +1,4 @@
+mod agent_runtime;
 mod agent_voice;
 mod album;
 mod audio;
@@ -25,6 +26,10 @@ use crate::server::serve;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // axum-server and reqwest intentionally use rustls without selecting a
+    // provider at compile time. Install the single provider used by both
+    // clients before any HTTPS server or HTTP client is constructed.
+    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
@@ -51,6 +56,7 @@ async fn main() -> anyhow::Result<()> {
     let illustrations = crate::illustration::IllustrationStore::load(storage.clone())?;
     let particles = crate::particle::ParticleStore::load(storage.clone())?;
     let tls = crate::tls::ensure_tls_assets()?;
+    let agent = crate::agent_runtime::AgentRuntime::start();
 
     tracing::info!("VivoFlow listening on https://{addr}");
     tracing::info!("WebSocket JSON IPC at wss://{addr}/ws");
@@ -66,6 +72,7 @@ async fn main() -> anyhow::Result<()> {
         audio,
         storage,
         tls,
+        agent,
     )
     .await
 }

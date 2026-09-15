@@ -221,6 +221,27 @@ fn default_agent_color() -> String {
 fn default_agent_emotion() -> String {
     "02".into()
 }
+fn default_agent_wake_word() -> String {
+    "小薇小薇".into()
+}
+fn default_agent_default_city() -> String {
+    "".into()
+}
+fn default_agent_transcript_enabled() -> bool {
+    true
+}
+fn default_agent_ollama_url() -> String {
+    "http://127.0.0.1:11434".into()
+}
+fn default_agent_ollama_model() -> String {
+    "llama3.1:8b".into()
+}
+fn default_agent_whisper_model() -> String {
+    "small".into()
+}
+fn default_agent_voice_device() -> String {
+    "auto".into()
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
@@ -259,6 +280,22 @@ pub struct AppConfig {
     pub agent_random_emotions: bool,
     #[serde(default)]
     pub agent_voice_enabled: bool,
+    #[serde(default = "default_agent_wake_word")]
+    pub agent_wake_word: String,
+    #[serde(default)]
+    pub agent_internet_enabled: bool,
+    #[serde(default = "default_agent_transcript_enabled")]
+    pub agent_transcript_enabled: bool,
+    #[serde(default = "default_agent_default_city")]
+    pub agent_default_city: String,
+    #[serde(default = "default_agent_ollama_url")]
+    pub agent_ollama_url: String,
+    #[serde(default = "default_agent_ollama_model")]
+    pub agent_ollama_model: String,
+    #[serde(default = "default_agent_whisper_model")]
+    pub agent_whisper_model: String,
+    #[serde(default = "default_agent_voice_device")]
+    pub agent_voice_device: String,
     #[serde(default)]
     pub mobile_card_mode: bool,
     #[serde(default = "default_mobile_auto_carousel")]
@@ -446,6 +483,14 @@ impl Default for AppConfig {
             agent_default_emotion: default_agent_emotion(),
             agent_random_emotions: false,
             agent_voice_enabled: false,
+            agent_wake_word: default_agent_wake_word(),
+            agent_internet_enabled: false,
+            agent_transcript_enabled: default_agent_transcript_enabled(),
+            agent_default_city: default_agent_default_city(),
+            agent_ollama_url: default_agent_ollama_url(),
+            agent_ollama_model: default_agent_ollama_model(),
+            agent_whisper_model: default_agent_whisper_model(),
+            agent_voice_device: default_agent_voice_device(),
             mobile_card_mode: false,
             mobile_auto_carousel: true,
             mobile_carousel_interval_s: default_mobile_carousel_interval_s(),
@@ -899,6 +944,25 @@ impl AppConfig {
         if !AGENT_EMOTIONS.contains(&self.agent_default_emotion.as_str()) {
             self.agent_default_emotion = default_agent_emotion();
         }
+        self.agent_wake_word = self.agent_wake_word.trim().chars().take(32).collect();
+        if self.agent_wake_word.is_empty() {
+            self.agent_wake_word = default_agent_wake_word();
+        }
+        self.agent_default_city = self.agent_default_city.trim().chars().take(128).collect();
+        self.agent_ollama_url =
+            sanitize_agent_url(&self.agent_ollama_url, &default_agent_ollama_url());
+        self.agent_ollama_model = self.agent_ollama_model.trim().chars().take(128).collect();
+        if self.agent_ollama_model.is_empty() {
+            self.agent_ollama_model = default_agent_ollama_model();
+        }
+        self.agent_whisper_model = match self.agent_whisper_model.as_str() {
+            "base" | "small" | "medium" => self.agent_whisper_model.clone(),
+            _ => default_agent_whisper_model(),
+        };
+        self.agent_voice_device = match self.agent_voice_device.as_str() {
+            "auto" | "cpu" | "cuda" => self.agent_voice_device.clone(),
+            _ => default_agent_voice_device(),
+        };
         if self.system_dashboard_enabled {
             self.agent_enabled = false;
             self.clock_enabled = false;
@@ -968,6 +1032,15 @@ impl AppConfig {
             self.agent_enabled = false;
         }
         self
+    }
+}
+
+fn sanitize_agent_url(value: &str, fallback: &str) -> String {
+    let value = value.trim();
+    if (value.starts_with("http://") || value.starts_with("https://")) && value.len() <= 512 {
+        value.trim_end_matches('/').to_owned()
+    } else {
+        fallback.to_owned()
     }
 }
 
@@ -1818,5 +1891,29 @@ mod tests {
         .sanitize();
         assert!(higher.model3d_enabled);
         assert!(!higher.agent_enabled);
+    }
+
+    #[test]
+    fn agent_voice_defaults_and_connection_settings_are_stable() {
+        let defaults = AppConfig::default();
+        assert_eq!(defaults.agent_wake_word, "小薇小薇");
+        assert!(defaults.agent_transcript_enabled);
+        assert!(!defaults.agent_internet_enabled);
+        assert_eq!(defaults.agent_ollama_url, "http://127.0.0.1:11434");
+        assert_eq!(defaults.agent_whisper_model, "small");
+        assert_eq!(defaults.agent_voice_device, "auto");
+
+        let sanitized = AppConfig {
+            agent_wake_word: "  小薇  ".into(),
+            agent_ollama_url: "file:///secret".into(),
+            agent_whisper_model: "large".into(),
+            agent_voice_device: "metal".into(),
+            ..defaults
+        }
+        .sanitize();
+        assert_eq!(sanitized.agent_wake_word, "小薇");
+        assert_eq!(sanitized.agent_ollama_url, "http://127.0.0.1:11434");
+        assert_eq!(sanitized.agent_whisper_model, "small");
+        assert_eq!(sanitized.agent_voice_device, "auto");
     }
 }

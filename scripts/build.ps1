@@ -15,8 +15,19 @@ if (Test-Path $staticDir) { Remove-Item -Recurse -Force $staticDir }
 New-Item -ItemType Directory -Force -Path $staticDir | Out-Null
 Copy-Item -Recurse -Force "web/dist/*" $staticDir
 
+Write-Host "==> Installing local agent bridge dependencies"
+Push-Location agent
+npm ci --omit=dev
+Pop-Location
+
 Write-Host "==> Building vivoflow (release)"
 cargo build -p vivoflow --release
+
+Write-Host "==> Bundling local agent bridge"
+$releaseAgentDir = "target/release/agent"
+if (Test-Path $releaseAgentDir) { Remove-Item -Recurse -Force $releaseAgentDir }
+New-Item -ItemType Directory -Force -Path $releaseAgentDir | Out-Null
+Copy-Item -Recurse -Force "agent/*" $releaseAgentDir
 
 Write-Host ""
 Write-Host "Done: target/release/vivoflow.exe"

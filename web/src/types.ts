@@ -273,6 +273,14 @@ export interface AppConfig {
   agent_default_emotion: AgentEmotionId;
   agent_random_emotions: boolean;
   agent_voice_enabled: boolean;
+  agent_wake_word: string;
+  agent_internet_enabled: boolean;
+  agent_transcript_enabled: boolean;
+  agent_default_city: string;
+  agent_ollama_url: string;
+  agent_ollama_model: string;
+  agent_whisper_model: "base" | "small" | "medium";
+  agent_voice_device: "auto" | "cpu" | "cuda";
   mobile_card_mode: boolean;
   mobile_auto_carousel: boolean;
   mobile_carousel_interval_s: number;
@@ -365,6 +373,14 @@ export const DEFAULT_CONFIG: AppConfig = {
   agent_default_emotion: "02",
   agent_random_emotions: false,
   agent_voice_enabled: false,
+  agent_wake_word: "小薇小薇",
+  agent_internet_enabled: false,
+  agent_transcript_enabled: true,
+  agent_default_city: "",
+  agent_ollama_url: "http://127.0.0.1:11434",
+  agent_ollama_model: "llama3.1:8b",
+  agent_whisper_model: "small",
+  agent_voice_device: "auto",
   mobile_card_mode: false,
   mobile_auto_carousel: true,
   mobile_carousel_interval_s: 10,

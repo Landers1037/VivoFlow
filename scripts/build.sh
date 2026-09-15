@@ -11,8 +11,16 @@ rm -rf crates/vivoflow/static
 mkdir -p crates/vivoflow/static
 cp -R web/dist/. crates/vivoflow/static/
 
+echo "==> Installing local agent bridge dependencies"
+(cd agent && npm ci --omit=dev)
+
 echo "==> Building vivoflow (release)"
 cargo build -p vivoflow --release
+
+echo "==> Bundling local agent bridge"
+rm -rf target/release/agent
+mkdir -p target/release/agent
+cp -R agent/. target/release/agent/
 
 echo ""
 echo "Done: target/release/vivoflow"

@@ -64,6 +64,7 @@ struct ControlMessage {
     channels: Option<u8>,
     format: Option<String>,
     frame_ms: Option<u16>,
+    session_id: Option<String>,
 }
 
 pub async fn ws_handler(ws: WebSocketUpgrade) -> impl IntoResponse {
@@ -88,6 +89,8 @@ async fn handle_socket(socket: WebSocket) {
     let mut last_frame = Instant::now();
     let mut frame_window = Instant::now();
     let mut frame_count = 0u16;
+    let mut audio_sequence = 0u64;
+    let mut session_id: Option<String> = None;
     loop {
         tokio::select! {
             message = receiver.next() => match message {
@@ -95,8 +98,9 @@ async fn handle_socket(socket: WebSocket) {
                     let Ok(control) = serde_json::from_str::<ControlMessage>(&text) else { send_error(&mut sender, "invalid_control").await; continue; };
                     match control.kind.as_str() {
                         "start" if control.sample_rate == Some(16_000) && control.channels == Some(1) && control.format.as_deref() == Some("pcm_s16le") && control.frame_ms == Some(40) => {
-                            started = true; detector.reset(); last_frame = Instant::now(); frame_window = Instant::now(); frame_count = 0;
-                            let _ = sender.send(Message::Text(json!({"type":"ready"}).to_string().into())).await;
+                            started = true; detector.reset(); last_frame = Instant::now(); frame_window = Instant::now(); frame_count = 0; audio_sequence = 0;
+                            session_id = control.session_id.map(|value| value.chars().take(96).collect());
+                            let _ = sender.send(Message::Text(json!({"type":"ready", "sessionId": session_id}).to_string().into())).await;
                         }
                         "start" => send_error(&mut sender, "unsupported_format").await,
                         "stop" => { detector.reset(); break; }
@@ -110,8 +114,10 @@ async fn handle_socket(socket: WebSocket) {
                     frame_count += 1;
                     if frame_count > 40 { send_error(&mut sender, "rate_limited").await; break; }
                     last_frame = Instant::now();
+                    audio_sequence = audio_sequence.saturating_add(1);
                     let (listening, level) = detector.update(&bytes);
-                    let payload = json!({"type":"voice_state","listening":listening,"level":level});
+                    let payload =
+                        json!({"type":"voice_state","listening":listening,"level":level,"sessionId":session_id,"audioSeq":audio_sequence});
                     if sender.send(Message::Text(payload.to_string().into())).await.is_err() { break; }
                 }
                 Some(Ok(Message::Ping(value))) => { let _ = sender.send(Message::Pong(value)).await; }
@@ -121,7 +127,7 @@ async fn handle_socket(socket: WebSocket) {
             _ = tokio::time::sleep(Duration::from_millis(250)), if started => {
                 if last_frame.elapsed() >= Duration::from_secs(2) {
                     detector.reset();
-                    let payload = json!({"type":"voice_state","listening":false,"level":0.0});
+                    let payload = json!({"type":"voice_state","listening":false,"level":0.0,"sessionId":session_id,"audioSeq":audio_sequence});
                     if sender.send(Message::Text(payload.to_string().into())).await.is_err() { break; }
                     last_frame = Instant::now();
                 }

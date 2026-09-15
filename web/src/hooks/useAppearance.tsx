@@ -11,6 +11,7 @@ import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages"
 import type { AccentId, AgentEmotionId, AgentShape, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockFont, ClockFontWeight, ClockGlassBackground, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, Particle3dMode, ParticleDimension, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
+  AGENT_EMOTION_IDS,
   CLOCK_DOT_SHAPES,
   CLOCK_FONTS,
   CLOCK_FONT_WEIGHTS,
@@ -183,6 +184,34 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
     language: langs.includes(base.language as Lang) ? (base.language as Lang) : "zh",
     hide_title_bar: Boolean(base.hide_title_bar),
     system_dashboard_enabled: Boolean(base.system_dashboard_enabled),
+    agent_enabled: Boolean(base.agent_enabled),
+    agent_shape: ["blob", "wedge", "gem"].includes(base.agent_shape as AgentShape)
+      ? base.agent_shape
+      : "blob",
+    agent_color: normalizeHexColor(base.agent_color, "#f3f0ea"),
+    agent_default_emotion: AGENT_EMOTION_IDS.includes(base.agent_default_emotion as AgentEmotionId)
+      ? base.agent_default_emotion
+      : "02",
+    agent_random_emotions: Boolean(base.agent_random_emotions),
+    agent_voice_enabled: Boolean(base.agent_voice_enabled),
+    agent_wake_word: typeof base.agent_wake_word === "string" && base.agent_wake_word.trim()
+      ? base.agent_wake_word.trim().slice(0, 32)
+      : DEFAULT_CONFIG.agent_wake_word,
+    agent_internet_enabled: Boolean(base.agent_internet_enabled),
+    agent_transcript_enabled: base.agent_transcript_enabled !== false,
+    agent_default_city: typeof base.agent_default_city === "string" ? base.agent_default_city.trim().slice(0, 128) : "",
+    agent_ollama_url: typeof base.agent_ollama_url === "string" && /^https?:\/\//i.test(base.agent_ollama_url)
+      ? base.agent_ollama_url.replace(/\/$/, "")
+      : DEFAULT_CONFIG.agent_ollama_url,
+    agent_ollama_model: typeof base.agent_ollama_model === "string" && base.agent_ollama_model.trim()
+      ? base.agent_ollama_model.trim().slice(0, 128)
+      : DEFAULT_CONFIG.agent_ollama_model,
+    agent_whisper_model: (["base", "small", "medium"] as const).includes(base.agent_whisper_model)
+      ? base.agent_whisper_model
+      : DEFAULT_CONFIG.agent_whisper_model,
+    agent_voice_device: (["auto", "cpu", "cuda"] as const).includes(base.agent_voice_device)
+      ? base.agent_voice_device
+      : DEFAULT_CONFIG.agent_voice_device,
     mobile_card_mode: Boolean(base.mobile_card_mode),
     mobile_auto_carousel: base.mobile_auto_carousel !== false,
     mobile_carousel_interval_s: Number.isFinite(Number(base.mobile_carousel_interval_s))
@@ -439,6 +468,14 @@ interface AppearanceContextValue {
   setAgentDefaultEmotion: (v: AgentEmotionId) => void;
   setAgentRandomEmotions: (v: boolean) => void;
   setAgentVoiceEnabled: (v: boolean) => void;
+  setAgentWakeWord: (v: string) => void;
+  setAgentInternetEnabled: (v: boolean) => void;
+  setAgentTranscriptEnabled: (v: boolean) => void;
+  setAgentDefaultCity: (v: string) => void;
+  setAgentOllamaUrl: (v: string) => void;
+  setAgentOllamaModel: (v: string) => void;
+  setAgentWhisperModel: (v: AppConfig["agent_whisper_model"]) => void;
+  setAgentVoiceDevice: (v: AppConfig["agent_voice_device"]) => void;
   setModel3dEnabled: (v: boolean) => void;
   setModel3dId: (v: Model3dId) => void;
   setModel3dOrbitStyle: (v: Model3dOrbitStyle) => void;
@@ -631,6 +668,14 @@ export function AppearanceProvider({
       setAgentDefaultEmotion: (agent_default_emotion) => patch({ agent_default_emotion }),
       setAgentRandomEmotions: (agent_random_emotions) => patch({ agent_random_emotions }),
       setAgentVoiceEnabled: (agent_voice_enabled) => patch({ agent_voice_enabled }),
+      setAgentWakeWord: (agent_wake_word) => patch({ agent_wake_word: agent_wake_word.trim().slice(0, 32) }),
+      setAgentInternetEnabled: (agent_internet_enabled) => patch({ agent_internet_enabled }),
+      setAgentTranscriptEnabled: (agent_transcript_enabled) => patch({ agent_transcript_enabled }),
+      setAgentDefaultCity: (agent_default_city) => patch({ agent_default_city: agent_default_city.trim().slice(0, 128) }),
+      setAgentOllamaUrl: (agent_ollama_url) => patch({ agent_ollama_url }),
+      setAgentOllamaModel: (agent_ollama_model) => patch({ agent_ollama_model: agent_ollama_model.trim().slice(0, 128) }),
+      setAgentWhisperModel: (agent_whisper_model) => patch({ agent_whisper_model }),
+      setAgentVoiceDevice: (agent_voice_device) => patch({ agent_voice_device }),
       setModel3dEnabled: (model3d_enabled) =>
         patch(model3d_enabled ? exclusiveFullscreen({ model3d_enabled: true }) : { model3d_enabled }),
       setModel3dId: (model3d_id) => patch({ model3d_id }),

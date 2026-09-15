@@ -12,6 +12,7 @@ Windows 系统指标采集器 + 移动优先仪表盘。单进程：Rust 采集�
 - **音频可视化**：WASAPI 输出捕获、四种 2D 频谱与四种 Three.js 3D 声场、输出设备与配色控制
 - **像素插画**：浏览器 Canvas / Web Worker 本地生成像素插画，并支持原图轮播与高级参数
 - **媒体存储**：统一管理相册、音乐和插画原图目录，查看分类占用并迁移路径
+- **本地语音智能体**：可配置唤醒词，使用 Pi SDK + Ollama 对话，Whisper 中文识别，ChatTTS 语音回复，并提供时间、天气、网页搜索与网页读取工具
 
 ## 快速开始
 
@@ -46,7 +47,11 @@ npm run dev
 .\target\release\vivoflow.exe
 ```
 
-脚本会：构建 `web/` → 同步到 `crates/vivoflow/static`（该目录已 gitignore）→ `cargo build --release`。
+脚本会：构建 `web/` → 安装 `agent/` 的 Node 生产依赖 → 同步到 `crates/vivoflow/static`（该目录已 gitignore）→ `cargo build --release` → 将 Node bridge 复制到 `target/release/agent/`。
+
+首次打开「设置 → 智能体」后，先点击“安装运行环境”，再点击“准备模型”。应用会在 `%LOCALAPPDATA%/VivoFlow/agent/` 管理 Python 虚拟环境、Whisper 模型、ChatTTS 缓存和运行时状态。Pi bridge 使用 Node.js 22.19+，ChatTTS 使用 Python 3.11、PyTorch 和 CUDA（自动模式会在 CUDA 不可用时回退 CPU）。联网开关默认关闭；开启后才允许搜索、天气和网页读取。
+
+Whisper 下载固定到 whisper.cpp v1.8.7，并在启用前校验 SHA-256；中断下载会留下 `.part` 文件，下一次点击“准备模型”时继续下载。显式选择 CUDA 会下载对应的 cuBLAS 12.4 Windows x64 包。
 
 首次启动会在配置目录的 `tls/` 下创建并持久化 VivoFlow 根 CA，再为 `localhost`、当前主机名和检测到的本机 IP 签发服务端证书。之后默认监听 `0.0.0.0:8787`，手机同 Wi‑Fi 访问：
 
@@ -85,7 +90,7 @@ https://<电脑局域网IP>:8787
 | S→C | `error` | 错误信息 |
 | S→C | `audio_frame` / `audio_status` | 64 段频谱与捕获状态 |
 
-HTTPS 调试：`GET /api/health`、`GET /api/snapshot`、`GET /api/config`、`GET /api/audio/devices`、`GET /api/tls/root-ca.pem`、`GET /api/illustrations`、`GET /api/storage`。
+HTTPS 调试：`GET /api/health`、`GET /api/snapshot`、`GET /api/config`、`GET /api/audio/devices`、`GET /api/tls/root-ca.pem`、`GET /api/illustrations`、`GET /api/storage`。智能体接口见 [`docs/backend/agent-runtime.md`](docs/backend/agent-runtime.md)，包含服务状态、运行环境安装、模型下载、会话流、识别和语音合成。
 
 ### 配置示例
 
