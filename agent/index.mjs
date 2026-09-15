@@ -9,7 +9,7 @@ import path from "node:path";
 import { createAgentSession, DefaultResourceLoader, ModelRuntime, SessionManager, defineTool } from "@earendil-works/pi-coding-agent";
 import OpenCC from "opencc-js";
 import { Type } from "typebox";
-import { isPrivateHost, normalizeText, safeUrl } from "./text.mjs";
+import { isPrivateHost, normalizeText, safeUrl, whisperModelForService } from "./text.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const portFlag = process.argv.indexOf("--port");
@@ -432,7 +432,28 @@ async function health() {
     !whisper.ok ? "whisper" : null,
     !chattts.ok ? "chattts" : null,
   ].filter(Boolean);
-  return { ready: missing.length === 0, node: true, ollama: ollama.ok, ollamaModel, whisper: whisper.ok, chattts: chattts.ok, chatttsDevice: chattts.payload.device, model: modelName, missing };
+  const whisperModels = Object.fromEntries(
+    ["base", "small", "medium"].map((name) => [
+      name,
+      existsSync(path.join(DATA_ROOT, "whisper", "models", `ggml-${name}.bin`)),
+    ]),
+  );
+  const whisperBinary = existsSync(path.join(DATA_ROOT, "whisper", whisperBinaryName(cfg)));
+  return {
+    ready: missing.length === 0,
+    node: true,
+    nodeVersion: process.version,
+    ollama: ollama.ok,
+    ollamaModel,
+    whisper: whisper.ok,
+    whisperBinary,
+    whisperModels,
+    chattts: chattts.ok,
+    chatttsRuntime: existsSync(managedPythonPath()),
+    chatttsDevice: chattts.payload.device,
+    model: modelName,
+    missing,
+  };
 }
 
 async function models(_req, res) {
@@ -501,8 +522,14 @@ async function download(service, signal) {
       return { ok: false, service, error: job.error, ...job };
     }
   }
-  if (service === "whisper") {
-    const model = ["base", "small", "medium"].includes(cfg.agent_whisper_model) ? cfg.agent_whisper_model : "small";
+  let whisperModel = null;
+  try { whisperModel = whisperModelForService(service, cfg.agent_whisper_model); }
+  catch (error) {
+    job.status = "failed"; job.phase = "error"; job.error = error instanceof Error ? error.message : String(error);
+    return { ok: false, service, error: job.error, ...job };
+  }
+  if (whisperModel) {
+    const model = whisperModel;
     const destination = path.join(DATA_ROOT, "whisper", "models", `ggml-${model}.bin`);
     // Pin the model repository revision alongside its SHA-256 so a future
     // upstream replacement cannot silently change the downloaded weights.

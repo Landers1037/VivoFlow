@@ -14,4 +14,6 @@
 
 识别接口返回 `durationMs`，聊天流在首个文本增量和结束时返回 `metrics`（`firstTextMs`、`totalMs`），TTS 响应带 `x-vivoflow-tts-ms`，便于记录识别、首字和首段音频延迟。
 
+设置中的“语音服务状态”按 Node、Ollama、Whisper、ChatTTS 四个 Tab 展示。Node 面板负责桥接服务检查和重启；Ollama 面板配置地址、刷新模型并测试连接；Whisper 面板分别检测 `base`、`small`、`medium`，未安装的模型在对应行显示独立下载按钮；ChatTTS 面板分别安装 Python 运行环境、准备官方模型并试听语音。下载任务显示实时进度并可单独取消。
+
 `getUserMedia` 需要安全上下文。localhost 可以直接使用；生产后端默认通过 HTTPS 提供页面。局域网设备需要先安装并信任 VivoFlow 自动创建的根 CA，普通 HTTP 页面或尚未受信任的证书不满足麦克风访问条件。

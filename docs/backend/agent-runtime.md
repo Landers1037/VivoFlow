@@ -18,7 +18,7 @@ Whisper 下载固定到 whisper.cpp `v1.8.7`：`cpu/auto` 使用 `whisper-bin-x6
 
 ## 服务接口
 
-Rust 代理以下同源接口：`GET /api/agent/health`、`GET /api/agent/ollama/test`、`GET /api/agent/models`、`POST /api/agent/restart`、`POST /api/agent/install`、`GET /api/agent/install/status`、`POST /api/agent/chat`、`POST /api/agent/cancel`、`POST /api/agent/clear`、`POST /api/agent/transcribe`、`POST /api/agent/tts`、`POST /api/agent/download/{service}`、`GET /api/agent/download-status/{service}` 和 `POST /api/agent/download-cancel/{service}`。`health` 返回 `missing` 列表，包含服务或所选 Ollama 模型缺失项。聊天响应使用 NDJSON，事件包括 `delta`、`tool_start`、`tool_end`、`end` 和 `error`。安装和下载状态接口可轮询阶段、字节进度、完成或错误状态；断开请求会取消当前下载并保留 `.part` 以便下次续传。桥接异常退出时可调用 `restart` 重新启动 Node 服务。
+Rust 代理以下同源接口：`GET /api/agent/health`、`GET /api/agent/ollama/test`、`GET /api/agent/models`、`POST /api/agent/restart`、`POST /api/agent/install`、`GET /api/agent/install/status`、`POST /api/agent/chat`、`POST /api/agent/cancel`、`POST /api/agent/clear`、`POST /api/agent/transcribe`、`POST /api/agent/tts`、`POST /api/agent/download/{service}`、`GET /api/agent/download-status/{service}` 和 `POST /api/agent/download-cancel/{service}`。`health` 返回 `missing`、Node 版本、Whisper 运行文件状态和 `base`、`small`、`medium` 三个模型各自的安装状态。Whisper 下载服务名可使用兼容的 `whisper`，也可使用 `whisper-base`、`whisper-small`、`whisper-medium` 启动互相独立的任务。聊天响应使用 NDJSON，事件包括 `delta`、`tool_start`、`tool_end`、`end` 和 `error`。安装和下载状态接口可轮询阶段、字节进度、完成或错误状态；断开请求会取消当前下载并保留 `.part` 以便下次续传。桥接异常退出时可调用 `restart` 重新启动 Node 服务。
 
 首次使用可在设置中点击“安装运行环境”，再点击“准备模型”。运行时代码随应用打包，依赖、模型和缓存写入 `%LOCALAPPDATA%/VivoFlow/agent/`（可通过 `VIVOFLOW_AGENT_DATA` 覆盖）。安装优先使用托管 `uv` 创建 Python 3.11 虚拟环境；缺少 `uv` 时 Windows 先尝试 `py -3.11`，再回退到系统 Python 的 `venv`。Whisper 模型下载到该目录的 `whisper/models/`，ChatTTS 在首次准备或合成时从其模型仓库加载。下载和推理失败会保留已有模型并返回可读错误。
 

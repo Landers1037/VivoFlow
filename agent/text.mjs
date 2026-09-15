@@ -6,6 +6,15 @@ export function normalizeText(value) {
   return String(value || "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+export function whisperModelForService(service, configuredModel = "small") {
+  const models = ["base", "small", "medium"];
+  if (service === "whisper") return models.includes(configuredModel) ? configuredModel : "small";
+  if (!String(service).startsWith("whisper-")) return null;
+  const requested = String(service).slice("whisper-".length);
+  if (!models.includes(requested)) throw new Error("unknown_whisper_model");
+  return requested;
+}
+
 export function normalizeWakeText(value) {
   return String(value || "").toLocaleLowerCase().replace(/[\s，。！？、,.!?；;：“”‘’'"`~·]/g, "");
 }

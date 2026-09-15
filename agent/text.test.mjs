@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isPrivateHost, normalizeText, removeWakeWord, safeUrl } from "./text.mjs";
+import { isPrivateHost, normalizeText, removeWakeWord, safeUrl, whisperModelForService } from "./text.mjs";
 
 test("normalizes control whitespace without changing Chinese text", () => {
   assert.equal(normalizeText("  你好\n\u0000世界  "), "你好 世界");
@@ -22,4 +22,13 @@ test("rejects local and non-http targets", () => {
   assert.equal(isPrivateHost("8.8.8.8"), false);
   assert.equal(isPrivateHost("192.168.1.20"), true);
   assert.equal(isPrivateHost("127.1"), true);
+});
+
+test("maps independent Whisper download tasks to their model", () => {
+  assert.equal(whisperModelForService("whisper-base", "medium"), "base");
+  assert.equal(whisperModelForService("whisper-small", "base"), "small");
+  assert.equal(whisperModelForService("whisper-medium", "base"), "medium");
+  assert.equal(whisperModelForService("whisper", "medium"), "medium");
+  assert.equal(whisperModelForService("chattts", "small"), null);
+  assert.throws(() => whisperModelForService("whisper-large", "small"), /unknown_whisper_model/);
 });
