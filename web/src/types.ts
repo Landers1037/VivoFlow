@@ -276,6 +276,7 @@ export interface AppConfig {
   agent_wake_word: string;
   agent_internet_enabled: boolean;
   agent_transcript_enabled: boolean;
+  agent_input_enabled: boolean;
   agent_default_city: string;
   agent_ollama_url: string;
   agent_ollama_model: string;
@@ -376,6 +377,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   agent_wake_word: "小薇小薇",
   agent_internet_enabled: false,
   agent_transcript_enabled: true,
+  agent_input_enabled: true,
   agent_default_city: "",
   agent_ollama_url: "http://127.0.0.1:11434",
   agent_ollama_model: "llama3.1:8b",

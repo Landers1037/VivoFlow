@@ -19,6 +19,7 @@
   - `agent_color`：身体 `#RRGGBB`（默认 `#f3f0ea`）
   - `agent_default_emotion`：32 种内置表情 ID 之一（默认 `02`）
   - `agent_random_emotions` / `agent_voice_enabled`：随机表情与浏览器麦克风声音响应开关（默认 `false`）
+  - `agent_input_enabled`：首页底部输入与对话面板开关（默认 `true`）
   - `mobile_card_mode`：手机分页卡片模式（默认 `false`）
   - `mobile_auto_carousel`：移动卡片自动轮播（默认 `true`，仅移动模式生效）
   - `mobile_carousel_interval_s`：轮播间隔秒数（默认 `10`，限制 `5..=60`）

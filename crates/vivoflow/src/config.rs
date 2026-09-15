@@ -230,6 +230,9 @@ fn default_agent_default_city() -> String {
 fn default_agent_transcript_enabled() -> bool {
     true
 }
+fn default_agent_input_enabled() -> bool {
+    true
+}
 fn default_agent_ollama_url() -> String {
     "http://127.0.0.1:11434".into()
 }
@@ -286,6 +289,8 @@ pub struct AppConfig {
     pub agent_internet_enabled: bool,
     #[serde(default = "default_agent_transcript_enabled")]
     pub agent_transcript_enabled: bool,
+    #[serde(default = "default_agent_input_enabled")]
+    pub agent_input_enabled: bool,
     #[serde(default = "default_agent_default_city")]
     pub agent_default_city: String,
     #[serde(default = "default_agent_ollama_url")]
@@ -486,6 +491,7 @@ impl Default for AppConfig {
             agent_wake_word: default_agent_wake_word(),
             agent_internet_enabled: false,
             agent_transcript_enabled: default_agent_transcript_enabled(),
+            agent_input_enabled: default_agent_input_enabled(),
             agent_default_city: default_agent_default_city(),
             agent_ollama_url: default_agent_ollama_url(),
             agent_ollama_model: default_agent_ollama_model(),
@@ -1898,10 +1904,19 @@ mod tests {
         let defaults = AppConfig::default();
         assert_eq!(defaults.agent_wake_word, "小薇小薇");
         assert!(defaults.agent_transcript_enabled);
+        assert!(defaults.agent_input_enabled);
         assert!(!defaults.agent_internet_enabled);
         assert_eq!(defaults.agent_ollama_url, "http://127.0.0.1:11434");
         assert_eq!(defaults.agent_whisper_model, "small");
         assert_eq!(defaults.agent_voice_device, "auto");
+
+        let mut legacy_value = serde_json::to_value(&defaults).unwrap();
+        legacy_value
+            .as_object_mut()
+            .unwrap()
+            .remove("agent_input_enabled");
+        let legacy: AppConfig = serde_json::from_value(legacy_value).unwrap();
+        assert!(legacy.agent_input_enabled);
 
         let sanitized = AppConfig {
             agent_wake_word: "  小薇  ".into(),

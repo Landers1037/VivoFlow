@@ -12,6 +12,8 @@
 
 智能体回复经 `/api/agent/chat` 以 NDJSON 流式返回，工具执行状态和文本增量实时显示。回复完成后经 `/api/agent/tts` 交给 ChatTTS，浏览器按顺序播放 WAV。播报期间暂停发送麦克风帧；停止按钮会取消 Pi 会话、丢弃待播音频并恢复聆听。录音和生成音频不落盘。
 
+“开启输入框”默认开启，用于显示首页底部的文字输入、回复和对话控制区。关闭后隐藏整个底部面板，语音唤醒、识别和语音回复仍继续工作。
+
 识别接口返回 `durationMs`，聊天流在首个文本增量和结束时返回 `metrics`（`firstTextMs`、`totalMs`），TTS 响应带 `x-vivoflow-tts-ms`，便于记录识别、首字和首段音频延迟。
 
 设置中的“语音服务状态”按 Node、Ollama、Whisper、ChatTTS 四个 Tab 展示。Node 面板负责桥接服务检查和重启；Ollama 面板配置地址、刷新模型并测试连接；Whisper 面板分别检测 `base`、`small`、`medium`，未安装的模型在对应行显示独立下载按钮；ChatTTS 面板分别安装 Python 运行环境、准备官方模型并试听语音。下载任务显示实时进度并可单独取消。

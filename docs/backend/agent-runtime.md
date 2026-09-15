@@ -9,6 +9,7 @@ VivoFlow 的 LAN-facing 进程仍然是 Rust。启动时 Rust 会在本地发现
 - `agent_wake_word`：默认“小薇小薇”。
 - `agent_internet_enabled`：统一控制搜索、天气和 `webfetch`。
 - `agent_transcript_enabled`：开启实时字幕。
+- `agent_input_enabled`：显示首页底部输入与对话面板，默认开启。
 - `agent_default_city`：天气未指定城市时使用。
 - `agent_ollama_url`、`agent_ollama_model`：本地或局域网 Ollama。
 - `agent_whisper_model`：`base`、`small` 或 `medium`。

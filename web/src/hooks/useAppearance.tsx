@@ -199,6 +199,7 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
       : DEFAULT_CONFIG.agent_wake_word,
     agent_internet_enabled: Boolean(base.agent_internet_enabled),
     agent_transcript_enabled: base.agent_transcript_enabled !== false,
+    agent_input_enabled: base.agent_input_enabled !== false,
     agent_default_city: typeof base.agent_default_city === "string" ? base.agent_default_city.trim().slice(0, 128) : "",
     agent_ollama_url: typeof base.agent_ollama_url === "string" && /^https?:\/\//i.test(base.agent_ollama_url)
       ? base.agent_ollama_url.replace(/\/$/, "")
@@ -471,6 +472,7 @@ interface AppearanceContextValue {
   setAgentWakeWord: (v: string) => void;
   setAgentInternetEnabled: (v: boolean) => void;
   setAgentTranscriptEnabled: (v: boolean) => void;
+  setAgentInputEnabled: (v: boolean) => void;
   setAgentDefaultCity: (v: string) => void;
   setAgentOllamaUrl: (v: string) => void;
   setAgentOllamaModel: (v: string) => void;
@@ -671,6 +673,7 @@ export function AppearanceProvider({
       setAgentWakeWord: (agent_wake_word) => patch({ agent_wake_word: agent_wake_word.trim().slice(0, 32) }),
       setAgentInternetEnabled: (agent_internet_enabled) => patch({ agent_internet_enabled }),
       setAgentTranscriptEnabled: (agent_transcript_enabled) => patch({ agent_transcript_enabled }),
+      setAgentInputEnabled: (agent_input_enabled) => patch({ agent_input_enabled }),
       setAgentDefaultCity: (agent_default_city) => patch({ agent_default_city: agent_default_city.trim().slice(0, 128) }),
       setAgentOllamaUrl: (agent_ollama_url) => patch({ agent_ollama_url }),
       setAgentOllamaModel: (agent_ollama_model) => patch({ agent_ollama_model: agent_ollama_model.trim().slice(0, 128) }),

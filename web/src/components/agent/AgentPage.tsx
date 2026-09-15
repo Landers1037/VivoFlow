@@ -232,7 +232,7 @@ export function AgentPage() {
       {voice.state === "listening" ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
       <span>{status}</span>{retry ? <strong>{t("agentVoiceRetry")}</strong> : null}
     </button>
-    <section className="agent-conversation" aria-live="polite">
+    {config.agent_input_enabled ? <section className="agent-conversation" aria-live="polite">
       {config.agent_transcript_enabled ? <div className={`agent-transcript ${voice.transcript && voice.state !== "listening" ? "is-final" : ""}`}>{voice.transcript || t("agentPlaceholder")}</div> : null}
       {toolStatus ? <div className="agent-tool-status">{toolStatus}</div> : null}
       <div className="agent-reply">{reply || <span className="opacity-50">{t("agentNoReply")}</span>}</div>
@@ -244,7 +244,7 @@ export function AgentPage() {
         <button type="button" title={t("agentClear")} aria-label={t("agentClear")} onClick={clear}><Trash2 className="h-4 w-4" /></button>
       </div>
       {error ? <div className="agent-tool-status">{t("agentErrorPrefix")}：{error}</div> : null}
-    </section>
+    </section> : null}
   </main>;
 }
 

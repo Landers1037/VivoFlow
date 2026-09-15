@@ -29,4 +29,12 @@
 
 未发现需要修复的 P0、P1 或 P2 问题。
 
+## 底部输入框开关复核
+
+- 参考图：`C:/Users/opsad/AppData/Local/Temp/codex-clipboard-228492bf-f7d4-4619-ae82-c4f06bc72c30.png`（1690 × 298），目标是控制智能体首页底部输入与对话面板。
+- 设置 → 智能体新增“开启输入框”开关，默认开启，说明文字明确覆盖文字输入、回复和对话按钮。
+- 在真实浏览器关闭开关后，首页 DOM 中不再存在回复、文本输入、发送、开始对话和清空对话控件；表情球和“等待唤醒词”状态继续显示。
+- 重新开启后，上述底部面板和全部控件即时恢复；`GET /api/config` 分别确认关闭时为 `false`、恢复时为 `true`。
+- 测试结束后已恢复原有 `hide_title_bar: true` 和新增默认 `agent_input_enabled: true`；浏览器控制台无 error 或 warning。
+
 final result: passed
