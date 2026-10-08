@@ -700,7 +700,7 @@ impl AppConfig {
             self.language = "zh".into();
         }
         self.mobile_carousel_interval_s = self.mobile_carousel_interval_s.clamp(5, 60);
-        if !["single", "time_machine", "cover_flow"].contains(&self.photo_album_effect.as_str()) {
+        if !["single", "time_machine", "cover_flow", "dither_book"].contains(&self.photo_album_effect.as_str()) {
             self.photo_album_effect = default_photo_album_effect();
         }
         if !["off", "ripple", "bars", "particles", "turntable"]
@@ -1351,6 +1351,15 @@ mod tests {
             ..AppConfig::default()
         };
         assert_eq!(cfg.sanitize().photo_album_effect, "single");
+    }
+
+    #[test]
+    fn dither_book_photo_album_effect_is_kept() {
+        let cfg = AppConfig {
+            photo_album_effect: "dither_book".into(),
+            ..AppConfig::default()
+        };
+        assert_eq!(cfg.sanitize().photo_album_effect, "dither_book");
     }
 
     #[test]

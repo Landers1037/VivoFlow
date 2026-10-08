@@ -30,10 +30,11 @@ import { albumApi, type AlbumInput } from "@/lib/albums";
 import { cn } from "@/lib/utils";
 import type { Album, AlbumImage, PhotoAlbumEffect } from "@/types";
 
-const EFFECTS: { id: PhotoAlbumEffect; key: "effectSingle" | "effectTimeMachine" | "effectCoverFlow" }[] = [
+const EFFECTS: { id: PhotoAlbumEffect; key: "effectSingle" | "effectTimeMachine" | "effectCoverFlow" | "effectDitherBook" }[] = [
   { id: "single", key: "effectSingle" },
   { id: "time_machine", key: "effectTimeMachine" },
   { id: "cover_flow", key: "effectCoverFlow" },
+  { id: "dither_book", key: "effectDitherBook" },
 ];
 
 function emptyDraft(): AlbumInput {

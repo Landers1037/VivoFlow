@@ -1,12 +1,11 @@
 import { useEffect } from "react";
-import { AudioLines, Settings2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AudioLines } from "lucide-react";
 import { AudioRenderer } from "@/components/audio/AudioRenderer";
 import { useAppearance } from "@/hooks/useAppearance";
 import { useAudioSignal } from "@/hooks/useAudioSignal";
 import type { AudioFrame, AudioStatus } from "@/types";
 
-export function AudioVisualizerPage({ frame, status, onSubscribe, onOpenSettings }: { frame: AudioFrame | null; status: AudioStatus | null; onSubscribe: (enabled: boolean) => void; onOpenSettings: () => void }) {
+export function AudioVisualizerPage({ frame, status, onSubscribe }: { frame: AudioFrame | null; status: AudioStatus | null; onSubscribe: (enabled: boolean) => void }) {
   const { config, t } = useAppearance();
   useEffect(() => { onSubscribe(true); return () => onSubscribe(false); }, [onSubscribe]);
   const hasSignal = useAudioSignal(frame);
@@ -19,7 +18,6 @@ export function AudioVisualizerPage({ frame, status, onSubscribe, onOpenSettings
           <AudioLines className="h-4 w-4 text-primary" />
           <span>{status?.state === "fallback" ? t("audioFallback") : status?.state === "error" ? t("audioCaptureError") : hasSignal ? t("audioListening") : t("audioWaiting")}</span>
         </div>
-        <Button variant="outline" size="icon" className="audio-stage-control pointer-events-auto backdrop-blur-xl" aria-label={t("settings")} onClick={onOpenSettings}><Settings2 className="h-5 w-5" /></Button>
       </div>
       {!hasSignal && status?.state !== "error" ? <div className="audio-stage-hud pointer-events-none absolute inset-x-0 bottom-[10dvh] text-center"><p className="font-[family-name:var(--font-display)] text-lg font-medium tracking-tight">{t("audioWaitingTitle")}</p><p className="mt-1 text-xs text-muted-foreground">{t("audioWaitingHint")}</p></div> : null}
     </main>

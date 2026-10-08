@@ -19,6 +19,7 @@ import {
   CLOCK_TIMEZONE_OFFSETS_MINUTES,
   CLOCK_STYLES,
   MUSIC_ALBUM_EFFECTS,
+  PHOTO_ALBUM_EFFECTS,
   DEFAULT_BACKGROUND_COLOR,
   DEFAULT_BLACKHOLE_COLOR,
   DEFAULT_BLACKHOLE_SPIN_SPEED,
@@ -219,9 +220,7 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
       ? Math.min(60, Math.max(5, Number(base.mobile_carousel_interval_s)))
       : DEFAULT_CONFIG.mobile_carousel_interval_s,
     photo_album_enabled: Boolean(base.photo_album_enabled),
-    photo_album_effect: (["single", "time_machine", "cover_flow"] as const).includes(
-      base.photo_album_effect as PhotoAlbumEffect,
-    )
+    photo_album_effect: PHOTO_ALBUM_EFFECTS.includes(base.photo_album_effect as PhotoAlbumEffect)
       ? (base.photo_album_effect as PhotoAlbumEffect)
       : "single",
     music_album_enabled: Boolean(base.music_album_enabled),

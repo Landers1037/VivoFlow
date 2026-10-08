@@ -150,7 +150,7 @@ function AppShell({
   if (page === "dashboard" && appearanceConfig.audio_visualizer_enabled) {
     return (
       <div className="vf-shell overflow-hidden">
-        <AudioVisualizerPage frame={audioFrame} status={audioStatus} onSubscribe={setAudioSubscription} onOpenSettings={() => openSettings()} />
+        <AudioVisualizerPage frame={audioFrame} status={audioStatus} onSubscribe={setAudioSubscription} />
         {titleBar()}
       </div>
     );

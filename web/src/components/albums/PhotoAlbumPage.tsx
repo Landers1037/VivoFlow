@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Images, Settings2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { DitherBook, type DitherBookPage } from "@/components/albums/DitherBook";
 import { Button } from "@/components/ui/button";
 import { useAppearance } from "@/hooks/useAppearance";
 import { albumApi, shuffled } from "@/lib/albums";
@@ -40,6 +41,7 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
   const [cycle, setCycle] = useState(0);
   const [index, setIndex] = useState(0);
   const [singleTransition, setSingleTransition] = useState<SingleTransitionEffect>(() => randomTransition());
+  const [turnDirection, setTurnDirection] = useState<1 | -1>(1);
   const [chromeVisible, setChromeVisible] = useState(true);
   const idleTimer = useRef<number | null>(null);
   const pointerStart = useRef<number | null>(null);
@@ -73,6 +75,16 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
     if (index >= playlist.length) setIndex(Math.max(0, playlist.length - 1));
   }, [index, playlist.length]);
 
+  const bookPages = useMemo<DitherBookPage[]>(
+    () => playlist.map((item) => ({
+      id: `${item.album.id}:${item.image.id}`,
+      title: item.image.original_name,
+      src: item.image.content_url,
+      image: item.image,
+    })),
+    [playlist],
+  );
+
   const current = playlist[index] ?? null;
   const currentImageId = current?.image.id ?? null;
   const currentIntervalSeconds = current?.album.interval_s ?? 5;
@@ -90,6 +102,7 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
 
   const advance = useCallback(() => {
     if (playlist.length === 0) return;
+    setTurnDirection(1);
     setSingleTransition((previousEffect) => randomTransition(previousEffect));
     setIndex((value) => {
       if (value < playlist.length - 1) return value + 1;
@@ -105,6 +118,7 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
 
   const previous = useCallback(() => {
     if (playlist.length === 0) return;
+    setTurnDirection(-1);
     setSingleTransition((previousEffect) => randomTransition(previousEffect));
     setIndex((value) => (value > 0 ? value - 1 : playlist.length - 1));
     reveal();
@@ -181,6 +195,17 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
           <div className="flex h-full items-center justify-center text-sm text-white/65">{t("loading")}</div>
         ) : playlist.length === 0 ? (
           <EmptyFrame onOpenSettings={onOpenSettings} />
+        ) : config.photo_album_effect === "dither_book" ? (
+          <DitherBook
+            pages={bookPages}
+            index={index}
+            direction={turnDirection}
+            onPrev={previous}
+            onNext={next}
+            onImageError={imageFailed}
+            prevLabel={t("previousPhoto")}
+            nextLabel={t("nextPhoto")}
+          />
         ) : config.photo_album_effect === "time_machine" ? (
           <TimeMachine playlist={playlist} index={index} onSelect={setIndex} onImageError={imageFailed} />
         ) : config.photo_album_effect === "cover_flow" ? (
@@ -198,21 +223,6 @@ export function PhotoAlbumPage({ onOpenSettings }: { onOpenSettings: () => void 
       <AnimatePresence>
         {chromeVisible ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-0 z-40">
-            <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-end p-[max(1rem,env(safe-area-inset-top))]">
-              <Button
-                variant="outline"
-                size="icon"
-                className="vf-surface photo-frame-control pointer-events-auto relative z-10 touch-manipulation"
-                aria-label={t("settings")}
-                onPointerDown={(event) => event.stopPropagation()}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onOpenSettings();
-                }}
-              >
-                <Settings2 className="h-5 w-5" />
-              </Button>
-            </div>
             {current ? (
               <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-[max(1rem,env(safe-area-inset-bottom))]">
                 <div className="vf-surface photo-frame-meta max-w-2xl" aria-live="polite">

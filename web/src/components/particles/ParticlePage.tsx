@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Atom, ImagePlus, LoaderCircle, Settings2 } from "lucide-react";
+import { Atom, ImagePlus, LoaderCircle } from "lucide-react";
 import ParticleCanvas from "./ParticleCanvas";
 import { Button } from "@/components/ui/button";
 import { useAppearance } from "@/hooks/useAppearance";
@@ -29,7 +29,6 @@ export function ParticlePage({ frame, status, onSubscribe, onOpenSettings }: { f
     {image ? <ParticleCanvas image={image} frame={frame} dimension={config.particle_dimension} mode3d={config.particle_3d_mode} density={config.particle_density} size={config.particle_size} depth={config.particle_depth} motion={config.particle_motion} audioReactive={config.particle_audio_reactive} audioStrength={config.particle_audio_strength} interactive className="absolute inset-0 h-full w-full" onLoadingChange={setLoading} onError={(message) => setError(message ?? "")} /> : null}
     <div className="audio-stage-hud audio-stage-hud-top pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between">
       <div className="audio-stage-badge vf-row pointer-events-auto flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground backdrop-blur-xl"><Atom className="h-4 w-4 text-primary" /><span>{config.particle_audio_reactive ? status?.state === "error" ? t("audioCaptureError") : t("particleAudioActive") : t("particle")}</span></div>
-      <Button variant="outline" size="icon" className="audio-stage-control pointer-events-auto backdrop-blur-xl" aria-label={t("settings")} onClick={onOpenSettings}><Settings2 className="h-5 w-5" /></Button>
     </div>
     {loading ? <div className="absolute inset-0 grid place-items-center"><LoaderCircle className="h-7 w-7 animate-spin text-primary" /></div> : null}
     {!loading && !image ? <div className="absolute inset-0 grid place-items-center px-6 text-center"><div><ImagePlus className="mx-auto h-10 w-10 text-primary" /><h1 className="mt-4 font-[family-name:var(--font-display)] text-xl font-semibold">{t("particleHomeEmpty")}</h1><p className="mt-2 text-sm text-muted-foreground">{t("particleHomeHint")}</p><Button className="mt-5" onClick={onOpenSettings}>{t("particleOpenSettings")}</Button></div></div> : null}
