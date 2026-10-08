@@ -2378,6 +2378,10 @@ html[data-maximized="true"]::before {
   height: 0.9rem;
 }
 
+.vf-desktop-caption-controls button.is-settings {
+  margin-right: 0.35rem;
+}
+
 .vf-desktop-caption-controls button:hover {
   background: color-mix(in oklch, var(--foreground) 8%, transparent);
 }

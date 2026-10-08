@@ -1,5 +1,16 @@
+const OPEN_SETTINGS_EVENT = "vivoflow-open-settings";
+
 export function isDesktopShell(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
+export function requestOpenSettings(): void {
+  window.dispatchEvent(new Event(OPEN_SETTINGS_EVENT));
+}
+
+export function onOpenSettings(handler: () => void): () => void {
+  window.addEventListener(OPEN_SETTINGS_EVENT, handler);
+  return () => window.removeEventListener(OPEN_SETTINGS_EVENT, handler);
 }
 
 async function currentWindow() {

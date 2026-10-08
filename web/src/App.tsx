@@ -20,6 +20,7 @@ import { musicApi } from "@/lib/music";
 import { FullPageLoader } from "@/components/viz";
 import { AppearanceProvider, useAppearance } from "@/hooks/useAppearance";
 import { useVivoflowWs } from "@/hooks/useVivoflowWs";
+import { onOpenSettings } from "@/lib/desktop";
 import { cn } from "@/lib/utils";
 
 export default function App() {
@@ -55,6 +56,9 @@ function AppShell({
     if (page === "settings") setSettingsReset((nonce) => nonce + 1);
     else setPage("settings");
   };
+  const openSettingsRef = useRef(openSettings);
+  openSettingsRef.current = openSettings;
+  useEffect(() => onOpenSettings(() => openSettingsRef.current()), []);
   const [headerRevealed, setHeaderRevealed] = useState(false);
   const headerTimer = useRef<number | null>(null);
   const hideTitleBar = appearanceConfig.hide_title_bar && page === "dashboard";

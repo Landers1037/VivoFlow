@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Copy, Minus, Square, X } from "lucide-react";
+import { Copy, Minus, Settings2, Square, X } from "lucide-react";
 import { useAppearance } from "@/hooks/useAppearance";
 import {
   closeDesktopWindow,
   desktopWindowMaximized,
   isDesktopShell,
   minimizeDesktopWindow,
+  requestOpenSettings,
   toggleDesktopMaximize,
   watchDesktopResize,
 } from "@/lib/desktop";
@@ -51,6 +52,9 @@ export function DesktopTitleBar() {
         <span data-tauri-drag-region>VivoFlow</span>
       </div>
       <div className="vf-desktop-caption-controls">
+        <button type="button" className="is-settings" aria-label={t("settings")} onClick={requestOpenSettings}>
+          <Settings2 />
+        </button>
         <button type="button" aria-label={t("windowMinimize")} onClick={() => void minimizeDesktopWindow()}>
           <Minus />
         </button>
