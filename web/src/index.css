@@ -2316,7 +2316,16 @@ html[data-desktop="true"]::before {
   border: 1px solid color-mix(in oklch, var(--border) 72%, transparent);
 }
 
-html[data-maximized="true"]::before {
+html[data-maximized="true"]::before,
+html[data-fullscreen="true"]::before {
+  display: none;
+}
+
+html[data-desktop="true"][data-fullscreen="true"] {
+  --vf-caption-h: 0px;
+}
+
+html[data-fullscreen="true"] .vf-desktop-caption {
   display: none;
 }
 

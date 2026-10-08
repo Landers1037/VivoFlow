@@ -34,6 +34,27 @@ export async function desktopWindowMaximized(): Promise<boolean> {
   return (await currentWindow()).isMaximized();
 }
 
+export async function desktopWindowFullscreen(): Promise<boolean> {
+  return (await currentWindow()).isFullscreen();
+}
+
+let fullscreenChain: Promise<void> = Promise.resolve();
+
+export function setDesktopFullscreen(fullscreen: boolean): Promise<void> {
+  const task = fullscreenChain.then(() => changeDesktopFullscreen(fullscreen));
+  fullscreenChain = task.then(
+    () => undefined,
+    () => undefined,
+  );
+  return task;
+}
+
+async function changeDesktopFullscreen(fullscreen: boolean): Promise<void> {
+  const win = await currentWindow();
+  if ((await win.isFullscreen()) === fullscreen) return;
+  await win.setFullscreen(fullscreen);
+}
+
 export async function watchDesktopResize(handler: () => void): Promise<() => void> {
   return (await currentWindow()).onResized(() => handler());
 }

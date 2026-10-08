@@ -45,7 +45,7 @@ export function AudioDevicePicker({ devices, value, disabled, onChange }: { devi
     <button id="audio-device" type="button" disabled={disabled} aria-haspopup="listbox" aria-expanded={open}
       onClick={() => { setHighlighted(selectedIndex); setOpen((current) => !current); }}
       onKeyDown={(event) => {
-        if (event.key === "Escape") { setOpen(false); return; }
+        if (event.key === "Escape") { event.stopPropagation(); setOpen(false); return; }
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
           event.preventDefault();
           if (!open) { setOpen(true); setHighlighted(selectedIndex); return; }
