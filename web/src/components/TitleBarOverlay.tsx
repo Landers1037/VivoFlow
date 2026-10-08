@@ -98,7 +98,7 @@ export function TitleBarOverlay({
         <button
           type="button"
           aria-label={t("showHeader")}
-          className="fixed inset-y-0 right-0 z-50 w-6 touch-none cursor-ew-resize bg-transparent outline-none focus-visible:bg-primary/10"
+          className="vf-header-reveal fixed inset-y-0 right-0 z-50 w-6 touch-none cursor-ew-resize bg-transparent outline-none focus-visible:bg-primary/10"
           onPointerDown={(event) => {
             edgeStartX.current = event.clientX;
             event.currentTarget.setPointerCapture?.(event.pointerId);

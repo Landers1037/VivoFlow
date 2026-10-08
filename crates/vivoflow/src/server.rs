@@ -45,15 +45,90 @@ pub async fn serve(
     tls: TlsAssets,
     agent: AgentRuntime,
 ) -> anyhow::Result<()> {
-    let root_ca_pem = tokio::fs::read(&tls.root_ca_cert_path).await?;
+    let root_ca_pem = std::sync::Arc::new(tokio::fs::read(&tls.root_ca_cert_path).await?);
+    let app = build_app(
+        hub,
+        albums,
+        music,
+        illustrations,
+        particles,
+        audio,
+        storage,
+        agent,
+        root_ca_pem,
+    );
+
+    let tls_config = axum_server::tls_rustls::RustlsConfig::from_pem_file(
+        &tls.server_cert_path,
+        &tls.server_key_path,
+    )
+    .await?;
+    let server = axum_server::bind_rustls(addr, tls_config).serve(app.into_make_service());
+    tokio::select! {
+        result = server => result?,
+        _ = shutdown_signal() => tracing::info!("shutdown signal received"),
+    }
+    Ok(())
+}
+
+pub async fn serve_http(
+    addr: SocketAddr,
+    hub: MetricsHub,
+    albums: AlbumStore,
+    music: crate::music::MusicStore,
+    illustrations: crate::illustration::IllustrationStore,
+    particles: crate::particle::ParticleStore,
+    audio: AudioHub,
+    storage: StorageManager,
+    agent: AgentRuntime,
+) -> anyhow::Result<()> {
+    let app = build_app(
+        hub,
+        albums,
+        music,
+        illustrations,
+        particles,
+        audio,
+        storage,
+        agent,
+        std::sync::Arc::new(Vec::new()),
+    );
+    let listener = tokio::net::TcpListener::bind(addr).await.map_err(|error| {
+        if error.kind() == std::io::ErrorKind::AddrInUse {
+            anyhow::anyhow!(
+                "端口 {addr} 已被占用。请先关闭正在运行的 vivoflow.exe，然后重新打开。"
+            )
+        } else {
+            anyhow::Error::new(error).context(format!("failed to bind {addr}"))
+        }
+    })?;
+    let server = axum::serve(listener, app);
+    tokio::select! {
+        result = server => result?,
+        _ = shutdown_signal() => tracing::info!("shutdown signal received"),
+    }
+    Ok(())
+}
+
+fn build_app(
+    hub: MetricsHub,
+    albums: AlbumStore,
+    music: crate::music::MusicStore,
+    illustrations: crate::illustration::IllustrationStore,
+    particles: crate::particle::ParticleStore,
+    audio: AudioHub,
+    storage: StorageManager,
+    agent: AgentRuntime,
+    root_ca_pem: std::sync::Arc<Vec<u8>>,
+) -> Router {
     let state = AppState {
         hub,
         audio,
         agent,
-        root_ca_pem: std::sync::Arc::new(root_ca_pem),
+        root_ca_pem,
     };
 
-    let app = Router::new()
+    Router::new()
         .route("/api/health", get(health))
         .route("/api/snapshot", get(snapshot))
         .route("/api/history", get(history))
@@ -94,19 +169,7 @@ pub async fn serve(
         .merge(crate::album::router(albums))
         .merge(crate::music::router(music))
         .merge(crate::illustration::router(illustrations))
-        .merge(crate::particle::router(particles));
-
-    let tls_config = axum_server::tls_rustls::RustlsConfig::from_pem_file(
-        &tls.server_cert_path,
-        &tls.server_key_path,
-    )
-    .await?;
-    let server = axum_server::bind_rustls(addr, tls_config).serve(app.into_make_service());
-    tokio::select! {
-        result = server => result?,
-        _ = shutdown_signal() => tracing::info!("shutdown signal received"),
-    }
-    Ok(())
+        .merge(crate::particle::router(particles))
 }
 
 async fn shutdown_signal() {
@@ -364,7 +427,10 @@ async fn audio_devices() -> impl IntoResponse {
     }
 }
 
-async fn root_ca(State(state): State<AppState>) -> impl IntoResponse {
+async fn root_ca(State(state): State<AppState>) -> Response {
+    if state.root_ca_pem.is_empty() {
+        return (StatusCode::NOT_FOUND, "TLS is not enabled").into_response();
+    }
     (
         StatusCode::OK,
         [
@@ -377,6 +443,7 @@ async fn root_ca(State(state): State<AppState>) -> impl IntoResponse {
         ],
         state.root_ca_pem.as_ref().clone(),
     )
+        .into_response()
 }
 
 async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> impl IntoResponse {

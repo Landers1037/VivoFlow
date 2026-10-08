@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LayoutDashboard, Settings2 } from "lucide-react";
 import { ThemeProvider } from "next-themes";
+import { DesktopTitleBar } from "@/components/DesktopTitleBar";
 import { TitleBarOverlay } from "@/components/TitleBarOverlay";
 import { Dashboard } from "@/components/Dashboard";
 import { PhotoAlbumPage } from "@/components/albums/PhotoAlbumPage";
@@ -27,6 +28,7 @@ export default function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <AppearanceProvider config={ws.config} onPersist={ws.setRemoteConfig}>
+        <DesktopTitleBar />
         <AppShell {...ws} />
       </AppearanceProvider>
     </ThemeProvider>
@@ -215,7 +217,7 @@ function AppShell({
 
   return (
     <div className={cn("vf-shell", mobileCardModeActive && "overflow-hidden")}>
-      <div className={cn("safe-pad mx-auto", page === "settings" ? "settings-shell" : "max-w-5xl")}>
+      <div className={cn("safe-pad vf-page-pad mx-auto", page === "settings" ? "settings-shell" : "max-w-5xl")}>
         {page === "settings" ? (
           <SettingsPage
             config={config}

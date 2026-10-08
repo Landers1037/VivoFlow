@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "VivoFlow",
+  "version": "0.1.0",
+  "identifier": "com.vivoflow.desktop",
+  "build": {
+    "beforeDevCommand": "set VIVOFLOW_PROXY_TARGET=http://127.0.0.1:8787&& npm --prefix ../web run dev",
+    "devUrl": "http://127.0.0.1:5173",
+    "beforeBuildCommand": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/sync-desktop.ps1",
+    "frontendDist": "http://127.0.0.1:8787"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "VivoFlow",
+        "width": 1100,
+        "height": 780,
+        "minWidth": 390,
+        "minHeight": 700,
+        "resizable": true,
+        "center": true,
+        "decorations": false,
+        "shadow": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "resources": {
+      "../../agent/index.mjs": "agent/index.mjs",
+      "../../agent/text.mjs": "agent/text.mjs",
+      "../../agent/package.json": "agent/package.json",
+      "../../agent/package-lock.json": "agent/package-lock.json",
+      "../../agent/chattts_service.py": "agent/chattts_service.py",
+      "../../agent/requirements.txt": "agent/requirements.txt",
+      "resources/agent/node_modules/": "agent/node_modules/"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

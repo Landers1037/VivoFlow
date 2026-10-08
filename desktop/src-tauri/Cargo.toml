@@ -1,0 +1,22 @@
+[package]
+name = "vivoflow-desktop"
+version = "0.1.0"
+description = "VivoFlow desktop shell"
+authors = ["VivoFlow"]
+license = "Apache-2.0"
+edition = "2021"
+
+# Detach from the parent workspace so `cargo build -p vivoflow` does not compile Tauri.
+[workspace]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+serde_json = "1"
+tauri = { version = "2", features = [] }
+vivoflow = { path = "../../crates/vivoflow" }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

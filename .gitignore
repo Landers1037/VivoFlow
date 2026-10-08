@@ -1,6 +1,17 @@
 # Cargo / Rust
 /target/
 **/*.rs.bk
+desktop/src-tauri/target/
+
+# Tauri
+desktop/node_modules/
+desktop/src-tauri/gen/
+desktop/src-tauri/icons/ios/
+desktop/src-tauri/icons/android/
+desktop/src-tauri/icons/Square*.png
+desktop/src-tauri/icons/StoreLogo.png
+desktop/src-tauri/resources/agent/node_modules/**
+!desktop/src-tauri/resources/agent/node_modules/.gitkeep
 
 # Keep lockfile for reproducible builds
 # Cargo.lock is committed for the binary workspace

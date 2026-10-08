@@ -6,6 +6,10 @@ license.workspace = true
 authors.workspace = true
 description = "Windows system metrics collector with JSON WebSocket IPC and embedded UI"
 
+[lib]
+name = "vivoflow"
+path = "src/lib.rs"
+
 [[bin]]
 name = "vivoflow"
 path = "src/main.rs"

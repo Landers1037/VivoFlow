@@ -2303,6 +2303,149 @@ html.dark[data-ui-style="amicro"] {
   padding-top: 0.15rem;
 }
 
+html[data-desktop="true"] {
+  --vf-caption-h: 2.5rem;
+}
+
+html[data-desktop="true"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  border: 1px solid color-mix(in oklch, var(--border) 72%, transparent);
+}
+
+html[data-maximized="true"]::before {
+  display: none;
+}
+
+.vf-desktop-caption {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 80;
+  display: flex;
+  height: var(--vf-caption-h, 2.5rem);
+  align-items: stretch;
+  user-select: none;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
+  background: color-mix(in oklch, var(--background) 92%, transparent);
+  color: var(--foreground);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.vf-desktop-caption-drag {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.45rem;
+  padding-left: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.vf-desktop-caption-mark {
+  width: 0.55rem;
+  height: 0.55rem;
+  flex: 0 0 auto;
+  border-radius: 0.16rem;
+  background: var(--primary);
+}
+
+.vf-desktop-caption-controls {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.vf-desktop-caption-controls button {
+  display: grid;
+  width: 2.85rem;
+  height: 100%;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+}
+
+.vf-desktop-caption-controls svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.vf-desktop-caption-controls button:hover {
+  background: color-mix(in oklch, var(--foreground) 8%, transparent);
+}
+
+.vf-desktop-caption-controls button.is-close:hover {
+  background: var(--destructive);
+  color: var(--destructive-foreground, white);
+}
+
+html[data-desktop="true"] .vf-header-wrap {
+  top: var(--vf-caption-h);
+}
+
+html[data-desktop="true"] .vf-header-reveal {
+  top: var(--vf-caption-h);
+}
+
+html[data-desktop="true"] .vf-page-pad {
+  padding-top: calc(var(--vf-caption-h) + 0.35rem);
+}
+
+html[data-desktop="true"] .settings-detail {
+  top: var(--vf-caption-h);
+}
+
+html[data-desktop="true"] .settings-sheet {
+  top: calc(var(--vf-caption-h) + 0.5rem);
+  height: calc(100dvh - var(--vf-caption-h) - 0.5rem);
+  z-index: 70;
+}
+
+html[data-desktop="true"] .vf-system-dashboard,
+html[data-desktop="true"] .photo-frame,
+html[data-desktop="true"] .clock-page,
+html[data-desktop="true"] .blackhole-page,
+html[data-desktop="true"] .models3d-page,
+html[data-desktop="true"] .agent-page,
+html[data-desktop="true"] .audio-stage,
+html[data-desktop="true"] .particle-stage,
+html[data-desktop="true"] .music-player-page {
+  box-sizing: border-box;
+  height: calc(100dvh - var(--vf-caption-h));
+  min-height: 0;
+  margin-top: var(--vf-caption-h);
+}
+
+html[data-desktop="true"] .clock-liquid-glass {
+  height: 100%;
+  min-height: 0;
+}
+
+html[data-desktop="true"] .illustration-page,
+html[data-desktop="true"] .models2d-page {
+  top: var(--vf-caption-h);
+}
+
+@media (orientation: portrait) {
+  html[data-desktop="true"] .vf-system-board-grid {
+    height: clamp(24rem, calc(100dvh - var(--vf-caption-h) - var(--system-dashboard-top-inset) - var(--system-dashboard-bottom-inset) - var(--system-board-grid-reserve)), 50rem);
+  }
+}
+
+@media (orientation: landscape) {
+  html[data-desktop="true"] .vf-system-board-grid {
+    height: clamp(13rem, calc(100dvh - var(--vf-caption-h) - var(--system-dashboard-top-inset) - var(--system-dashboard-bottom-inset) - var(--system-board-grid-reserve)), 36rem);
+  }
+}
+
 .vf-app-header {
   min-height: 4.35rem;
 }

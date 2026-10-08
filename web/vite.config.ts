@@ -3,6 +3,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
+const proxyTarget = process.env.VIVOFLOW_PROXY_TARGET ?? "https://127.0.0.1:8787";
+const wsTarget = proxyTarget.replace(/^http/i, "ws");
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -15,12 +18,12 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/ws": {
-        target: "wss://127.0.0.1:8787",
+        target: wsTarget,
         ws: true,
         secure: false,
       },
       "/api": {
-        target: "https://127.0.0.1:8787",
+        target: proxyTarget,
         changeOrigin: true,
         secure: false,
         timeout: 120000,
