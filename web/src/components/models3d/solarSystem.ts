@@ -23,6 +23,7 @@ import {
 } from "three/webgpu";
 import type { Model3dId, Model3dOrbitStyle, TownDensity, TownPopulation, TownTime } from "@/types";
 import { createVoxelFlower, type FlowerLook } from "@/components/models3d/flower";
+import type { GalaxyLook } from "@/components/models3d/galaxy";
 import { createVoxelTree, type TreeLook } from "@/components/models3d/tree";
 
 const ASSET = "/models/solar-system";
@@ -35,6 +36,7 @@ const MOON_ORBIT = 1.4;
 export interface SolarSystemOptions {
   orbitStyle: Model3dOrbitStyle;
   texturesEnabled: boolean;
+  galaxy: GalaxyLook;
   tree: TreeLook;
   flower: FlowerLook;
   town: TownLook;
@@ -63,6 +65,10 @@ export async function createModel3dScene(
   preview: boolean,
   options: SolarSystemOptions,
 ): Promise<SolarSystemHandle> {
+  if (id === "galaxy") {
+    const { createGalaxy } = await import("@/components/models3d/galaxy");
+    return createGalaxy(preview, options.galaxy);
+  }
   if (id === "tree") return createVoxelTree(preview, options.tree);
   if (id === "flower") return createVoxelFlower(preview, options.flower);
   if (id === "town") {
@@ -322,7 +328,7 @@ function loadOne(url: string, color: boolean) {
   });
 }
 
-function makeStarTexture() {
+export function makeStarTexture() {
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
   canvas.height = 512;

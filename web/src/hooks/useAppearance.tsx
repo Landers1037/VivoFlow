@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { translate, type MessageKey, type TranslateVars } from "@/i18n/messages";
-import type { AccentId, AgentEmotionId, AgentShape, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockFont, ClockFontWeight, ClockGlassBackground, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, Particle3dMode, ParticleDimension, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
+import type { AccentId, AgentEmotionId, AgentShape, AppConfig, AudioColorMode, AudioVisualizerMode, ClockDotShape, ClockFont, ClockFontWeight, ClockGlassBackground, ClockStyle, ClockTimezoneOffsetMinutes, Lang, Model2dId, Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dGalaxyRotationSpeed, Model3dGalaxyStarCount, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, MusicAlbumEffect, Particle3dMode, ParticleDimension, PhotoAlbumEffect, ThemeMode, TownDensity, TownFavorite, TownPopulation, TownTime, UiStyle } from "@/types";
 import {
   ACCENT_PRESETS,
   AGENT_EMOTION_IDS,
@@ -38,6 +38,9 @@ import {
   DEFAULT_MODEL3D_FLOWER_POT_SHAPE,
   DEFAULT_MODEL3D_FLOWER_SEED,
   DEFAULT_MODEL3D_FLOWER_TYPE,
+  DEFAULT_MODEL3D_GALAXY_ARM_COLOR,
+  DEFAULT_MODEL3D_GALAXY_ROTATION_SPEED,
+  DEFAULT_MODEL3D_GALAXY_STAR_COUNT,
   DEFAULT_MODEL3D_TREE_BASE_COLOR,
   DEFAULT_MODEL3D_TREE_CANOPY_COLOR,
   DEFAULT_MODEL3D_TREE_TRUNK_COLOR,
@@ -48,6 +51,8 @@ import {
   MODEL3D_TOWN_GENERATOR_VERSION,
   MODEL3D_CLOCK_POSITIONS,
   MODEL3D_FLOWER_GENERATOR_VERSION,
+  MODEL3D_GALAXY_ROTATION_SPEEDS,
+  MODEL3D_GALAXY_STAR_COUNTS,
   MODEL3D_FLOWER_POT_SHAPES,
   MODEL3D_FLOWER_TYPES,
   MODEL3D_IDS,
@@ -65,6 +70,7 @@ export {
   DEFAULT_MODEL3D_FLOWER_FOLIAGE_COLOR,
   DEFAULT_MODEL3D_FLOWER_PETAL_COLOR,
   DEFAULT_MODEL3D_FLOWER_POT_COLOR,
+  DEFAULT_MODEL3D_GALAXY_ARM_COLOR,
   DEFAULT_MODEL3D_TREE_BASE_COLOR,
   DEFAULT_MODEL3D_TREE_CANOPY_COLOR,
   DEFAULT_MODEL3D_TREE_TRUNK_COLOR,
@@ -286,6 +292,15 @@ function normalizeConfig(raw: AppConfig | null | undefined): AppConfig {
       ? (base.model3d_orbit_style as Model3dOrbitStyle)
       : "solid",
     model3d_textures_enabled: base.model3d_textures_enabled !== false,
+    model3d_galaxy_arm_color: normalizeHexColor(base.model3d_galaxy_arm_color, DEFAULT_MODEL3D_GALAXY_ARM_COLOR),
+    model3d_galaxy_star_count: MODEL3D_GALAXY_STAR_COUNTS.includes(base.model3d_galaxy_star_count as Model3dGalaxyStarCount)
+      ? (base.model3d_galaxy_star_count as Model3dGalaxyStarCount)
+      : DEFAULT_MODEL3D_GALAXY_STAR_COUNT,
+    model3d_galaxy_rotation_speed: MODEL3D_GALAXY_ROTATION_SPEEDS.includes(
+      base.model3d_galaxy_rotation_speed as Model3dGalaxyRotationSpeed,
+    )
+      ? (base.model3d_galaxy_rotation_speed as Model3dGalaxyRotationSpeed)
+      : DEFAULT_MODEL3D_GALAXY_ROTATION_SPEED,
     model3d_tree_canopy_shape: MODEL3D_TREE_CANOPY_SHAPES.includes(base.model3d_tree_canopy_shape as Model3dTreeCanopyShape)
       ? (base.model3d_tree_canopy_shape as Model3dTreeCanopyShape)
       : "layered",
@@ -481,6 +496,9 @@ interface AppearanceContextValue {
   setModel3dId: (v: Model3dId) => void;
   setModel3dOrbitStyle: (v: Model3dOrbitStyle) => void;
   setModel3dTexturesEnabled: (v: boolean) => void;
+  setModel3dGalaxyArmColor: (hex: string) => void;
+  setModel3dGalaxyStarCount: (v: Model3dGalaxyStarCount) => void;
+  setModel3dGalaxyRotationSpeed: (v: Model3dGalaxyRotationSpeed) => void;
   setModel3dTreeCanopyShape: (v: Model3dTreeCanopyShape) => void;
   setModel3dTreeCanopyColor: (hex: string) => void;
   setModel3dTreeBaseShape: (v: Model3dTreeBaseShape) => void;
@@ -683,6 +701,10 @@ export function AppearanceProvider({
       setModel3dId: (model3d_id) => patch({ model3d_id }),
       setModel3dOrbitStyle: (model3d_orbit_style) => patch({ model3d_orbit_style }),
       setModel3dTexturesEnabled: (model3d_textures_enabled) => patch({ model3d_textures_enabled }),
+      setModel3dGalaxyArmColor: (hex) =>
+        patch({ model3d_galaxy_arm_color: normalizeHexColor(hex, DEFAULT_MODEL3D_GALAXY_ARM_COLOR) }),
+      setModel3dGalaxyStarCount: (model3d_galaxy_star_count) => patch({ model3d_galaxy_star_count }),
+      setModel3dGalaxyRotationSpeed: (model3d_galaxy_rotation_speed) => patch({ model3d_galaxy_rotation_speed }),
       setModel3dTreeCanopyShape: (model3d_tree_canopy_shape) => patch({ model3d_tree_canopy_shape }),
       setModel3dTreeCanopyColor: (hex) =>
         patch({ model3d_tree_canopy_color: normalizeHexColor(hex, DEFAULT_MODEL3D_TREE_CANOPY_COLOR) }),

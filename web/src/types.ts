@@ -103,7 +103,7 @@ export function isThreeAudioMode(mode: AudioVisualizerMode): mode is ThreeAudioV
   return THREE_AUDIO_MODES.includes(mode as ThreeAudioVisualizerMode);
 }
 
-export type Model3dId = "solar_system" | "tree" | "town" | "flower";
+export type Model3dId = "solar_system" | "galaxy" | "tree" | "town" | "flower";
 
 export type Model2dId = "village" | "cyber_city" | "garden" | "rain_room";
 export type AgentShape = "blob" | "wedge" | "gem";
@@ -121,7 +121,7 @@ export type Particle3dMode = "relief" | "plane" | "cloud";
 
 export const MODEL2D_IDS: Model2dId[] = ["village", "cyber_city", "garden", "rain_room"];
 
-export const MODEL3D_IDS: Model3dId[] = ["solar_system", "tree", "town", "flower"];
+export const MODEL3D_IDS: Model3dId[] = ["solar_system", "galaxy", "tree", "town", "flower"];
 
 export function isModel3dId(id: string): id is Model3dId {
   return MODEL3D_IDS.includes(id as Model3dId);
@@ -145,6 +145,15 @@ export const MODEL3D_CLOCK_POSITIONS: Model3dClockPosition[] = [
 ];
 
 export const DEFAULT_MODEL3D_CLOCK_POSITION: Model3dClockPosition = "top_right";
+
+export type Model3dGalaxyStarCount = "low" | "medium" | "high";
+export type Model3dGalaxyRotationSpeed = "slow" | "medium" | "fast";
+
+export const MODEL3D_GALAXY_STAR_COUNTS: Model3dGalaxyStarCount[] = ["low", "medium", "high"];
+export const MODEL3D_GALAXY_ROTATION_SPEEDS: Model3dGalaxyRotationSpeed[] = ["slow", "medium", "fast"];
+export const DEFAULT_MODEL3D_GALAXY_ARM_COLOR = "#7aa7ff";
+export const DEFAULT_MODEL3D_GALAXY_STAR_COUNT: Model3dGalaxyStarCount = "medium";
+export const DEFAULT_MODEL3D_GALAXY_ROTATION_SPEED: Model3dGalaxyRotationSpeed = "medium";
 
 export type Model3dOrbitStyle = "solid" | "dashed" | "hidden";
 
@@ -331,6 +340,9 @@ export interface AppConfig {
   model3d_id: Model3dId;
   model3d_orbit_style: Model3dOrbitStyle;
   model3d_textures_enabled: boolean;
+  model3d_galaxy_arm_color: string;
+  model3d_galaxy_star_count: Model3dGalaxyStarCount;
+  model3d_galaxy_rotation_speed: Model3dGalaxyRotationSpeed;
   model3d_tree_canopy_shape: Model3dTreeCanopyShape;
   model3d_tree_canopy_color: string;
   model3d_tree_base_shape: Model3dTreeBaseShape;
@@ -430,6 +442,9 @@ export const DEFAULT_CONFIG: AppConfig = {
   model3d_id: "solar_system",
   model3d_orbit_style: "solid",
   model3d_textures_enabled: true,
+  model3d_galaxy_arm_color: DEFAULT_MODEL3D_GALAXY_ARM_COLOR,
+  model3d_galaxy_star_count: DEFAULT_MODEL3D_GALAXY_STAR_COUNT,
+  model3d_galaxy_rotation_speed: DEFAULT_MODEL3D_GALAXY_ROTATION_SPEED,
   model3d_tree_canopy_shape: "layered",
   model3d_tree_canopy_color: DEFAULT_MODEL3D_TREE_CANOPY_COLOR,
   model3d_tree_base_shape: "square",

@@ -24,7 +24,9 @@ export function Models3dClock({ modelId, position, showDate, showSeconds }: Mode
       ? config.model3d_tree_canopy_color
       : modelId === "flower"
         ? config.model3d_flower_petal_color
-        : "#ffd36a",
+        : modelId === "galaxy"
+          ? config.model3d_galaxy_arm_color
+          : "#ffd36a",
     "--models3d-clock-base": modelId === "tree"
       ? config.model3d_tree_base_color
       : modelId === "flower"

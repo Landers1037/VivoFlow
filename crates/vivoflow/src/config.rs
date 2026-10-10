@@ -136,6 +136,18 @@ fn default_model3d_textures_enabled() -> bool {
     true
 }
 
+fn default_model3d_galaxy_arm_color() -> String {
+    "#7aa7ff".into()
+}
+
+fn default_model3d_galaxy_star_count() -> String {
+    "medium".into()
+}
+
+fn default_model3d_galaxy_rotation_speed() -> String {
+    "medium".into()
+}
+
 fn default_model3d_tree_canopy_shape() -> String {
     "layered".into()
 }
@@ -393,6 +405,12 @@ pub struct AppConfig {
     pub model3d_orbit_style: String,
     #[serde(default = "default_model3d_textures_enabled")]
     pub model3d_textures_enabled: bool,
+    #[serde(default = "default_model3d_galaxy_arm_color")]
+    pub model3d_galaxy_arm_color: String,
+    #[serde(default = "default_model3d_galaxy_star_count")]
+    pub model3d_galaxy_star_count: String,
+    #[serde(default = "default_model3d_galaxy_rotation_speed")]
+    pub model3d_galaxy_rotation_speed: String,
     #[serde(default = "default_model3d_tree_canopy_shape")]
     pub model3d_tree_canopy_shape: String,
     #[serde(default = "default_model3d_tree_canopy_color")]
@@ -543,6 +561,9 @@ impl Default for AppConfig {
             model3d_id: default_model3d_id(),
             model3d_orbit_style: default_model3d_orbit_style(),
             model3d_textures_enabled: default_model3d_textures_enabled(),
+            model3d_galaxy_arm_color: default_model3d_galaxy_arm_color(),
+            model3d_galaxy_star_count: default_model3d_galaxy_star_count(),
+            model3d_galaxy_rotation_speed: default_model3d_galaxy_rotation_speed(),
             model3d_tree_canopy_shape: default_model3d_tree_canopy_shape(),
             model3d_tree_canopy_color: default_model3d_tree_canopy_color(),
             model3d_tree_base_shape: default_model3d_tree_base_shape(),
@@ -828,11 +849,23 @@ impl AppConfig {
         if !["village", "cyber_city", "garden", "rain_room"].contains(&self.model2d_id.as_str()) {
             self.model2d_id = default_model2d_id();
         }
-        if !["solar_system", "tree", "town", "flower"].contains(&self.model3d_id.as_str()) {
+        if !["solar_system", "galaxy", "tree", "town", "flower"].contains(&self.model3d_id.as_str())
+        {
             self.model3d_id = default_model3d_id();
         }
         if !["solid", "dashed", "hidden"].contains(&self.model3d_orbit_style.as_str()) {
             self.model3d_orbit_style = default_model3d_orbit_style();
+        }
+        if !is_hex_color(&self.model3d_galaxy_arm_color) {
+            self.model3d_galaxy_arm_color = default_model3d_galaxy_arm_color();
+        } else {
+            self.model3d_galaxy_arm_color = self.model3d_galaxy_arm_color.to_ascii_lowercase();
+        }
+        if !["low", "medium", "high"].contains(&self.model3d_galaxy_star_count.as_str()) {
+            self.model3d_galaxy_star_count = default_model3d_galaxy_star_count();
+        }
+        if !["slow", "medium", "fast"].contains(&self.model3d_galaxy_rotation_speed.as_str()) {
+            self.model3d_galaxy_rotation_speed = default_model3d_galaxy_rotation_speed();
         }
         if !["round", "cone", "layered"].contains(&self.model3d_tree_canopy_shape.as_str()) {
             self.model3d_tree_canopy_shape = default_model3d_tree_canopy_shape();
@@ -1305,6 +1338,9 @@ mod tests {
         assert_eq!(cfg.model3d_id, "solar_system");
         assert_eq!(cfg.model3d_orbit_style, "solid");
         assert!(cfg.model3d_textures_enabled);
+        assert_eq!(cfg.model3d_galaxy_arm_color, "#7aa7ff");
+        assert_eq!(cfg.model3d_galaxy_star_count, "medium");
+        assert_eq!(cfg.model3d_galaxy_rotation_speed, "medium");
         assert_eq!(cfg.model3d_tree_canopy_shape, "layered");
         assert_eq!(cfg.model3d_tree_canopy_color, "#e07a28");
         assert_eq!(cfg.model3d_tree_base_shape, "square");
@@ -1624,6 +1660,41 @@ mod tests {
         .sanitize();
         assert!(flower.model3d_enabled);
         assert_eq!(flower.model3d_id, "flower");
+
+        let galaxy = AppConfig {
+            model3d_enabled: true,
+            model3d_id: "galaxy".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert!(galaxy.model3d_enabled);
+        assert_eq!(galaxy.model3d_id, "galaxy");
+    }
+
+    #[test]
+    fn model3d_galaxy_look_is_sanitized() {
+        let ok = AppConfig {
+            model3d_id: "galaxy".into(),
+            model3d_galaxy_arm_color: "#AACCFF".into(),
+            model3d_galaxy_star_count: "high".into(),
+            model3d_galaxy_rotation_speed: "fast".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(ok.model3d_galaxy_arm_color, "#aaccff");
+        assert_eq!(ok.model3d_galaxy_star_count, "high");
+        assert_eq!(ok.model3d_galaxy_rotation_speed, "fast");
+
+        let bad = AppConfig {
+            model3d_galaxy_arm_color: "blue".into(),
+            model3d_galaxy_star_count: "huge".into(),
+            model3d_galaxy_rotation_speed: "warp".into(),
+            ..AppConfig::default()
+        }
+        .sanitize();
+        assert_eq!(bad.model3d_galaxy_arm_color, "#7aa7ff");
+        assert_eq!(bad.model3d_galaxy_star_count, "medium");
+        assert_eq!(bad.model3d_galaxy_rotation_speed, "medium");
     }
 
     #[test]

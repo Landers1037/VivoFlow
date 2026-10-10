@@ -20,6 +20,9 @@ export function Models3dRenderer({
   const [unsupported, setUnsupported] = useState(false);
   const orbitStyle = config.model3d_orbit_style;
   const texturesEnabled = config.model3d_textures_enabled;
+  const galaxyArmColor = config.model3d_galaxy_arm_color;
+  const galaxyStarCount = config.model3d_galaxy_star_count;
+  const galaxyRotationSpeed = config.model3d_galaxy_rotation_speed;
   const treeCanopyShape = config.model3d_tree_canopy_shape;
   const treeCanopyColor = config.model3d_tree_canopy_color;
   const treeBaseShape = config.model3d_tree_base_shape;
@@ -48,6 +51,9 @@ export function Models3dRenderer({
     modelId,
     orbitStyle,
     texturesEnabled,
+    galaxyArmColor,
+    galaxyStarCount,
+    galaxyRotationSpeed,
     treeCanopyShape,
     treeCanopyColor,
     treeBaseShape,
@@ -83,6 +89,9 @@ export function Models3dRenderer({
           modelId={modelId}
           orbitStyle={orbitStyle}
           texturesEnabled={texturesEnabled}
+          galaxyArmColor={galaxyArmColor}
+          galaxyStarCount={galaxyStarCount}
+          galaxyRotationSpeed={galaxyRotationSpeed}
           treeCanopyShape={treeCanopyShape}
           treeCanopyColor={treeCanopyColor}
           treeBaseShape={treeBaseShape}

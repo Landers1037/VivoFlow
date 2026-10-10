@@ -44,9 +44,12 @@
   - `blackhole_interactive`：拖拽/缩放手势（默认 `false`）
   - `blackhole_spin_speed`：旋转倍率 `0..=3`（默认 `1`）
   - `model3d_enabled`：全屏 3D 模型看板开关（默认 `false`）
-  - `model3d_id`：场景 id，`solar_system` / `tree` / `town` / `flower`（非法回退太阳系）
+  - `model3d_id`：场景 id，`solar_system` / `galaxy` / `tree` / `town` / `flower`（非法回退太阳系）
   - `model3d_orbit_style`：`solid` / `dashed` / `hidden`（默认 `solid`）
   - `model3d_textures_enabled`：是否使用太阳系贴图（默认 `true`）
+  - `model3d_galaxy_arm_color`：银河系旋臂 `#RRGGBB`（默认 `#7aa7ff`）
+  - `model3d_galaxy_star_count`：`low` / `medium` / `high`（默认 `medium`，约 4 千 / 8 千 / 1.4 万颗立体小球）
+  - `model3d_galaxy_rotation_speed`：`slow` / `medium` / `fast`（默认 `medium`）
   - `model3d_tree_canopy_shape`：`round` / `cone` / `layered`（默认 `layered`）
   - `model3d_tree_canopy_color`：树冠 `#RRGGBB`（默认 `#e07a28`）
   - `model3d_tree_base_shape`：`square` / `circle` / `heart`（默认 `square`）

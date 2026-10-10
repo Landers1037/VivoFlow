@@ -5337,6 +5337,10 @@ html[data-ui-style="amicro"] .vf-grid > section > div:first-child {
   --models3d-clock-base: #b86f47;
 }
 
+.models3d-clock.is-galaxy {
+  border-color: color-mix(in srgb, var(--models3d-clock-accent, #7aa7ff) 55%, transparent);
+}
+
 .models3d-clock.is-night {
   color: #ffe08b;
   border-color: #8eaee6;

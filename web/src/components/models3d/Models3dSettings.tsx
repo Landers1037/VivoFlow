@@ -11,16 +11,17 @@ import {
   DEFAULT_MODEL3D_FLOWER_FOLIAGE_COLOR,
   DEFAULT_MODEL3D_FLOWER_PETAL_COLOR,
   DEFAULT_MODEL3D_FLOWER_POT_COLOR,
+  DEFAULT_MODEL3D_GALAXY_ARM_COLOR,
   normalizeHexColor,
   useAppearance,
 } from "@/hooks/useAppearance";
 import { cn } from "@/lib/utils";
-import type { Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dId, TownFavorite, TownPopulation, TownDensity, TownTime } from "@/types";
+import type { Model3dClockPosition, Model3dFlowerPotShape, Model3dFlowerType, Model3dGalaxyRotationSpeed, Model3dGalaxyStarCount, Model3dId, TownFavorite, TownPopulation, TownDensity, TownTime } from "@/types";
 import { MODEL3D_FLOWER_TYPES } from "@/types";
 
 const MODEL_CARDS: {
   id: Model3dId;
-  titleKey: "models3dSolarSystem" | "models3dTree" | "models3dTown" | "models3dFlower";
+  titleKey: "models3dSolarSystem" | "models3dGalaxy" | "models3dTree" | "models3dTown" | "models3dFlower";
   placeholder: string;
 }[] = [
   {
@@ -28,6 +29,12 @@ const MODEL_CARDS: {
     titleKey: "models3dSolarSystem",
     placeholder:
       "bg-[radial-gradient(circle_at_30%_40%,#3b2a12,transparent_42%),radial-gradient(circle_at_70%_55%,#1e3a5f,transparent_38%),#02040a]",
+  },
+  {
+    id: "galaxy",
+    titleKey: "models3dGalaxy",
+    placeholder:
+      "bg-[radial-gradient(circle_at_50%_48%,#efe6d4,transparent_16%),radial-gradient(ellipse_at_50%_50%,#7aa7ff,transparent_38%),radial-gradient(circle_at_62%_42%,#c4b5fd,transparent_28%),#070814]",
   },
   {
     id: "tree",
@@ -58,6 +65,9 @@ export function Models3dSettings() {
     setModel3dId,
     setModel3dOrbitStyle,
     setModel3dTexturesEnabled,
+    setModel3dGalaxyArmColor,
+    setModel3dGalaxyStarCount,
+    setModel3dGalaxyRotationSpeed,
     setModel3dTreeCanopyShape,
     setModel3dTreeCanopyColor,
     setModel3dTreeBaseShape,
@@ -71,6 +81,7 @@ export function Models3dSettings() {
     randomizeModel3dFlower,
   } = useAppearance();
   const selected = config.model3d_id;
+  const [galaxyArmDraft, setGalaxyArmDraft] = useState(config.model3d_galaxy_arm_color);
   const [canopyDraft, setCanopyDraft] = useState(config.model3d_tree_canopy_color);
   const [baseDraft, setBaseDraft] = useState(config.model3d_tree_base_color);
   const [trunkDraft, setTrunkDraft] = useState(config.model3d_tree_trunk_color);
@@ -79,6 +90,7 @@ export function Models3dSettings() {
   const [flowerPotDraft, setFlowerPotDraft] = useState(config.model3d_flower_pot_color);
 
   useEffect(() => {
+    setGalaxyArmDraft(config.model3d_galaxy_arm_color);
     setCanopyDraft(config.model3d_tree_canopy_color);
     setBaseDraft(config.model3d_tree_base_color);
     setTrunkDraft(config.model3d_tree_trunk_color);
@@ -86,6 +98,7 @@ export function Models3dSettings() {
     setFlowerFoliageDraft(config.model3d_flower_foliage_color);
     setFlowerPotDraft(config.model3d_flower_pot_color);
   }, [
+    config.model3d_galaxy_arm_color,
     config.model3d_tree_canopy_color,
     config.model3d_tree_base_color,
     config.model3d_tree_trunk_color,
@@ -142,6 +155,8 @@ export function Models3dSettings() {
         </div>
         {selected === "solar_system" ? (
           <p className="settings-group-footer">{t("models3dCredit")}</p>
+        ) : selected === "galaxy" ? (
+          <p className="settings-group-footer">{t("models3dGalaxyHint")}</p>
         ) : selected === "town" ? (
           <p className="settings-group-footer">{t("models3dTownHint")}</p>
         ) : selected === "flower" ? (
@@ -176,6 +191,55 @@ export function Models3dSettings() {
               disabled={!synced}
               onCheckedChange={setModel3dTexturesEnabled}
             />
+          </SettingsGroup>
+        </>
+      ) : null}
+
+      {selected === "galaxy" ? (
+        <>
+          <SettingsGroup label={t("models3dGalaxyArmColor")} footer={t("models3dGalaxyArmColorHint")}>
+            <div className="px-3 py-3">
+              <ColorField
+                id="galaxy-arm-color"
+                label={t("models3dGalaxyArmColor")}
+                value={galaxyArmDraft}
+                fallback={DEFAULT_MODEL3D_GALAXY_ARM_COLOR}
+                disabled={!synced}
+                onChange={(value) => {
+                  setGalaxyArmDraft(value);
+                  if (/^#[0-9a-fA-F]{6}$/.test(value)) setModel3dGalaxyArmColor(value);
+                }}
+                onBlur={() => setModel3dGalaxyArmColor(galaxyArmDraft)}
+              />
+            </div>
+          </SettingsGroup>
+          <SettingsGroup label={t("models3dGalaxyStarCount")} footer={t("models3dGalaxyStarCountHint")}>
+            <div className="settings-row settings-row-flush">
+              <SettingsSegmented<Model3dGalaxyStarCount>
+                value={config.model3d_galaxy_star_count}
+                disabled={!synced}
+                onChange={setModel3dGalaxyStarCount}
+                options={[
+                  { id: "low", label: t("models3dGalaxyStarsLow") },
+                  { id: "medium", label: t("models3dGalaxyStarsMedium") },
+                  { id: "high", label: t("models3dGalaxyStarsHigh") },
+                ]}
+              />
+            </div>
+          </SettingsGroup>
+          <SettingsGroup label={t("models3dGalaxyRotation")} footer={t("models3dGalaxyRotationHint")}>
+            <div className="settings-row settings-row-flush">
+              <SettingsSegmented<Model3dGalaxyRotationSpeed>
+                value={config.model3d_galaxy_rotation_speed}
+                disabled={!synced}
+                onChange={setModel3dGalaxyRotationSpeed}
+                options={[
+                  { id: "slow", label: t("models3dGalaxySpeedSlow") },
+                  { id: "medium", label: t("models3dGalaxySpeedMedium") },
+                  { id: "fast", label: t("models3dGalaxySpeedFast") },
+                ]}
+              />
+            </div>
           </SettingsGroup>
         </>
       ) : null}

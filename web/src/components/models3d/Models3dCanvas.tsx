@@ -8,12 +8,15 @@ import {
 import { shouldForceWebGL, withTimeout } from "@/components/models3d/compat";
 import { attachOrbit } from "@/components/models3d/orbit";
 import { createModel3dScene } from "@/components/models3d/solarSystem";
-import type { Model3dFlowerPotShape, Model3dFlowerType, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, TownDensity, TownPopulation, TownTime } from "@/types";
+import type { Model3dFlowerPotShape, Model3dFlowerType, Model3dGalaxyRotationSpeed, Model3dGalaxyStarCount, Model3dId, Model3dOrbitStyle, Model3dTreeBaseShape, Model3dTreeCanopyShape, TownDensity, TownPopulation, TownTime } from "@/types";
 
 export interface Models3dCanvasProps {
   modelId: Model3dId;
   orbitStyle: Model3dOrbitStyle;
   texturesEnabled: boolean;
+  galaxyArmColor: string;
+  galaxyStarCount: Model3dGalaxyStarCount;
+  galaxyRotationSpeed: Model3dGalaxyRotationSpeed;
   treeCanopyShape: Model3dTreeCanopyShape;
   treeCanopyColor: string;
   treeBaseShape: Model3dTreeBaseShape;
@@ -44,6 +47,9 @@ export default function Models3dCanvas({
   modelId,
   orbitStyle,
   texturesEnabled,
+  galaxyArmColor,
+  galaxyStarCount,
+  galaxyRotationSpeed,
   treeCanopyShape,
   treeCanopyColor,
   treeBaseShape,
@@ -106,6 +112,11 @@ export default function Models3dCanvas({
         world = await createModel3dScene(modelId, preview, {
           orbitStyle,
           texturesEnabled,
+          galaxy: {
+            armColor: galaxyArmColor,
+            starCount: galaxyStarCount,
+            rotationSpeed: galaxyRotationSpeed,
+          },
           tree: {
             canopyShape: treeCanopyShape,
             canopyColor: treeCanopyColor,
@@ -226,6 +237,9 @@ export default function Models3dCanvas({
     orbitStyle,
     preview,
     texturesEnabled,
+    galaxyArmColor,
+    galaxyStarCount,
+    galaxyRotationSpeed,
     treeBaseColor,
     treeBaseShape,
     treeCanopyColor,

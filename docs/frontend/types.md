@@ -17,7 +17,10 @@
 - `blackhole_enabled`：全屏黑洞看板
 - `blackhole_color` / `blackhole_interactive` / `blackhole_spin_speed`
 - `model3d_enabled`：全屏 3D 模型看板
-- `model3d_id`：`solar_system` / `tree` / `town` / `flower`
+- `model3d_id`：`solar_system` / `galaxy` / `tree` / `town` / `flower`
+- `model3d_galaxy_arm_color`：旋臂 `#RRGGBB`（默认 `#7aa7ff`）
+- `model3d_galaxy_star_count`：`low` / `medium` / `high`
+- `model3d_galaxy_rotation_speed`：`slow` / `medium` / `fast`
 - 花场景配置：`model3d_flower_type`、`model3d_flower_petal_color`、`model3d_flower_foliage_color`、`model3d_flower_pot_shape`、`model3d_flower_pot_color`、`model3d_flower_seed`、`model3d_flower_generator_version`；花型共 10 种，布局由 8 位种子确定。
 - `model3d_orbit_style`：`solid` / `dashed` / `hidden`
 - `model3d_textures_enabled`：是否加载太阳系贴图
