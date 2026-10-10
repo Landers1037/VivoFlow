@@ -31,6 +31,10 @@
 - `AppearanceProvider` 同步标题栏、移动卡片和轮播配置
 - 壳层背景由 `--shell-bg` 决定（随风格变化）
 
+## 桌面标题栏
+
+Tauri 窗口无系统装饰，由 `DesktopTitleBar` 绘制 32px 标题栏。右侧只保留最小化、最大化/还原、关闭；全屏和设置在窗口按钮左侧单独成组，中间用分隔线隔开。全屏按钮的悬停提示带 `F11`。进入设置页时，设置按钮为选中态，标题变为 `VivoFlow · 设置`（页面通过 `publishDesktopPage` 同步）。窗口失焦时标题和按钮降低不透明度。桌面壳内默认不可选中正文，输入框除外，并屏蔽输入框以外的浏览器右键菜单。
+
 ## 视口
 
 [`web/index.html`](../../web/index.html) 设置 `viewport-fit=cover`、`apple-mobile-web-app-capable`，优先 iPhone 类设备。

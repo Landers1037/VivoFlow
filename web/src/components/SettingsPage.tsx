@@ -1,6 +1,6 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Atom, Bot, Check, ChevronLeft, AudioLines, Clock, Frame, Globe, HardDrive, Images, Info, MonitorCog, Music2, Orbit, Palette, Radio, Sparkles } from "lucide-react";
+import { Check, ChevronLeft } from "lucide-react";
 import { ClockSettings } from "@/components/clock/ClockSettings";
 import { BlackholeSettings } from "@/components/blackhole/BlackholeSettings";
 import { Models3dSettings } from "@/components/models3d/Models3dSettings";
@@ -20,6 +20,15 @@ import {
   SettingsSliderRow,
   SettingsSwitchRow,
 } from "@/components/settings/SettingsList";
+import { SettingsSidebar } from "@/components/settings/SettingsSidebar";
+import {
+  SETTINGS_DEFAULT_PANE,
+  SETTINGS_NAV,
+  settingsNavValue,
+  settingsPaneLabel,
+  type SettingsNavPane,
+  type SettingsPane,
+} from "@/components/settings/settingsNav";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -31,12 +40,13 @@ import {
   type AccentId,
   type TFunction,
 } from "@/hooks/useAppearance";
+import { useWideLayout } from "@/hooks/useWideLayout";
 import type { AppConfig, AudioFrame, AudioStatus, Lang, ThemeMode, UiStyle } from "@/types";
 import { DEFAULT_CONFIG } from "@/types";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
 
-export type SettingsPane = "index" | "appearance" | "agent" | "clock" | "blackhole" | "models3d" | "models2d" | "system" | "collection" | "storage" | "albums" | "music" | "illustration" | "particles" | "audio" | "about";
+export type { SettingsPane };
 
 export function SettingsPage({
   config,
@@ -73,6 +83,7 @@ export function SettingsPage({
     setMobileCarouselInterval,
   } = useAppearance();
   const reduceMotion = useReducedMotion();
+  const wide = useWideLayout();
   const [pane, setPane] = useState<SettingsPane>(initialPane);
   const [savedFlash, setSavedFlash] = useState(false);
   const [local, setLocal] = useState<AppConfig>(config ?? DEFAULT_CONFIG);
@@ -85,12 +96,101 @@ export function SettingsPage({
     setPane(initialPane);
   }, [initialPane, resetNonce]);
 
-  const styleName = t(
-    UI_STYLE_OPTIONS.find((option) => option.id === synced.ui_style)?.nameKey ?? "styleAmicro",
+  useEffect(() => {
+    if (wide && pane === "index") setPane(SETTINGS_DEFAULT_PANE);
+  }, [wide, pane]);
+
+  const open = (next: SettingsNavPane) => setPane(next);
+  const closePane = () => setPane("index");
+  const activePane: SettingsNavPane = pane === "index" ? SETTINGS_DEFAULT_PANE : pane;
+
+  const renderPane = (current: SettingsNavPane) => (
+    <>
+      {current === "appearance" ? (
+        <AppearanceTab
+          t={t}
+          config={synced}
+          setAccent={setAccent}
+          setAccentCustom={setAccentCustom}
+          setBackgroundColor={setBackgroundColor}
+          setGlassGradient={setGlassGradient}
+          setLanguage={setLanguage}
+          setUiStyle={setUiStyle}
+          setThemeMode={setThemeMode}
+          setHideTitleBar={setHideTitleBar}
+          setMobileCardMode={setMobileCardMode}
+          setMobileAutoCarousel={setMobileAutoCarousel}
+          setMobileCarouselInterval={setMobileCarouselInterval}
+        />
+      ) : null}
+      {current === "agent" ? <AgentSettings /> : null}
+      {current === "collection" ? (
+        <CollectionTab
+          t={t}
+          local={local}
+          setLocal={setLocal}
+          config={config}
+          savedFlash={savedFlash}
+          onApply={() => {
+            onSave({
+              ...synced,
+              interval_ms: local.interval_ms,
+              history_points: local.history_points,
+              enabled: local.enabled,
+            });
+            setSavedFlash(true);
+            window.setTimeout(() => setSavedFlash(false), 1600);
+          }}
+        />
+      ) : null}
+      {current === "storage" ? <StorageSettings /> : null}
+      {current === "system" ? <SystemDashboardSettings /> : null}
+      {current === "clock" ? <ClockSettings /> : null}
+      {current === "blackhole" ? <BlackholeSettings /> : null}
+      {current === "models3d" ? <Models3dSettings /> : null}
+      {current === "models2d" ? <Models2dSettings /> : null}
+      {current === "albums" ? <AlbumSettings /> : null}
+      {current === "music" ? <MusicAlbumSettings /> : null}
+      {current === "illustration" ? <IllustrationSettings /> : null}
+      {current === "particles" ? (
+        <ParticleSettings frame={audioFrame} status={audioStatus} onSubscribe={onAudioSubscribe} />
+      ) : null}
+      {current === "audio" ? (
+        <AudioSettings frame={audioFrame} status={audioStatus} onSubscribe={onAudioSubscribe} />
+      ) : null}
+      {current === "about" ? <AboutTab t={t} /> : null}
+    </>
   );
 
-  const open = (next: Exclude<SettingsPane, "index">) => setPane(next);
-  const closePane = () => setPane("index");
+  if (wide) {
+    return (
+      <div className="settings-split">
+        <SettingsSidebar
+          pane={activePane}
+          config={synced}
+          connected={Boolean(config)}
+          onSelect={open}
+          onBack={onBack}
+        />
+        <section className="settings-split-main" aria-label={settingsPaneLabel(activePane, t)}>
+          <header className="settings-split-heading">
+            <h1>{settingsPaneLabel(activePane, t)}</h1>
+          </header>
+          <div className="settings-split-body">
+            <motion.div
+              key={activePane}
+              className="settings-split-pane"
+              initial={reduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.12 }}
+            >
+              {renderPane(activePane)}
+            </motion.div>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("settings-page", pane !== "index" && "is-drilled")}>
@@ -108,114 +208,20 @@ export function SettingsPage({
           <h1 className="settings-large-title">{t("settings")}</h1>
         </header>
 
-        <SettingsGroup label={t("settingsGroupDisplay")}>
-          <SettingsRow icon={Bot} title={t("agent")} value={synced.agent_enabled ? t("settingsOn") : t("settingsOff")} chevron onClick={() => open("agent")} />
-          <SettingsRow
-            icon={Palette}
-            title={t("appearance")}
-            value={styleName}
-            chevron
-            onClick={() => open("appearance")}
-          />
-          <SettingsRow
-            icon={Clock}
-            title={t("clock")}
-            value={synced.clock_enabled ? t("settingsOn") : t("settingsOff")}
-            chevron
-            onClick={() => open("clock")}
-          />
-          <SettingsRow
-            icon={Orbit}
-            title={t("blackhole")}
-            value={synced.blackhole_enabled ? t("settingsOn") : t("settingsOff")}
-            chevron
-            onClick={() => open("blackhole")}
-          />
-          <SettingsRow
-            icon={Globe}
-            title={t("models3d")}
-            value={synced.model3d_enabled ? t("settingsOn") : t("settingsOff")}
-            chevron
-            onClick={() => open("models3d")}
-          />
-          <SettingsRow
-            icon={Frame}
-            title={t("models2d")}
-            value={synced.model2d_enabled ? t("settingsOn") : t("settingsOff")}
-            chevron
-            onClick={() => open("models2d")}
-          />
-        </SettingsGroup>
-
-        <SettingsGroup label={t("settingsGroupData")}>
-          <SettingsRow
-            icon={MonitorCog}
-            title={t("systemDashboard")}
-            value={synced.system_dashboard_enabled ? t("settingsOn") : t("settingsOff")}
-            chevron
-            onClick={() => open("system")}
-          />
-          <SettingsRow
-            icon={Radio}
-            title={t("collection")}
-            chevron
-            onClick={() => open("collection")}
-          />
-          <SettingsRow
-            icon={HardDrive}
-            title={t("storage")}
-            chevron
-            onClick={() => open("storage")}
-          />
-        </SettingsGroup>
-
-        <SettingsGroup label={t("settingsGroupMedia")}>
-          <SettingsRow
-            icon={Images}
-            title={t("albums")}
-            value={synced.photo_album_enabled ? t("settingsOn") : t("settingsOff")}
-            chevron
-            onClick={() => open("albums")}
-          />
-          <SettingsRow
-            icon={Music2}
-            title={t("musicAlbums")}
-            value={synced.music_album_enabled ? t("settingsOn") : t("settingsOff")}
-            chevron
-            onClick={() => open("music")}
-          />
-          <SettingsRow
-            icon={Sparkles}
-            title={t("illustration")}
-            value={synced.illustration_enabled ? t("settingsOn") : t("settingsOff")}
-            chevron
-            onClick={() => open("illustration")}
-          />
-          <SettingsRow
-            icon={Atom}
-            title={t("particle")}
-            value={synced.particle_enabled ? t("settingsOn") : t("settingsOff")}
-            chevron
-            onClick={() => open("particles")}
-          />
-          <SettingsRow
-            icon={AudioLines}
-            title={t("audioVisualizer")}
-            value={synced.audio_visualizer_enabled ? t("settingsOn") : t("settingsOff")}
-            chevron
-            onClick={() => open("audio")}
-          />
-        </SettingsGroup>
-
-        <SettingsGroup>
-          <SettingsRow
-            icon={Info}
-            title={t("about")}
-            value={APP_VERSION}
-            chevron
-            onClick={() => open("about")}
-          />
-        </SettingsGroup>
+        {SETTINGS_NAV.map((group) => (
+          <SettingsGroup key={group.id} label={group.labelKey ? t(group.labelKey) : undefined}>
+            {group.items.map((item) => (
+              <SettingsRow
+                key={item.pane}
+                icon={item.icon}
+                title={t(item.labelKey)}
+                value={settingsNavValue(item, synced, t)}
+                chevron
+                onClick={() => open(item.pane)}
+              />
+            ))}
+          </SettingsGroup>
+        ))}
       </div>
 
       <AnimatePresence>
@@ -227,118 +233,24 @@ export function SettingsPage({
             animate={{ x: 0, opacity: 1 }}
             exit={reduceMotion ? { opacity: 1 } : { x: "100%" }}
             transition={{ type: "spring", stiffness: 420, damping: 38, mass: 0.85 }}
-            aria-label={paneLabel(t, pane)}
+            aria-label={settingsPaneLabel(pane, t)}
           >
             <header className="settings-detail-bar">
               <button type="button" className="settings-back-link" onClick={closePane}>
                 <ChevronLeft className="h-6 w-6" strokeWidth={2} />
                 <span>{t("settings")}</span>
               </button>
-              <h1 className="settings-detail-title">{paneLabel(t, pane)}</h1>
+              <h1 className="settings-detail-title">{settingsPaneLabel(pane, t)}</h1>
             </header>
 
             <div className={cn("settings-detail-body", pane === "collection" && "has-apply-bar")}>
-              {pane === "appearance" ? (
-                <AppearanceTab
-                  t={t}
-                  config={synced}
-                  setAccent={setAccent}
-                  setAccentCustom={setAccentCustom}
-                  setBackgroundColor={setBackgroundColor}
-                  setGlassGradient={setGlassGradient}
-                  setLanguage={setLanguage}
-                  setUiStyle={setUiStyle}
-                  setThemeMode={setThemeMode}
-                  setHideTitleBar={setHideTitleBar}
-                  setMobileCardMode={setMobileCardMode}
-                  setMobileAutoCarousel={setMobileAutoCarousel}
-                  setMobileCarouselInterval={setMobileCarouselInterval}
-                />
-              ) : null}
-              {pane === "agent" ? <AgentSettings /> : null}
-
-              {pane === "collection" ? (
-                <CollectionTab
-                  t={t}
-                  local={local}
-                  setLocal={setLocal}
-                  config={config}
-                  savedFlash={savedFlash}
-                  onApply={() => {
-                    onSave({
-                      ...synced,
-                      interval_ms: local.interval_ms,
-                      history_points: local.history_points,
-                      enabled: local.enabled,
-                    });
-                    setSavedFlash(true);
-                    window.setTimeout(() => setSavedFlash(false), 1600);
-                  }}
-                />
-              ) : null}
-
-              {pane === "storage" ? <StorageSettings /> : null}
-              {pane === "system" ? <SystemDashboardSettings /> : null}
-
-              {pane === "clock" ? <ClockSettings /> : null}
-              {pane === "blackhole" ? <BlackholeSettings /> : null}
-              {pane === "models3d" ? <Models3dSettings /> : null}
-              {pane === "models2d" ? <Models2dSettings /> : null}
-              {pane === "albums" ? <AlbumSettings /> : null}
-              {pane === "music" ? <MusicAlbumSettings /> : null}
-              {pane === "illustration" ? <IllustrationSettings /> : null}
-              {pane === "particles" ? <ParticleSettings frame={audioFrame} status={audioStatus} onSubscribe={onAudioSubscribe} /> : null}
-              {pane === "audio" ? (
-                <AudioSettings
-                  frame={audioFrame}
-                  status={audioStatus}
-                  onSubscribe={onAudioSubscribe}
-                />
-              ) : null}
-              {pane === "about" ? <AboutTab t={t} /> : null}
+              {renderPane(pane)}
             </div>
           </motion.section>
         ) : null}
       </AnimatePresence>
     </div>
   );
-}
-
-function paneLabel(t: TFunction, pane: SettingsPane): string {
-  switch (pane) {
-    case "appearance":
-      return t("appearance");
-    case "agent":
-      return t("agent");
-    case "clock":
-      return t("clock");
-    case "blackhole":
-      return t("blackhole");
-    case "models3d":
-      return t("models3d");
-    case "models2d":
-      return t("models2d");
-    case "system":
-      return t("systemDashboard");
-    case "collection":
-      return t("collection");
-    case "storage":
-      return t("storage");
-    case "albums":
-      return t("albums");
-    case "music":
-      return t("musicAlbums");
-    case "illustration":
-      return t("illustration");
-    case "particles":
-      return t("particle");
-    case "audio":
-      return t("audioVisualizer");
-    case "about":
-      return t("about");
-    default:
-      return t("settings");
-  }
 }
 
 function CollectionTab({

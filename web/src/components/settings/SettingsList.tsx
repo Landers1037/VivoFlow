@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import type { AriaRole, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ChevronRight } from "lucide-react";
+import { Check, ChevronRight, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
@@ -20,42 +20,96 @@ export function SettingsSheetBar({
   doneDisabled?: boolean;
 }) {
   return (
-    <header className="settings-sheet-bar">
-      <button type="button" className="settings-nav-link" onClick={onCancel}>
-        {cancelLabel}
-      </button>
-      {title}
-      {onDone ? (
-        <button
-          type="button"
-          className="settings-nav-link is-strong"
-          disabled={doneDisabled}
-          onClick={onDone}
-        >
-          {doneLabel}
+    <>
+      <header className="settings-sheet-bar">
+        <button type="button" className="settings-nav-link settings-sheet-dismiss" onClick={onCancel}>
+          {cancelLabel}
         </button>
-      ) : (
-        <span />
-      )}
-    </header>
+        {title}
+        <button type="button" className="settings-sheet-close" aria-label={cancelLabel} onClick={onCancel}>
+          <X aria-hidden="true" />
+        </button>
+        {onDone ? (
+          <button
+            type="button"
+            className="settings-nav-link is-strong settings-sheet-confirm"
+            disabled={doneDisabled}
+            onClick={onDone}
+          >
+            {doneLabel}
+          </button>
+        ) : (
+          <span className="settings-sheet-confirm" />
+        )}
+      </header>
+      <footer className="settings-sheet-footer">
+        <button type="button" onClick={onCancel}>
+          {cancelLabel}
+        </button>
+        {onDone ? (
+          <button type="button" className="is-primary" disabled={doneDisabled} onClick={onDone}>
+            {doneLabel}
+          </button>
+        ) : null}
+      </footer>
+    </>
   );
 }
 
 export function SettingsGroup({
   label,
   footer,
+  action,
+  role,
   children,
 }: {
   label?: string;
   footer?: string;
+  action?: ReactNode;
+  role?: AriaRole;
   children: ReactNode;
 }) {
   return (
     <section className="settings-group">
-      {label ? <h2 className="settings-group-label">{label}</h2> : null}
-      <div className="settings-group-body">{children}</div>
+      {label || action ? (
+        <div className="settings-group-head">
+          {label ? <h2 className="settings-group-label">{label}</h2> : <span />}
+          {action}
+        </div>
+      ) : null}
+      <div className="settings-group-body" role={role} aria-label={role ? label : undefined}>
+        {children}
+      </div>
       {footer ? <p className="settings-group-footer">{footer}</p> : null}
     </section>
+  );
+}
+
+export function SettingsChoiceRow({
+  title,
+  checked,
+  disabled,
+  onSelect,
+}: {
+  title: string;
+  checked: boolean;
+  disabled?: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={onSelect}
+      className={cn("settings-row", disabled && "is-disabled")}
+    >
+      <span className="settings-row-copy">
+        <span className="settings-row-title">{title}</span>
+      </span>
+      {checked ? <Check className="settings-row-check" strokeWidth={2.5} aria-hidden="true" /> : null}
+    </button>
   );
 }
 

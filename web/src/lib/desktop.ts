@@ -1,4 +1,7 @@
 const OPEN_SETTINGS_EVENT = "vivoflow-open-settings";
+const PAGE_EVENT = "vivoflow-desktop-page";
+
+export type DesktopPage = "dashboard" | "settings";
 
 export function isDesktopShell(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -11,6 +14,17 @@ export function requestOpenSettings(): void {
 export function onOpenSettings(handler: () => void): () => void {
   window.addEventListener(OPEN_SETTINGS_EVENT, handler);
   return () => window.removeEventListener(OPEN_SETTINGS_EVENT, handler);
+}
+
+export function publishDesktopPage(page: DesktopPage): void {
+  document.documentElement.dataset.page = page;
+  window.dispatchEvent(new CustomEvent<DesktopPage>(PAGE_EVENT, { detail: page }));
+}
+
+export function onDesktopPage(handler: (page: DesktopPage) => void): () => void {
+  const listener = (event: Event) => handler((event as CustomEvent<DesktopPage>).detail);
+  window.addEventListener(PAGE_EVENT, listener);
+  return () => window.removeEventListener(PAGE_EVENT, listener);
 }
 
 async function currentWindow() {
@@ -57,4 +71,8 @@ async function changeDesktopFullscreen(fullscreen: boolean): Promise<void> {
 
 export async function watchDesktopResize(handler: () => void): Promise<() => void> {
   return (await currentWindow()).onResized(() => handler());
+}
+
+export async function watchDesktopFocus(handler: (focused: boolean) => void): Promise<() => void> {
+  return (await currentWindow()).onFocusChanged(({ payload }) => handler(payload));
 }

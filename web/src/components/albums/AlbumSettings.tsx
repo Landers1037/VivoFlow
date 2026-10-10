@@ -24,7 +24,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SettingsGroup, SettingsSheetBar, SettingsSliderRow, SettingsSwitchRow } from "@/components/settings/SettingsList";
+import { SettingsChoiceRow, SettingsGroup, SettingsSheetBar, SettingsSliderRow, SettingsSwitchRow } from "@/components/settings/SettingsList";
 import { useAppearance } from "@/hooks/useAppearance";
 import { albumApi, type AlbumInput } from "@/lib/albums";
 import { cn } from "@/lib/utils";
@@ -177,27 +177,40 @@ export function AlbumSettings() {
         />
       </SettingsGroup>
 
-      <SettingsGroup label={t("albumEffect")}>
+      <SettingsGroup label={t("albumEffect")} role="radiogroup">
         {EFFECTS.map((effect) => (
-          <button
-            type="button"
+          <SettingsChoiceRow
             key={effect.id}
+            title={t(effect.key)}
+            checked={config.photo_album_effect === effect.id}
             disabled={!synced}
-            onClick={() => setPhotoAlbumEffect(effect.id)}
-            className={cn("settings-row", config.photo_album_effect === effect.id && "is-selected")}
-          >
-            <span className="settings-row-title">{t(effect.key)}</span>
-            {config.photo_album_effect === effect.id ? (
-              <span className="settings-row-value text-primary">{t("settingsOn")}</span>
-            ) : null}
-          </button>
+            onSelect={() => setPhotoAlbumEffect(effect.id)}
+          />
         ))}
       </SettingsGroup>
 
-      <SettingsGroup label={t("albums")} footer={t("dragToReorder")}>
+      <SettingsGroup
+        label={t("albums")}
+        footer={t("dragToReorder")}
+        action={
+          <button
+            type="button"
+            className="settings-group-action"
+            onClick={() => {
+              setEditingId("new");
+              setDraft(emptyDraft());
+              setMessage(null);
+              setError(null);
+            }}
+          >
+            <Plus className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+            {t("createAlbum")}
+          </button>
+        }
+      >
         <button
           type="button"
-          className="settings-row"
+          className="settings-row settings-create-row"
           onClick={() => {
             setEditingId("new");
             setDraft(emptyDraft());

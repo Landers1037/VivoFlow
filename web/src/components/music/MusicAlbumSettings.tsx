@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Music2, Plus, Trash2, Upload } from "lucide-react";
 import { musicApi, musicCoverUrl } from "@/lib/music";
-import { cn } from "@/lib/utils";
 import type { MusicAlbum, MusicAlbumEffect, MusicTrack } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SettingsGroup, SettingsSheetBar, SettingsSwitchRow } from "@/components/settings/SettingsList";
+import { SettingsChoiceRow, SettingsGroup, SettingsSheetBar, SettingsSwitchRow } from "@/components/settings/SettingsList";
 import { useAppearance } from "@/hooks/useAppearance";
 
 const MAX_COVER_BYTES = 25 * 1024 * 1024;
@@ -174,25 +173,29 @@ export function MusicAlbumSettings() {
         />
       </SettingsGroup>
 
-      <SettingsGroup label={t("musicRecordEffect")} footer={t("musicRecordEffectHint")}>
+      <SettingsGroup label={t("musicRecordEffect")} footer={t("musicRecordEffectHint")} role="radiogroup">
         {RECORD_EFFECTS.map((effect) => (
-          <button
-            type="button"
+          <SettingsChoiceRow
             key={effect.id}
+            title={t(effect.key)}
+            checked={config.music_album_effect === effect.id}
             disabled={!synced}
-            onClick={() => setMusicAlbumEffect(effect.id)}
-            className={cn("settings-row", config.music_album_effect === effect.id && "is-selected")}
-          >
-            <span className="settings-row-title">{t(effect.key)}</span>
-            {config.music_album_effect === effect.id ? (
-              <span className="settings-row-value text-primary">{t("settingsOn")}</span>
-            ) : null}
-          </button>
+            onSelect={() => setMusicAlbumEffect(effect.id)}
+          />
         ))}
       </SettingsGroup>
 
-      <SettingsGroup label={t("myMusicAlbums")} footer={t("myMusicAlbumsHint")}>
-        <button type="button" className="settings-row" onClick={openNew}>
+      <SettingsGroup
+        label={t("myMusicAlbums")}
+        footer={t("myMusicAlbumsHint")}
+        action={
+          <button type="button" className="settings-group-action" onClick={openNew}>
+            <Plus className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+            {t("createMusicAlbum")}
+          </button>
+        }
+      >
+        <button type="button" className="settings-row settings-create-row" onClick={openNew}>
           <span className="settings-row-icon">
             <Plus className="h-4 w-4" strokeWidth={1.75} />
           </span>

@@ -7,17 +7,24 @@ import {
   desktopWindowMaximized,
   isDesktopShell,
   minimizeDesktopWindow,
+  onDesktopPage,
   requestOpenSettings,
   setDesktopFullscreen,
   toggleDesktopMaximize,
+  watchDesktopFocus,
   watchDesktopResize,
+  type DesktopPage,
 } from "@/lib/desktop";
+import { cn } from "@/lib/utils";
 
 export function DesktopTitleBar() {
   const { t } = useAppearance();
   const desktop = isDesktopShell();
   const [maximized, setMaximized] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const [page, setPage] = useState<DesktopPage>(
+    () => (document.documentElement.dataset.page === "settings" ? "settings" : "dashboard"),
+  );
   const fullscreenIntent = useRef<boolean | null>(null);
 
   const applyFullscreen = useCallback(async (next: boolean) => {
@@ -74,6 +81,39 @@ export function DesktopTitleBar() {
     };
   }, [desktop]);
 
+  useEffect(() => onDesktopPage(setPage), []);
+
+  useEffect(() => {
+    if (!desktop) return;
+    let unlisten: (() => void) | undefined;
+    let cancelled = false;
+    document.documentElement.dataset.windowFocus = "true";
+    void watchDesktopFocus((focused) => {
+      document.documentElement.dataset.windowFocus = focused ? "true" : "false";
+    })
+      .then((stop) => {
+        if (cancelled) stop();
+        else unlisten = stop;
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      delete document.documentElement.dataset.windowFocus;
+      unlisten?.();
+    };
+  }, [desktop]);
+
+  useEffect(() => {
+    if (!desktop) return;
+    const onContextMenu = (event: MouseEvent) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest("input, textarea, [contenteditable='true']")) return;
+      event.preventDefault();
+    };
+    window.addEventListener("contextmenu", onContextMenu);
+    return () => window.removeEventListener("contextmenu", onContextMenu);
+  }, [desktop]);
+
   useEffect(() => {
     if (!desktop) return;
     const onKey = (event: KeyboardEvent) => {
@@ -101,27 +141,52 @@ export function DesktopTitleBar() {
       <div className="vf-desktop-caption-drag" data-tauri-drag-region>
         <span className="vf-desktop-caption-mark" data-tauri-drag-region aria-hidden="true" />
         <span data-tauri-drag-region>VivoFlow</span>
+        {page === "settings" ? (
+          <>
+            <span className="vf-desktop-caption-sep" data-tauri-drag-region aria-hidden="true">
+              ·
+            </span>
+            <span data-tauri-drag-region>{t("settings")}</span>
+          </>
+        ) : null}
       </div>
       <div className="vf-desktop-caption-controls">
-        <button type="button" aria-label={t("windowFullscreen")} onClick={() => void applyFullscreen(true)}>
-          <Fullscreen />
-        </button>
-        <button type="button" className="is-settings" aria-label={t("settings")} onClick={requestOpenSettings}>
-          <Settings2 />
-        </button>
-        <button type="button" aria-label={t("windowMinimize")} onClick={() => void minimizeDesktopWindow()}>
-          <Minus />
-        </button>
-        <button
-          type="button"
-          aria-label={maximized ? t("windowRestore") : t("windowMaximize")}
-          onClick={() => void toggleDesktopMaximize()}
-        >
-          {maximized ? <Copy /> : <Square />}
-        </button>
-        <button type="button" className="is-close" aria-label={t("windowClose")} onClick={() => void closeDesktopWindow()}>
-          <X />
-        </button>
+        <div className="vf-desktop-caption-app">
+          <button
+            type="button"
+            title={`${t("windowFullscreen")} (F11)`}
+            aria-label={t("windowFullscreen")}
+            onClick={() => void applyFullscreen(true)}
+          >
+            <Fullscreen />
+          </button>
+          <button
+            type="button"
+            className={cn("is-settings", page === "settings" && "is-current")}
+            title={t("settings")}
+            aria-label={t("settings")}
+            aria-pressed={page === "settings"}
+            onClick={requestOpenSettings}
+          >
+            <Settings2 />
+          </button>
+        </div>
+        <div className="vf-desktop-caption-window">
+          <button type="button" title={t("windowMinimize")} aria-label={t("windowMinimize")} onClick={() => void minimizeDesktopWindow()}>
+            <Minus />
+          </button>
+          <button
+            type="button"
+            title={maximized ? t("windowRestore") : t("windowMaximize")}
+            aria-label={maximized ? t("windowRestore") : t("windowMaximize")}
+            onClick={() => void toggleDesktopMaximize()}
+          >
+            {maximized ? <Copy /> : <Square />}
+          </button>
+          <button type="button" className="is-close" title={t("windowClose")} aria-label={t("windowClose")} onClick={() => void closeDesktopWindow()}>
+            <X />
+          </button>
+        </div>
       </div>
     </header>
   );

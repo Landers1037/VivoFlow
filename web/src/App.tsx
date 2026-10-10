@@ -20,7 +20,7 @@ import { musicApi } from "@/lib/music";
 import { FullPageLoader } from "@/components/viz";
 import { AppearanceProvider, useAppearance } from "@/hooks/useAppearance";
 import { useVivoflowWs } from "@/hooks/useVivoflowWs";
-import { onOpenSettings } from "@/lib/desktop";
+import { onOpenSettings, publishDesktopPage } from "@/lib/desktop";
 import { cn } from "@/lib/utils";
 
 export default function App() {
@@ -59,6 +59,9 @@ function AppShell({
   const openSettingsRef = useRef(openSettings);
   openSettingsRef.current = openSettings;
   useEffect(() => onOpenSettings(() => openSettingsRef.current()), []);
+  useEffect(() => {
+    publishDesktopPage(page);
+  }, [page]);
   const [headerRevealed, setHeaderRevealed] = useState(false);
   const headerTimer = useRef<number | null>(null);
   const hideTitleBar = appearanceConfig.hide_title_bar && page === "dashboard";
